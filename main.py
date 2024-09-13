@@ -12,14 +12,14 @@ sys.path.append('/workspaces/credex-dev/credex-bot')
 # from credex_core import core_functions
 # from credex_bot import bot_functions
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 class CredexDev:
     def __init__(self):
         # self.core = core_functions
         # self.bot = bot_functions
-        pass
+        logger.info("CredexDev initialized")
 
     def run_automated_tests(self):
         logger.info("Running automated tests...")

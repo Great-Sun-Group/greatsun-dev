@@ -102,6 +102,12 @@ If you encounter any issues during setup or usage, please check the following:
 1. Ensure all required environment variables are set correctly.
 2. Check the logs of individual services in case of startup failures.
 3. Verify that your GitHub Personal Access Token has the necessary permissions.
+4. If you encounter issues with the Python virtual environment, try rebuilding the container or manually creating the venv:
+   ```
+   python3 -m venv /home/vscode/venv
+   source /home/vscode/venv/bin/activate
+   pip install -r requirements.txt
+   ```
 
 For more detailed troubleshooting, refer to the documentation in each submodule.
 

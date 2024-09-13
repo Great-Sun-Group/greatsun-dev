@@ -40,6 +40,9 @@ add_submodule "credex-bot"
 
 echo "Submodules added successfully!"
 
+# Activate virtual environment
+source /home/vscode/venv/bin/activate
+
 # Install dependencies and set up the environment
 cd /workspaces/credex-dev/credex-core && npm install
 cd /workspaces/credex-dev/credex-bot && pip install -r requirements.txt

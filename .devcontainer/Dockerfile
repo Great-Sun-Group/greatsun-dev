@@ -5,7 +5,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - \
     && apt-get install -y nodejs
 
 # Install Python and pip
-RUN apt-get update && apt-get install -y python3 python3-pip
+RUN apt-get update && apt-get install -y python3 python3-pip python3.10-venv
 
 # Install any additional packages you might need
 RUN apt-get update && apt-get install -y \

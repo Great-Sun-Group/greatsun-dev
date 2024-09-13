@@ -7,9 +7,16 @@ start_service() {
     local log_file="/workspaces/credex-dev/${service_name}.log"
 
     echo "Starting ${service_name}..."
-    cd "/workspaces/credex-dev/${service_name}"
-    eval "${start_command} > ${log_file} 2>&1 &"
+    if [ -d "/workspaces/credex-dev/${service_name}" ]; then
+        cd "/workspaces/credex-dev/${service_name}"
+        eval "${start_command} > ${log_file} 2>&1 &"
+    else
+        echo "Warning: ${service_name} directory not found. Skipping."
+    fi
 }
+
+# Activate virtual environment
+source /home/vscode/venv/bin/activate
 
 # Start credex-core
 start_service "credex-core" "npm run dev"
@@ -17,8 +24,10 @@ start_service "credex-core" "npm run dev"
 # Start credex-bot
 start_service "credex-bot" "python main.py"
 
-# Start credex-dev
-start_service "credex-dev" "python main.py"
+# Start credex-dev (main script in the root directory)
+echo "Starting credex-dev..."
+cd /workspaces/credex-dev
+python main.py > /workspaces/credex-dev/credex-dev.log 2>&1 &
 
 # Wait for services to start
 timeout=60
