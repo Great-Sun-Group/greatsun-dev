@@ -15,14 +15,14 @@ start_service() {
     fi
 }
 
-# Activate virtual environment
-source /home/vscode/venv/bin/activate
-
 # Start credex-core
 start_service "credex-core" "npm run dev"
 
 # Start credex-bot
-start_service "credex-bot" "python main.py"
+cd /workspaces/credex-dev/credex-bot
+source venv/bin/activate
+start_service "credex-bot" "python app/manage.py runserver 0.0.0.0:8000"
+deactivate
 
 # Start credex-dev (main script in the root directory)
 echo "Starting credex-dev..."
@@ -33,8 +33,8 @@ python main.py > /workspaces/credex-dev/credex-dev.log 2>&1 &
 timeout=60
 start_time=$(date +%s)
 while true; do
-    if grep -q "Server is running" "/workspaces/credex-dev/credex-core.log" && \
-       grep -q "Bot is running" "/workspaces/credex-dev/credex-bot.log" && \
+    if grep -q "Starting development server" "/workspaces/credex-dev/credex-core.log" && \
+       grep -q "Starting development server at http://0.0.0.0:8000/" "/workspaces/credex-dev/credex-bot.log" && \
        grep -q "Credex-dev is running" "/workspaces/credex-dev/credex-dev.log"; then
         echo "All services started successfully!"
         break
