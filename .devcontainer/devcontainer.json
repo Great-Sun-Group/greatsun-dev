@@ -12,9 +12,9 @@
         }
     },
     "forwardPorts": [],
-    "workspaceFolder": "/workspaces/credex-dev",
-    "postCreateCommand": "bash /workspaces/credex-dev/init-environment.sh",
-    "postStartCommand": "bash /workspaces/credex-dev/git_manager.sh startup",
+    "workspaceFolder": "/workspaces/greatsun-dev",
+    "postCreateCommand": "bash /workspaces/greatsun-dev/init-environment.sh",
+    "postStartCommand": "bash /workspaces/greatsun-dev/git_manager.sh startup",
     "remoteEnv": {
         "GH_PAT": "${localEnv:GH_PAT}"
     },
