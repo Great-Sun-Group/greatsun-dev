@@ -1,0 +1,15 @@
+{
+    "name": "Claude Dev Environment",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "AnthropicAI.claude-dev"
+            ]
+        }
+    },
+    "forwardPorts": [],
+    "postCreateCommand": "echo 'DevContainer created successfully!'"
+}
