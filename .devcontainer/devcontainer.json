@@ -1,5 +1,5 @@
 {
-    "name": "Claude Dev Environment",
+    "name": "Credex Dev Environment",
     "build": {
         "dockerfile": "Dockerfile"
     },
@@ -11,5 +11,12 @@
         }
     },
     "forwardPorts": [],
-    "postCreateCommand": "echo 'DevContainer created successfully!'"
+    "workspaceFolder": "/workspaces/credex-dev",
+    "postCreateCommand": "chmod +x /workspaces/credex-dev/setup-submodules.sh && /workspaces/credex-dev/setup-submodules.sh",
+    "remoteEnv": {
+        "GH_PAT": "${localEnv:GH_PAT}"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    }
 }
