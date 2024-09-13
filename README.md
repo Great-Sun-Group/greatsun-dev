@@ -1,9 +1,19 @@
-# credex-dev
-Development environment for the credex-core API and client apps
+# Credex-Dev
 
-## Unified Development Environment Setup
+Development environment for the Credex ecosystem, including credex-core API and credex-bot client apps.
 
-This repository contains a unified development environment for the Credex ecosystem, including both credex-core and credex-bot as submodules, with credex-dev implemented in Python for testing, data analysis, and transaction simulation.
+## Overview
+
+This repository contains a unified development environment for the Credex ecosystem, including both credex-core and credex-bot as submodules. It provides tools for testing, data analysis, and transaction simulation.
+
+## Prerequisites
+
+- GitHub account with access to Credex repositories
+- Git
+- Docker and Docker Compose (for local development)
+- Visual Studio Code (recommended)
+
+## Setup
 
 ### For Codespaces
 
@@ -33,14 +43,16 @@ This repository contains a unified development environment for the Credex ecosys
    GH_PAT=your_personal_access_token
    ```
 
-3. Open the project in Visual Studio Code and reopen in a devcontainer when prompted, or run:
+3. Build and start the development container:
    ```
-   code .
+   docker-compose up -d --build
    ```
 
-4. The devcontainer will automatically set up the environment and submodules using the `init-environment.sh` script.
+4. Attach VS Code to the running container or use `docker exec` to access the container's shell.
 
-## Starting the Services
+## Usage
+
+### Starting Services
 
 To start all services (credex-core, credex-bot, and credex-dev), run:
 
@@ -48,17 +60,34 @@ To start all services (credex-core, credex-bot, and credex-dev), run:
 bash /workspaces/credex-dev/start-services.sh
 ```
 
-This will start credex-core, credex-bot, and credex-dev services and display their logs.
+This will start all services and display their logs.
 
-## Repository Structure
+### Running Tests
 
-- `credex-core/`: Submodule containing the Credex Core API (Express.js)
-- `credex-bot/`: Submodule containing the Credex Bot (Python)
+To run automated tests:
+
+```bash
+python -m pytest tests/
+```
+
+### Analyzing Data
+
+Data analysis functionality can be accessed through the `CredexDev` class in `main.py`. Refer to the class methods for specific analysis capabilities.
+
+### Simulating Transactions
+
+Transaction simulation is also available through the `CredexDev` class in `main.py`.
+
+## Project Structure
+
+- `credex-core/`: Submodule containing the Credex Core API
+- `credex-bot/`: Submodule containing the Credex Bot
 - `.devcontainer/`: Configuration files for the development container
-- `init-environment.sh`: Script to securely set up the submodules and environment
-- `start-services.sh`: Script to start all services
-- `main.py`: Main Python script for credex-dev
+- `tests/`: Automated tests for the development environment
+- `main.py`: Main Python script for credex-dev functionality
 - `requirements.txt`: Python dependencies for credex-dev
+- `init-environment.sh`: Script to set up the submodules and environment
+- `start-services.sh`: Script to start all services
 
 ## Contributing
 
@@ -66,13 +95,16 @@ Please refer to the individual submodule repositories for contribution guideline
 
 For changes to the development environment itself, please create a pull request in this repository.
 
-## Development in credex-dev
+## Troubleshooting
 
-The `main.py` file in the root directory contains the main logic for credex-dev. It includes functionality for running automated tests, analyzing data, and simulating transactions. To extend or modify this functionality:
+If you encounter any issues during setup or usage, please check the following:
 
-1. Edit the `main.py` file to add or change features.
-2. If you need to add new Python dependencies, add them to the `requirements.txt` file.
-3. Run `pip install -r requirements.txt` to install any new dependencies.
-4. Use the `start-services.sh` script to run your updated credex-dev along with credex-core and credex-bot.
+1. Ensure all required environment variables are set correctly.
+2. Check the logs of individual services in case of startup failures.
+3. Verify that your GitHub Personal Access Token has the necessary permissions.
 
-Remember to test your changes thoroughly and ensure they don't interfere with the functioning of credex-core or credex-bot.
+For more detailed troubleshooting, refer to the documentation in each submodule.
+
+## Support
+
+If you need assistance or have any questions, please open an issue in this repository or contact the Credex development team.

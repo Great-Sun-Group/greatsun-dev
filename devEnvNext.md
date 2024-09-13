@@ -1,7 +1,9 @@
 # Credex-Dev Next Steps Workplan
 
 ## 1. Review and Test Changes
-- [ ] Create a new Codespace or set up local environment
+- [x] Update Dockerfile to fix user creation issue
+- [x] Update init-environment.sh script
+- [ ] Create a new Codespace or set up local environment with updated files
 - [ ] Verify all services (credex-core, credex-bot, credex-dev) start correctly
 - [ ] Test the integration of all components
 
@@ -58,6 +60,12 @@
 - [ ] Conduct team review of credex-dev implementation
 - [ ] Gather feedback from users
 - [ ] Plan next iteration of improvements
+
+## 11. Additional Tasks
+- [ ] Update Node.js version in Dockerfile (current version 14.x is deprecated)
+- [ ] Review and update Python package versions in requirements.txt
+- [ ] Implement error handling and logging in init-environment.sh and start-services.sh
+- [ ] Create a troubleshooting guide for common setup issues
 
 ## Notes
 - Prioritize tasks based on immediate project needs

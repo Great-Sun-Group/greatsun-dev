@@ -20,8 +20,12 @@ ENV DEBIAN_FRONTEND=noninteractive
 ARG USERNAME=vscode
 ARG USER_UID=1000
 ARG USER_GID=$USER_UID
-RUN groupadd --gid $USER_GID $USERNAME \
-    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+# Check if the user already exists, and if not, create it
+RUN if ! id -u $USERNAME > /dev/null 2>&1; then \
+        groupadd --gid $USER_GID $USERNAME \
+        && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME; \
+    fi
 
 # Set the default user
 USER $USERNAME

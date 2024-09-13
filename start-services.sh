@@ -1,19 +1,24 @@
 #!/bin/bash
 
+# Function to start a service
+start_service() {
+    local service_name=$1
+    local start_command=$2
+    local log_file="/workspaces/credex-dev/${service_name}.log"
+
+    echo "Starting ${service_name}..."
+    cd "/workspaces/credex-dev/${service_name}"
+    eval "${start_command} > ${log_file} 2>&1 &"
+}
+
 # Start credex-core
-echo "Starting credex-core..."
-cd /workspaces/credex-dev/credex-core
-npm run dev > /workspaces/credex-dev/credex-core.log 2>&1 &
+start_service "credex-core" "npm run dev"
 
 # Start credex-bot
-echo "Starting credex-bot..."
-cd /workspaces/credex-dev/credex-bot
-python main.py > /workspaces/credex-dev/credex-bot.log 2>&1 &
+start_service "credex-bot" "python main.py"
 
 # Start credex-dev
-echo "Starting credex-dev..."
-cd /workspaces/credex-dev
-python main.py > /workspaces/credex-dev/credex-dev.log 2>&1 &
+start_service "credex-dev" "python main.py"
 
 # Wait for services to start
 timeout=60
