@@ -6,13 +6,14 @@
     "customizations": {
         "vscode": {
             "extensions": [
-                "saoudrizwan.claude-dev"
+                "saoudrizwan.claude-dev",
+                "ms-python.python"
             ]
         }
     },
     "forwardPorts": [],
     "workspaceFolder": "/workspaces/credex-dev",
-    "postCreateCommand": "chmod +x /workspaces/credex-dev/setup-submodules.sh && /workspaces/credex-dev/setup-submodules.sh",
+    "postCreateCommand": "bash /workspaces/credex-dev/init-environment.sh",
     "remoteEnv": {
         "GH_PAT": "${localEnv:GH_PAT}"
     },

@@ -1,0 +1,5 @@
+# Add any Python packages required for credex-dev
+pandas
+numpy
+pytest
+requests

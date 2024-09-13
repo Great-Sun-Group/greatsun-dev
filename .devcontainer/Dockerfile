@@ -1,5 +1,12 @@
 FROM mcr.microsoft.com/vscode/devcontainers/base:ubuntu
 
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_14.x | bash - \
+    && apt-get install -y nodejs
+
+# Install Python and pip
+RUN apt-get update && apt-get install -y python3 python3-pip
+
 # Install any additional packages you might need
 RUN apt-get update && apt-get install -y \
     git \
@@ -9,7 +16,19 @@ RUN apt-get update && apt-get install -y \
 # Set up any environment variables if needed
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Any additional setup or configurations can be added here
+# Create a non-root user
+ARG USERNAME=vscode
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd -s /bin/bash --uid $USER_UID --gid $USER_GID -m $USERNAME
+
+# Set the default user
+USER $USERNAME
+
+# Set up Python virtual environment
+RUN python3 -m venv /home/$USERNAME/venv
+ENV PATH="/home/$USERNAME/venv/bin:$PATH"
 
 # Switch back to dialog for any ad-hoc use of apt-get
 ENV DEBIAN_FRONTEND=dialog
