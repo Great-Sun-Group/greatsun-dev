@@ -1,0 +1,32 @@
+Traceback (most recent call last):
+  File "/workspaces/credex-dev/credex-bot/app/manage.py", line 22, in <module>
+    main()
+  File "/workspaces/credex-dev/credex-bot/app/manage.py", line 18, in main
+    execute_from_command_line(sys.argv)
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 382, in execute
+    settings.INSTALLED_APPS
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/django/conf/__init__.py", line 102, in __getattr__
+    self._setup(name)
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/django/conf/__init__.py", line 89, in _setup
+    self._wrapped = Settings(settings_module)
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/django/conf/__init__.py", line 217, in __init__
+    mod = importlib.import_module(self.SETTINGS_MODULE)
+  File "/usr/lib/python3.10/importlib/__init__.py", line 126, in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+  File "<frozen importlib._bootstrap>", line 1050, in _gcd_import
+  File "<frozen importlib._bootstrap>", line 1027, in _find_and_load
+  File "<frozen importlib._bootstrap>", line 1006, in _find_and_load_unlocked
+  File "<frozen importlib._bootstrap>", line 688, in _load_unlocked
+  File "<frozen importlib._bootstrap_external>", line 883, in exec_module
+  File "<frozen importlib._bootstrap>", line 241, in _call_with_frames_removed
+  File "/workspaces/credex-dev/credex-bot/app/config/settings.py", line 8, in <module>
+    SECRET_KEY = config('SECRET_KEY')
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/decouple.py", line 248, in __call__
+    return self.config(*args, **kwargs)
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/decouple.py", line 107, in __call__
+    return self.get(*args, **kwargs)
+  File "/workspaces/credex-dev/credex-bot/venv/lib/python3.10/site-packages/decouple.py", line 92, in get
+    raise UndefinedValueError('{} not found. Declare it as envvar or define a default value.'.format(option))
+decouple.UndefinedValueError: SECRET_KEY not found. Declare it as envvar or define a default value.

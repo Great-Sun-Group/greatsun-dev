@@ -1,0 +1,24 @@
+{
+    "name": "Credex Dev Environment",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "saoudrizwan.claude-dev",
+                "ms-python.python"
+            ]
+        }
+    },
+    "forwardPorts": [],
+    "workspaceFolder": "/workspaces/credex-dev",
+    "postCreateCommand": "bash /workspaces/credex-dev/init-environment.sh",
+    "postStartCommand": "bash /workspaces/credex-dev/git_manager.sh startup",
+    "remoteEnv": {
+        "GH_PAT": "${localEnv:GH_PAT}"
+    },
+    "features": {
+        "ghcr.io/devcontainers/features/github-cli:1": {}
+    }
+}
