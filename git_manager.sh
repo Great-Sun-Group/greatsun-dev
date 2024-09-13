@@ -25,20 +25,15 @@ has_changes() {
 # Repositories
 repos=("credex-bot" "credex-core" "credex-dev")
 
-# Prompt for branch name
-read -p "Enter branch name: " branch_name
-
-# Apply branch across all repositories
-for repo in "${repos[@]}"; do
-    execute_git_command "$repo" "git fetch --all"
-    execute_git_command "$repo" "git checkout -b $branch_name origin/$branch_name || git checkout -b $branch_name"
-done
-
 # Function to create new branches
 create_branches() {
-    read -p "Enter new branch name: " new_branch
+    local new_branch=$1
+    if [ -z "$new_branch" ]; then
+        read -p "Enter new branch name: " new_branch
+    fi
     for repo in "${repos[@]}"; do
-        execute_git_command "$repo" "git checkout -b $new_branch"
+        execute_git_command "$repo" "git fetch --all"
+        execute_git_command "$repo" "git checkout -b $new_branch origin/$new_branch || git checkout -b $new_branch"
     done
 }
 
@@ -58,25 +53,31 @@ push_changes() {
         if has_changes "$repo"; then
             execute_git_command "$repo" "git add ."
             execute_git_command "$repo" "git commit -m \"$commit_message [$uuid]\""
-            execute_git_command "$repo" "git push origin $branch_name"
+            execute_git_command "$repo" "git push origin $(git rev-parse --abbrev-ref HEAD)"
         else
             echo "No changes in $repo"
         fi
     done
 }
 
-# Main menu
-while true; do
-    echo "1. Create new branches"
-    echo "2. Checkout branches"
-    echo "3. Push changes"
-    echo "4. Exit"
-    read -p "Choose an option: " choice
-    case $choice in
-        1) create_branches ;;
-        2) checkout_branches ;;
-        3) push_changes ;;
-        4) exit 0 ;;
-        *) echo "Invalid option" ;;
-    esac
-done
+# Check if script is run on startup
+if [ "$1" = "startup" ]; then
+    echo "Running on startup. Creating a new branch."
+    create_branches "feature-$(date +%Y%m%d-%H%M%S)"
+else
+    # Main menu
+    while true; do
+        echo "1. Create new branches"
+        echo "2. Checkout branches"
+        echo "3. Push changes"
+        echo "4. Exit"
+        read -p "Choose an option: " choice
+        case $choice in
+            1) create_branches ;;
+            2) checkout_branches ;;
+            3) push_changes ;;
+            4) exit 0 ;;
+            *) echo "Invalid option" ;;
+        esac
+    done
+fi

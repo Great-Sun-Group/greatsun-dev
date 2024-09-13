@@ -107,7 +107,7 @@ To start all services (credex-core, credex-bot, and credex-dev) and manage Git o
    ```
    This will start all services and display their logs.
 
-2. For Git management, we've introduced a script `git_manager.sh` to help manage Git operations across all three repositories (credex-bot, credex-core, and credex-dev) simultaneously:
+2. For Git management, use `git_manager.sh` to help manage Git operations across all three repositories (credex-bot, credex-core, and credex-dev) simultaneously:
 
    a. Make the script executable (if not already):
       ```bash
