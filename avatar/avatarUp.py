@@ -6,7 +6,7 @@ from anthropic import Anthropic
 
 api_key = os.getenv("CLAUDE")
 
-logs_directory = "conversationLog"
+logs_directory = "avatar/conversationLog"
 os.makedirs(logs_directory, exist_ok=True)
 
 def setup_logger():
@@ -95,24 +95,24 @@ while True:
         f"# Attached file contents\n{included_file_content}" if included_file_content else None
     ]))
     
-    write_to_file("messageSent.txt", message_content)
+    write_to_file("avatar/messageSent.txt", message_content)
     
     try:
         message = client.messages.create(
-            model="claude-3-opus-20240229",
-            max_tokens=2000,
+            model="claude-3-sonnet-20240229",  # Changed to Claude 3.5 Sonnet
+            max_tokens=4096,
             messages=[
                 {"role": "user", "content": message_content}
             ]
         )
         
-        avatar_response = message.json()['completion']
+        avatar_response = message.content[0].text  # Corrected to access the response content
         
         print(f"Avatar: {avatar_response}")
         logger.info(f"File: {file_path}")
         logger.info(f"Avatar: {avatar_response}")
         
-        write_to_file("responseReceived.txt", avatar_response)
+        write_to_file("avatar/responseReceived.txt", avatar_response)
         
         try:
             response_json = json.loads(avatar_response)

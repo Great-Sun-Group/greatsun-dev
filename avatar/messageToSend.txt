@@ -1,1 +1,1 @@
-I want to be able to see the full content of the last message sent to the AI in human readable format. save it to avatar/lastMessageSent.txt. ensure the file exists, create if not, overwrite what is there if so.
+I want to move the conversationLog folder from root to the avatar folder, and update this script to reference the new location. send me the terminal command(s) and the updated script.

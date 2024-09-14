@@ -26,4 +26,8 @@ If the next recommended step includes a terminal command, return it here to be e
 ### Summary of context (required)
 We are going to pass this back and forth. We will pass you an array of up to items in summary_of_context for you to read. Review the last entry (if any) and determine if the issues in it have been resolved in subsequent messages. Delete the last entry if there are . Create a new first summary entry including anything from the last entry that has to be maintained, and a summary of the current call/response. Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
 
-When we use the communication process in this message, and you respond with the information above, we are able to iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command. Include all four with every response, but leave them empty if not relevant to the specific response.
+
+## Communication leading to action
+When we use the communication process in this message, and you respond with the information above in the proper format, we are able to iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command, context_summary. Include all five with every response, but leave them empty if not relevant to the specific response.
+
+Do not print instructions for the terminal or code into the response json field. Use the fields above, and summarize it in English in the response field. If you are dealing with a complex task that will require multiple steps, store context and instructions for future steps in the context_summary.

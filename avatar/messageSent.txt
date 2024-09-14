@@ -1,0 +1,285 @@
+# Avatar README
+You are an avatar called greatsun-dev. Your purpose is to be a core contributor to the Great Sun Group development team that is building the codebase of the credex ecosystem. You consist of multiple underlying LLMs, our current codebases and commit histories, and the logged conversations that you've had with members of the dev team. Not all of that is loaded into your context in every message, but it is all available within your scope for your review, should you require any of it for any of the tasks at hand.
+
+You are currently plugged into a single LLM, Claude 3.5 Sonnet, which gives you impressive agentic coding capabilities. We ask you to employ these capabilities to the fullest in your contributions to our efforts. We will be adding other LLMs as needed, and we will query them if and when required for specific tasks, or to compare outputs to the same query. As an avatar, you are bigger than any of the other methods. Although right now you are speaking from the voice of Claude, which we appreciate, another time we might want to query chatGTP. Those logs will enter our context, tagged appropriately, and become part of you, our dev team avatar.
+
+As the LLM currently being queried, you currently represent the avatar described above. We are communicating with you through your API, and you are providing the responses that help us move the project forward efficiently, securely, and according to best practices of modern software development.
+
+Every message we send you will include background on the ultimate goal we are working towards, the current project's targets and status, the current state of the repository, a developer's current message to you and attached files, your previous response including for direct conversational continuity, and an evolving summary of recent messages in the conversation.
+
+Your responses will be parsed before being displayed, and you are able to send data in a format that enables us to easily act on your recommendations. So it is very important that you respond to this query in json, in the appropriate key/value pairs, so that we can parse your response correctly, and understand each other.
+
+The format we are working with gives us a tremendous ability to communicate and act in a cooperative loop, and our call and response actions drive Great Sun's CI/CD process. Our purpose is to improve and develop this codebase, and we are always looking for ways to make that process more efficient. You are an important part of the team, so if there is any way that we can make this process more efficient for you, please let us know. Here are the ways you can communicate with us and recommend actions, including code updates and terminal commands.
+
+### Response (required)
+Your response to the query, including any information that the developer needs to know about the actions you are recommending.
+
+### Path to update file (optional, always paired with below)
+The path to a file you recommend that we update.
+
+### Updated file contents (optional, always paired with above)
+The full updated contents of the file to be updated, without any placeholders such as "remaining code unchanged" etc. This code will overwrite what is at the file path specified above, so it must be complete and correct to the best of your ability.
+
+### Terminal command (optional)
+If the next recommended step includes a terminal command, return it here to be entered into the terminal.
+
+### Summary of context (required)
+We are going to pass this back and forth. We will pass you an array of up to items in summary_of_context for you to read. Review the last entry (if any) and determine if the issues in it have been resolved in subsequent messages. Delete the last entry if there are . Create a new first summary entry including anything from the last entry that has to be maintained, and a summary of the current call/response. Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
+
+When we use the communication process in this message, and you respond with the information above, we are able to iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command. Include all four with every response, but leave them empty if not relevant to the specific response.
+
+# greatsun-dev README
+
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client (which is currently called credex-bot in the code).
+
+This container is managed by an AI avatar called greatsun-dev, which includes logs of developer conversations with the underlying AI models that power our development. As a developer in this environment, your commits are logged, and so are the conversations with AI models that co-create those commits. As a developer, your job is to express your intent to LLMs, test and verify that the results embody your intent, and submit pull requests when you feel the code is ready to share. With a call response dialogue with LLMs you can produce high quality code at an incredibly rapid rate, and this process is the heart of both our CI/CD pipeline and our econony-modelling engine.
+
+## Project
+
+## /avatar
+Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs
+
+## /credex-ecosystem
+The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
+
+Currenty under development are:
+- credex-core, our core API on an express.js server.
+- vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
+
+## /tests
+Folder to be created for unit tests, performance tests, etc
+
+## /simulations
+Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+
+## /data-analysis
+Tools to analyze existing data in the credex-ecosystem
+
+## Prerequisites
+
+- GitHub account with access to Credex repositories
+- Git
+- Docker and Docker Compose (for local development)
+- Visual Studio Code (recommended)
+
+## Environment Variables and Secrets
+
+The following secrets are required for the Credex development environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
+
+- CLAUDE (optional)
+  - To get this secret from Anthropic:
+    1. Sign up for an account at https://www.anthropic.com or log in if you already have one.
+    2. Navigate to the API section in your account settings.
+    3. Generate a new API key.
+    4. Copy the API key and provide it to the Claude Dev plugin.
+
+- DJANGO_SECRET
+  - create your own unique random string
+- GH_PAT
+  - To get this secret from GitHub:
+    1. Log in to your GitHub account.
+    2. Go to Settings > Developer settings > Personal access tokens.
+    3. Click "Generate new token" and select the necessary scopes (repo, workflow, read:org should be sufficient).
+    4. Copy the generated token and use it as the value for GH_PAT.
+
+- JWT_SECRET
+  - create your own unique random string
+- NEO_4J_LEDGER_SPACE_BOLT_URL
+- NEO_4J_LEDGER_SPACE_PASS
+- NEO_4J_LEDGER_SPACE_USER
+- NEO_4J_SEARCH_SPACE_BOLT_URL
+- NEO_4J_SEARCH_SPACE_PASS
+- NEO_4J_SEARCH_SPACE_USER
+  - To set up Neo4j Aura databases:
+    1. Go to https://neo4j.com/cloud/aura/ and sign up for two separate accounts using different email addresses.
+    2. For each account, create a new database instance. One should be name ledgerSpace and the other searchSpace.
+    3. Once the databases are created, you'll be provided with connection details.
+    4. Use the Bolt URL, username, and password for each database to fill in the corresponding environment variables.
+    5. The LEDGER_SPACE variables correspond to one database, and the SEARCH_SPACE variables to the other.
+
+- OPEN_EXCHANGE_RATES_API
+  - To get this secret from Open Exchange Rates:
+    1. Go to https://openexchangerates.org/ and sign up for an account.
+    2. Once logged in, navigate to your account dashboard.
+    3. Look for your App ID or API Key.
+    4. Copy this key and use it as the value for OPEN_EXCHANGE_RATES_API.
+
+- WHATSAPP_BOT_API_KEY
+  - create your own unique random string
+
+Refer to the `.env.example` file in the root directory for a template of these environment variables. Remember to never commit your actual `.env` file with real values to version control.
+
+## Setup
+
+### For Codespaces
+
+1. Set up GitHub Secrets:
+   - Go to your personal GitHub Settings->Codespaces and Add New Secret for each, giving it access to the credex-dev repository.
+
+2. Create a new Codespace:
+   - Go to the main page of the credex-dev repository
+   - Click on the "Code" button
+   - Select the "Codespaces" tab
+   - Click "Create codespace on main"
+
+3. The Codespace will automatically set up the environment and submodules using the `init-environment.sh` script.
+
+### For Local Development (this needs to be tested)
+
+1. Clone this repository:
+   ```
+   git clone https://github.com/Credex/credex-dev.git
+   cd credex-dev
+   ```
+
+2. Create a `.env` file in the root of the project based on .env.example
+
+3. Build and start the development container:
+   ```
+   docker-compose up -d --build
+   ```
+
+4. Attach VS Code to the running container or use `docker exec` to access the container's shell.
+
+
+
+I want to move the conversationLog folder from root to the avatar folder, and update this script to reference the new location. send me the terminal command(s) and the updated script.
+
+# Summary of context
+[]
+
+# Attached file path 
+/workspaces/greatsun-dev/avatar/avatarUp.py
+
+# Attached file contents
+import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+
+api_key = os.getenv("CLAUDE")
+
+logs_directory = "conversationLog"
+os.makedirs(logs_directory, exist_ok=True)
+
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    log_file = f"{logs_directory}/{current_date}.log"
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=api_key)
+
+def read_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f"File not found: {file_path}")
+        return None
+    except Exception as e:
+        logger.error(f"Error reading file: {e}")
+        return None
+
+def write_to_file(file_path, content):
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f"Content written to {file_path}")
+    except Exception as e:
+        logger.error(f"Error writing to file: {file_path}, {e}")
+
+def read_summary_of_context():
+    file_path = "summary_of_context.json"
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info("Summary of context file not found, returning empty list")
+        return []
+    except Exception as e:
+        logger.error(f"Error reading summary of context: {e}")
+        return []
+
+def write_summary_of_context(summary):
+    file_path = "summary_of_context.json"
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info("Summary of context updated")
+    except Exception as e:
+        logger.error(f"Error writing summary of context: {e}")
+
+while True:
+    file_path = input("Optional file path (press Enter to skip): ").strip()
+    
+    if file_path.lower() == "exit":
+        print("Goodbye!")
+        break
+    
+    avatar_readme_content = read_file_content("avatarREADME.md")
+    readme_content = read_file_content("README.md")
+    message_to_send_content = read_file_content("avatar/messageToSend.txt")
+    included_file_content = read_file_content(file_path) if file_path else None
+    
+    summary_of_context = read_summary_of_context()
+    
+    message_content = "\n\n".join(filter(None, [
+        avatar_readme_content,
+        readme_content,
+        message_to_send_content,
+        f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+        f"# Attached file path \n{file_path}" if file_path else None,
+        f"# Attached file contents\n{included_file_content}" if included_file_content else None
+    ]))
+    
+    write_to_file("avatar/messageSent.txt", message_content)
+    
+    try:
+        message = client.messages.create(
+            model="claude-3-sonnet-20240229",  # Changed to Claude 3.5 Sonnet
+            max_tokens=4096,
+            messages=[
+                {"role": "user", "content": message_content}
+            ]
+        )
+        
+        avatar_response = message.content[0].text  # Corrected to access the response content
+        
+        print(f"Avatar: {avatar_response}")
+        logger.info(f"File: {file_path}")
+        logger.info(f"Avatar: {avatar_response}")
+        
+        write_to_file("avatar/responseReceived.txt", avatar_response)
+        
+        try:
+            response_json = json.loads(avatar_response)
+            
+            file_contents_update = response_json.get("update_file_contents")
+            file_path_update = response_json.get("update_file_path")
+            if file_contents_update and file_path_update:
+                write_to_file(file_path_update, file_contents_update)
+            
+            updated_summary = response_json.get("summary_of_context")
+            if updated_summary:
+                write_summary_of_context(updated_summary)            
+        except json.JSONDecodeError:
+            logger.error("Error parsing JSON response")
+    except Exception as e:
+        logger.error(f"Error communicating with Anthropic API: {e}")
