@@ -28,6 +28,9 @@ def read_file_content(file_path):
     try:
         with open(file_path, 'r') as file:
             return file.read()
+    except FileNotFoundError:
+        logger.error(f"File not found: {file_path}")
+        return None
     except Exception as e:
         logger.error(f"Error reading file: {e}")
         return None
@@ -47,6 +50,7 @@ def read_summary_of_context():
         with open(file_path, 'r') as file:
             return json.load(file)
     except FileNotFoundError:
+        logger.info("Summary of context file not found, returning empty list")
         return []
     except Exception as e:
         logger.error(f"Error reading summary of context: {e}")

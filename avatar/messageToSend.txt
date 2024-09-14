@@ -1,1 +1,1 @@
-this script isn't saving the update_file_contents properly to the file. analyze and update
+I want to be able to see the full content of the last message sent to the AI in human readable format. save it to lastMessageSent.txt. ensure the file exists, create if not, overwrite what is there if so.
