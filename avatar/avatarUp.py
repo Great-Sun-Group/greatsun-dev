@@ -3,19 +3,18 @@ import os
 import json
 from datetime import datetime
 from anthropic import Anthropic
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
-# Environment variables and constants
 API_KEY = os.getenv("CLAUDE")
 LOGS_DIRECTORY = "avatar/conversationLog"
 SUMMARY_FILE = "summary_of_context.json"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.txt"
-CURRENT_CONTEXT_DIR = "avatar/currentContext"
+CONTEXT_DIR = "avatar/context"
 
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
-os.makedirs(CURRENT_CONTEXT_DIR, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
 
 def setup_logger() -> logging.Logger:
     logger = logging.getLogger(__name__)
@@ -60,7 +59,7 @@ def write_to_file(file_path: str, content: str) -> None:
     except Exception as e:
         logger.error(f"Error writing to file: {file_path}, {e}")
 
-def read_summary_of_context() -> list:
+def read_summary_of_context() -> List[Dict[str, str]]:
     try:
         with open(SUMMARY_FILE, 'r') as file:
             return json.load(file)
@@ -71,7 +70,7 @@ def read_summary_of_context() -> list:
         logger.error(f"Error reading summary of context: {e}")
         return []
 
-def write_summary_of_context(summary: list) -> None:
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
     try:
         with open(SUMMARY_FILE, 'w') as file:
             json.dump(summary, file, indent=2)
@@ -113,13 +112,13 @@ def main():
             avatar_readme_content,
             readme_content,
             message_to_send_content,
-            f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+            f"### Summary of context (required)\n{json.dumps(summary_of_context, indent=2)}",
             f"# Directory structure\n{directory_tree_json}",
             f"# Attached file path \n{file_path}" if file_path else None,
             f"# Attached file contents\n{included_file_content}" if included_file_content else None
         ]))
         
-        write_to_file(os.path.join(CURRENT_CONTEXT_DIR, "messageSent.txt"), message_content)
+        write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
         
         try:
             message = client.messages.create(
@@ -136,22 +135,38 @@ def main():
             logger.info(f"File: {file_path}")
             logger.info(f"Avatar: {avatar_response}")
             
-            write_to_file(os.path.join(CURRENT_CONTEXT_DIR, "responseReceived.txt"), avatar_response)
+            write_to_file(os.path.join(CONTEXT_DIR, "responseReceived.txt"), avatar_response)
             
             try:
                 response_json = json.loads(avatar_response)
                 
+                # Handle file update
                 file_contents_update = response_json.get("update_file_contents")
                 file_path_update = response_json.get("update_file_path")
                 if file_contents_update and file_path_update:
                     write_to_file(file_path_update, file_contents_update)
-                    logger.info(f"File overwritten: {file_path_update}")
+                    logger.info(f"File updated: {file_path_update}")
                 
-                updated_summary = response_json.get("summary_of_context")
-                if updated_summary:
-                    write_summary_of_context(updated_summary)            
+                # Handle context summary update
+                context_summary = response_json.get("context_summary")
+                if context_summary:
+                    context_summary_path = os.path.join(CONTEXT_DIR, "context_summary.json")
+                    write_to_file(context_summary_path, json.dumps(context_summary, indent=2))
+                    logger.info("Context summary updated")
+                
+                # Handle terminal command
+                terminal_command = response_json.get("terminal_command")
+                if terminal_command:
+                    print(f"Suggested terminal command: {terminal_command}")
+                    logger.info(f"Suggested terminal command: {terminal_command}")
+                
+                # Print response
+                print(response_json.get("response", "No response provided"))
+                
             except json.JSONDecodeError:
                 logger.error("Error parsing JSON response")
+                print("Error: The AI's response was not in the expected JSON format.")
+                
         except Exception as e:
             logger.error(f"Error communicating with Anthropic API: {e}")
 

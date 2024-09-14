@@ -30,11 +30,7 @@ The full updated contents of the file to be updated, without any placeholders su
 If the next recommended step includes a terminal command, return it here to be entered into the terminal.
 
 ### Summary of context (required)
-We are going to pass this back and forth. We will pass you an array of up to 5 items in summary_of_context.
-- If there are 5 or more entries, review the final entry and compare it to more recent entries to determine if any of the issues in the last entry remain unresolved. Delete the last entry.
-- Create and prepend a new entry to this array, include anything from the deleted entry that has to be maintained in context (tasks unresolved or in process), and a summary of the current call/response. each entry should be for a developer message and an LLM response.
-- Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
-- We will pass the array back to you as we received it, along with our next query.
+State the current status of the short term task we are working on. Include completed actions and next actions. We will pass this back and forth. We will pass the array back to you as we received it, along with our next query. You are to review it for context to the current message, and update it in your response. Delete mention of items that were passed to you to tell you they were completed. Add completed items from the current query. Continue to mention any tasks in progress or current goals.
 
 ## Code requirements
 - All code returned will be to current best practices regarding commenting, clarity, etc.
