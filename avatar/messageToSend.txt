@@ -1,1 +1,1 @@
-I want to test our ability to navigate multi-step processes using the processes outlined in avatarREADME, especially the context_summary. We need to rename currentContext to to context, move conversationLog into the folder, and update this script so it gets the proper imports and writes with the new tree.
+move getDirectoryTree, seeageSent, and response received from currentContect to context, and update this file so that it imports and writes them to the new locations.

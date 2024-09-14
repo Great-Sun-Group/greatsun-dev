@@ -7,7 +7,7 @@ from typing import Optional, Dict, Any, List
 
 API_KEY = os.getenv("CLAUDE")
 LOGS_DIRECTORY = "avatar/conversationLog"
-SUMMARY_FILE = "summary_of_context.json"
+SUMMARY_FILE = "avatar/context/context_summary.json"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.txt"
