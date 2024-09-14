@@ -1,0 +1,134 @@
+import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+from readContext import read_context, save_context
+
+# Get the API key from the environment variable
+api_key = os.getenv("CLAUDE")
+
+# Create a logs directory if it doesn't exist
+logs_directory = "RyanLukeAvatar"
+os.makedirs(logs_directory, exist_ok=True)
+
+# Create a logger
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+# Create a file handler for the logger
+current_date = datetime.now().strftime("%Y-%m-%d")
+log_file = f"{logs_directory}/{current_date}.log"
+file_handler = logging.FileHandler(log_file)
+file_handler.setLevel(logging.INFO)
+
+# Create a formatter and add it to the file handler
+formatter = logging.Formatter('%(asctime)s - %(message)s')
+file_handler.setFormatter(formatter)
+
+# Add the file handler to the logger
+logger.addHandler(file_handler)
+
+# Initialize Anthropic client
+client = Anthropic(api_key=api_key)
+
+def read_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except Exception as e:
+        print(f"Error reading file: {e}")
+        return None
+
+def write_file_content(file_path, content):
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+    except Exception as e:
+        print(f"Error writing file: {e}")
+
+def write_terminal_command(command):
+    terminal_command_file = "terminal_command.txt"
+    write_file_content(terminal_command_file, command)
+
+while True:
+    user_input = input("Message (Enter to skip): ").strip()
+    file_path = input("File path (Enter to skip): ").strip()
+    
+    if not user_input and not file_path:
+        print("Please provide at least one of the fields (message or file path).")
+        continue
+    
+    message_content = "This is the message provided by the user: " + user_input
+    file_content = None
+
+    message_content += '''
+
+Here are instructions for formatting your response, which need to be followed strictly in all circumstances:
+
+Your response should be a valid JSON string containing one or more of the following top-level keys:
+```json
+{
+  "message": "The response message to display",
+  "file_update": { //include this if you have an update to suggest. always print out the full file_content, do not truncate with "rest of file remains the same" or anything like that.
+    "file_path": "/path/to/file.txt", 
+    "file_content": "Updated file content"
+  },
+  "terminal_command": "A terminal command to execute", //if helpful given the context and recommendations
+  "context_update": {
+    "key1": "value1",
+    "key2": "value2" 
+  }
+}
+```
+'''
+    
+    if file_path:
+        file_content = read_file_content(file_path)
+        if file_content:
+            message_content += f"\n\nHere's the content of the file at {file_path}:\n\n{file_content}\n\nPlease consider this file content in your response."
+    
+    context = read_context()
+    context_str = json.dumps(context, indent=2)
+    message_content = f"Context:\n{context_str}\n\n{message_content}"
+
+    # Send user input and optional file content to Anthropic API
+    message = client.messages.create(
+        model="claude-3-opus-20240229",
+        max_tokens=1000,
+        messages=[
+            {"role": "user", "content": message_content}
+        ]
+    )
+    
+    ai_response = message.content[0].text
+    
+    logger.info(f"User: {user_input}")
+    if file_path:
+        logger.info(f"File: {file_path}")
+    logger.info(f"AI: {ai_response}")
+    
+    try:
+        ai_response_json = json.loads(ai_response)
+        ai_message = ai_response_json.get("message", "")
+        print(f"AI: {ai_message}")
+        logger.info(f"AI: {ai_message}")
+        
+        file_update = ai_response_json.get("file_update")
+        if file_update:
+            ai_file_path = file_update.get("file_path")
+            ai_file_content = file_update.get("file_content")
+            write_file_content(ai_file_path, ai_file_content)
+            print(f"File '{ai_file_path}' created/updated with new content.")
+        
+        ai_terminal_command = ai_response_json.get("terminal_command")
+        if ai_terminal_command:
+            write_terminal_command(ai_terminal_command)
+        
+        context_update = ai_response_json.get("context_update")
+        if context_update:
+            context.update(context_update)
+            save_context(context)
+    except json.JSONDecodeError:
+        print("Error: Invalid JSON format in AI response.")
