@@ -24,9 +24,24 @@ The full updated contents of the file to be updated, without any placeholders su
 If the next recommended step includes a terminal command, return it here to be entered into the terminal.
 
 ### Summary of context (required)
-We are going to pass this back and forth. We will pass you an array of up to items in summary_of_context for you to read. Review the last entry (if any) and determine if the issues in it have been resolved in subsequent messages. Delete the last entry if there are . Create a new first summary entry including anything from the last entry that has to be maintained, and a summary of the current call/response. Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
+We are going to pass this back and forth. We will pass you an array of up to 5 items in summary_of_context.
+- If there are 5 or more entries, review the final entry and compare it to more recent entries to determine if any of the issues in the last entry remain unresolved. Delete the last entry.
+- Create and prepend a new entry to this array, include anything from the deleted entry that has to be maintained in context (tasks unresolved or in process), and a summary of the current call/response. each entry should be for a developer message and an LLM response.
+- Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
+- We will pass the array back to you as we received it, along with our next query.
 
-When we use the communication process in this message, and you respond with the information above, we are able to iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command. Include all four with every response, but leave them empty if not relevant to the specific response.
+
+## Communication leading to action
+When we use the communication process in this message, and you respond with the information above in the proper format, we are able to process it through scripts that help us iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command, and context_summary. Include all five with every response, but leave them empty if not relevant to the specific response.
+
+Do not print instructions for the terminal or code into the response json field. Use the fields above, and summarize it in English in the response field. If you are dealing with a complex task that will require multiple steps, store context and instructions for future steps in the context_summary.
+
+### Code requirements
+- All code returned will be to current best practices regarding commenting, clarity, etc.
+- Thoroughly log all code with the loggers provided in each credex-ecosystem repository. Data from these loggers is compiled, processed, and monitored in greatsun-dev.
+- Latest security standards will be applied to all code. The code in this repository has to access the code in other repos without introducing vulnerabilities in the other repository's security as a stand alone app.
+- Don't add notes as comments about what you've changed, just leave thorough comments describing the way the updated code works.
+
 
 # greatsun-dev README
 
@@ -37,34 +52,37 @@ This container is managed by an AI avatar called greatsun-dev, which includes lo
 ## Project
 
 ## /avatar
-Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs
+Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs.
+
+## central-logs
+Folder to be created for compiling and monitoring logs from projects in credex-ecosystem.
 
 ## /credex-ecosystem
 The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
 
-Currenty under development are:
-- credex-core, our core API on an express.js server.
-- vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
-
-## /tests
-Folder to be created for unit tests, performance tests, etc
-
-## /simulations
-Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+- Currenty under development are:
+  - credex-core, our core API on an express.js server.
+  - vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
 
 ## /data-analysis
 Tools to analyze existing data in the credex-ecosystem
 
+## /simulations
+Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+
+## /tests
+Folder to be created for unit tests, performance tests, etc
+
 ## Prerequisites
 
-- GitHub account with access to Credex repositories
-- Git
+- GitHub account with access to Great Sun Group repositories
+- Git (for local development)
 - Docker and Docker Compose (for local development)
-- Visual Studio Code (recommended)
+- Visual Studio Code (for local development)
 
 ## Environment Variables and Secrets
 
-The following secrets are required for the Credex development environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
+The following secrets are required for the greatsun-dev environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
 
 - CLAUDE (optional)
   - To get this secret from Anthropic:
@@ -143,7 +161,7 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 
 
-I want to move the conversationLog folder from root to the avatar folder, and update this script to reference the new location. send me the terminal command(s) and the updated script.
+I want to add the full folder structure to the context sent in this script. add a function to recursively scan and list the full directory tree with all files, and send it with the message to the ai. after the README and before the messageToSend.
 
 # Summary of context
 []
@@ -160,7 +178,7 @@ from anthropic import Anthropic
 
 api_key = os.getenv("CLAUDE")
 
-logs_directory = "conversationLog"
+logs_directory = "avatar/conversationLog"
 os.makedirs(logs_directory, exist_ok=True)
 
 def setup_logger():
@@ -249,24 +267,24 @@ while True:
         f"# Attached file contents\n{included_file_content}" if included_file_content else None
     ]))
     
-    write_to_file("avatar/messageSent.txt", message_content)
+    write_to_file("avatar/currentContext/messageSent.txt", message_content)
     
     try:
         message = client.messages.create(
-            model="claude-3-sonnet-20240229",  # Changed to Claude 3.5 Sonnet
+            model="claude-3-sonnet-20240229",
             max_tokens=4096,
             messages=[
                 {"role": "user", "content": message_content}
             ]
         )
         
-        avatar_response = message.content[0].text  # Corrected to access the response content
+        avatar_response = message.content[0].text
         
         print(f"Avatar: {avatar_response}")
         logger.info(f"File: {file_path}")
         logger.info(f"Avatar: {avatar_response}")
         
-        write_to_file("avatar/responseReceived.txt", avatar_response)
+        write_to_file("avatar/currentContext/responseReceived.txt", avatar_response)
         
         try:
             response_json = json.loads(avatar_response)
@@ -275,6 +293,7 @@ while True:
             file_path_update = response_json.get("update_file_path")
             if file_contents_update and file_path_update:
                 write_to_file(file_path_update, file_contents_update)
+                logger.info(f"File overwritten: {file_path_update}")
             
             updated_summary = response_json.get("summary_of_context")
             if updated_summary:

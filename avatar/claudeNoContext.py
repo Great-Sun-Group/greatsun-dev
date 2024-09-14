@@ -48,6 +48,7 @@ while True:
     file_path = input('Optional file path (press Enter to skip): ').strip()
 
     message_content = user_input
+    message_content += f'Return your response in the form of a full file that can be copied and pasted into the project, replacing the file that is currently there.'
 
     if file_path:
         file_content = read_file_content(file_path)

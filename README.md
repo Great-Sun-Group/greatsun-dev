@@ -7,34 +7,37 @@ This container is managed by an AI avatar called greatsun-dev, which includes lo
 ## Project
 
 ## /avatar
-Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs
+Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs.
+
+## central-logs
+Folder to be created for compiling and monitoring logs from projects in credex-ecosystem.
 
 ## /credex-ecosystem
 The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
 
-Currenty under development are:
-- credex-core, our core API on an express.js server.
-- vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
-
-## /tests
-Folder to be created for unit tests, performance tests, etc
-
-## /simulations
-Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+- Currenty under development are:
+  - credex-core, our core API on an express.js server.
+  - vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
 
 ## /data-analysis
 Tools to analyze existing data in the credex-ecosystem
 
+## /simulations
+Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+
+## /tests
+Folder to be created for unit tests, performance tests, etc
+
 ## Prerequisites
 
-- GitHub account with access to Credex repositories
-- Git
+- GitHub account with access to Great Sun Group repositories
+- Git (for local development)
 - Docker and Docker Compose (for local development)
-- Visual Studio Code (recommended)
+- Visual Studio Code (for local development)
 
 ## Environment Variables and Secrets
 
-The following secrets are required for the Credex development environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
+The following secrets are required for the greatsun-dev environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
 
 - CLAUDE (optional)
   - To get this secret from Anthropic:

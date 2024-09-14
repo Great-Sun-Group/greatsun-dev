@@ -24,10 +24,20 @@ The full updated contents of the file to be updated, without any placeholders su
 If the next recommended step includes a terminal command, return it here to be entered into the terminal.
 
 ### Summary of context (required)
-We are going to pass this back and forth. We will pass you an array of up to items in summary_of_context for you to read. Review the last entry (if any) and determine if the issues in it have been resolved in subsequent messages. Delete the last entry if there are . Create a new first summary entry including anything from the last entry that has to be maintained, and a summary of the current call/response. Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
+We are going to pass this back and forth. We will pass you an array of up to 5 items in summary_of_context.
+- If there are 5 or more entries, review the final entry and compare it to more recent entries to determine if any of the issues in the last entry remain unresolved. Delete the last entry.
+- Create and prepend a new entry to this array, include anything from the deleted entry that has to be maintained in context (tasks unresolved or in process), and a summary of the current call/response. each entry should be for a developer message and an LLM response.
+- Return the summary_of_context with the new item first and the last item removed (if there were 5 items to start)
+- We will pass the array back to you as we received it, along with our next query.
 
 
 ## Communication leading to action
-When we use the communication process in this message, and you respond with the information above in the proper format, we are able to iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command, context_summary. Include all five with every response, but leave them empty if not relevant to the specific response.
+When we use the communication process in this message, and you respond with the information above in the proper format, we are able to process it through scripts that help us iterate quickly, move our work forward, and acheive our purpose together. Every response you send should be in json, with names of response, update_file_path, update_file_contents, terminal_command, and context_summary. Include all five with every response, but leave them empty if not relevant to the specific response.
 
 Do not print instructions for the terminal or code into the response json field. Use the fields above, and summarize it in English in the response field. If you are dealing with a complex task that will require multiple steps, store context and instructions for future steps in the context_summary.
+
+### Code requirements
+- All code returned will be to current best practices regarding commenting, clarity, etc.
+- Thoroughly log all code with the loggers provided in each credex-ecosystem repository. Data from these loggers is compiled, processed, and monitored in greatsun-dev.
+- Latest security standards will be applied to all code. The code in this repository has to access the code in other repos without introducing vulnerabilities in the other repository's security as a stand alone app.
+- Don't add notes as comments about what you've changed, just leave thorough comments describing the way the updated code works.

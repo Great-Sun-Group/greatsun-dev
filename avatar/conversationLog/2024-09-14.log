@@ -2055,3 +2055,317 @@ os.makedirs(logs_directory, exist_ok=True)
 }
 2024-09-14 20:56:15,900 - Content written to avatar/responseReceived.txt
 2024-09-14 20:56:15,900 - Error parsing JSON response
+2024-09-14 21:52:01,033 - Summary of context file not found, returning empty list
+2024-09-14 21:52:01,034 - Content written to avatar/currentContext/messageSent.txt
+2024-09-14 21:52:10,827 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 21:52:10,827 - Avatar: Here's a function that recursively scans and lists the full directory tree with all files:
+
+```python
+import os
+
+def get_directory_tree(directory):
+    tree = {}
+    for root, dirs, files in os.walk(directory):
+        relative_root = os.path.relpath(root, directory)
+        tree[relative_root] = {
+            "directories": dirs,
+            "files": files
+        }
+    return tree
+
+def print_directory_tree(directory_tree, prefix=""):
+    for path, contents in directory_tree.items():
+        if path != ".":
+            print(f"{prefix}{path}/")
+        for directory in contents["directories"]:
+            print(f"{prefix}  {directory}/")
+        for file in contents["files"]:
+            print(f"{prefix}  {file}")
+        if contents["directories"]:
+            print_directory_tree({f"{path}/{directory}": directory_tree[f"{path}/{directory}"] for directory in contents["directories"]}, prefix=f"{prefix}  ")
+```
+
+To use it, call `get_directory_tree` with the root directory and pass the result to `print_directory_tree`:
+
+```python
+root_directory = "/workspaces/greatsun-dev"
+directory_tree = get_directory_tree(root_directory)
+print_directory_tree(directory_tree)
+```
+
+This will print the full directory tree with all files, indented to show the hierarchy.
+
+You can then include the printed tree in the message to the AI by calling `print_directory_tree` before constructing the message content:
+
+```python
+print("\n# Directory Tree")
+print_directory_tree(directory_tree)
+
+message_content = "\n\n".join(filter(None, [
+    avatar_readme_content,
+    readme_content,
+    message_to_send_content,
+    f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+    f"# Attached file path \n{file_path}" if file_path else None,
+    f"# Attached file contents\n{included_file_content}" if included_file_content else None
+]))
+```
+
+This will add the directory tree to the message content, after the `# Directory Tree` heading.
+2024-09-14 21:52:10,828 - Content written to avatar/currentContext/responseReceived.txt
+2024-09-14 21:52:10,828 - Error parsing JSON response
+2024-09-14 21:55:50,432 - Summary of context file not found, returning empty list
+2024-09-14 21:55:50,433 - Content written to avatar/currentContext/messageSent.txt
+2024-09-14 21:56:16,520 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 21:56:16,520 - Avatar: ```json
+{
+  "response": "Thank you for providing the context and details about the greatsun-dev development environment. To include the directory structure, I can add a function to recursively scan the directories and list all files and folders. This will allow us to include the full context of the project structure when communicating.",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": "import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+
+api_key = os.getenv(\"CLAUDE\")
+
+logs_directory = \"avatar/conversationLog\"
+os.makedirs(logs_directory, exist_ok=True)
+
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime(\"%Y-%m-%d\")
+    log_file = f\"{logs_directory}/{current_date}.log\"
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=api_key)
+
+def read_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f\"File not found: {file_path}\")
+        return None
+    except Exception as e:
+        logger.error(f\"Error reading file: {e}\")
+        return None
+
+def write_to_file(file_path, content):
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f\"Content written to {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error writing to file: {file_path}, {e}\")
+
+def read_summary_of_context():
+    file_path = \"summary_of_context.json\"
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info(\"Summary of context file not found, returning empty list\")
+        return []
+    except Exception as e:
+        logger.error(f\"Error reading summary of context: {e}\")
+        return []
+
+def write_summary_of_context(summary):
+    file_path = \"summary_of_context.json\"
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info(\"Summary of context updated\")
+    except Exception as e:
+        logger.error(f\"Error writing summary of context: {e}\")
+
+def get_directory_tree(path):
+    directory_tree = []
+    for root, dirs, files in os.walk(path):
+        rel_path = os.path.relpath(root, path)
+        if rel_path == '.':
+            rel_path = ''
+        directory_tree.append({
+            'path': os.path.join(rel_path),
+            'dirs': dirs,
+            'files': files
+        })
+    return directory_tree
+
+while True:
+    file_path = input(\"Optional file path (press Enter to skip): \").strip()
+    
+    if file_path.lower() == \"exit\":
+        print(\"Goodbye!\")
+        break
+    
+    avatar_readme_content = read_file_content(\"avatarREADME.md\")
+    readme_content = read_file_content(\"README.md\")
+    message_to_send_content = read_file_content(\"avatar/messageToSend.txt\")
+    included_file_content = read_file_content(file_path) if file_path else None
+    
+    summary_of_context = read_summary_of_context()
+    
+    directory_tree = get_directory_tree('/workspaces/greatsun-dev')
+    
+    message_content = \"\\n\\n\".join(filter(None, [
+        avatar_readme_content,
+        readme_content,
+        f\"# Directory Tree\\n{json.dumps(directory_tree, indent=2)}\",
+        message_to_send_content,
+        f\"# Summary of context\\n{json.dumps(summary_of_context, indent=2)}\",
+        f\"# Attached file path \\n{file_path}\" if file_path else None,
+        f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None
+    ]))
+    
+    write_to_file(\"avatar/currentContext/messageSent.txt\", message_content)
+    
+    try:
+        message = client.messages.create(
+            model=\"claude-3-sonnet-20240229\",
+            max_tokens=4096,
+            messages=[
+                {\"role\": \"user\", \"content\": message_content}
+            ]
+        )
+        
+        avatar_response = message.content[0].text
+        
+        print(f\"Avatar: {avatar_response}\")
+        logger.info(f\"File: {file_path}\")
+        logger.info(f\"Avatar: {avatar_response}\")
+        
+        write_to_file(\"avatar/currentContext/responseReceived.txt\", avatar_response)
+        
+        try:
+            response_json = json.loads(avatar_response)
+            
+            file_contents_update = response_json.get(\"update_file_contents\")
+            file_path_update = response_json.get(\"update_file_path\")
+            if file_contents_update and file_path_update:
+                write_to_file(file_path_update, file_contents_update)
+            
+            updated_summary = response_json.get(\"summary_of_context\")
+            if updated_summary:
+                write_summary_of_context(updated_summary)            
+        except json.JSONDecodeError:
+            logger.error(\"Error parsing JSON response\")
+    except Exception as e:
+        logger.error(f\"Error communicating with Anthropic API: {e}\")
+",
+  "terminal_command": "",
+  "summary_of_context": [
+    {
+      "summary": "I was asked to add a function to recursively scan the project directory and include the full directory tree with all files and folders in the context sent to the AI."
+    }
+  ]
+}
+```
+
+The updated `avatarUp.py` file now includes a new function `get_directory_tree` that recursively scans the `/workspaces/greatsun-dev` directory and generates a dictionary representing the directory structure, including all subdirectories and files.
+
+The `message_content` variable now includes the output of `get_directory_tree` under the `# Directory Tree` heading, which will be included in the context sent to the AI.
+
+With this update, the full directory structure will be available to the AI, providing more comprehensive context about the project files and structure.
+2024-09-14 21:56:16,520 - Content written to avatar/currentContext/responseReceived.txt
+2024-09-14 21:56:16,521 - Error parsing JSON response
+2024-09-14 22:08:55,005 - Summary of context file not found, returning empty list
+2024-09-14 22:08:55,005 - Content written to avatar/currentContext/messageSent.txt
+2024-09-14 22:09:06,802 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 22:09:06,802 - Avatar: Here's a Python function that recursively scans a directory and lists all files and subdirectories:
+
+```python
+import os
+
+def get_directory_tree(root_dir):
+    """
+    Returns a dictionary representing the directory tree structure with all files.
+    """
+    directory = {}
+    
+    # Fetch the contents of the root directory
+    filenames = os.listdir(root_dir)
+    
+    # Iterate over the contents
+    for item in filenames:
+        path = os.path.join(root_dir, item)
+        if os.path.isdir(path):
+            # If the item is a directory, recursively call the function
+            directory[item] = get_directory_tree(path)
+        else:
+            # If the item is a file, add it to the dictionary
+            directory[item] = None
+            
+    return directory
+```
+
+You can call this function by passing the root directory path as an argument:
+
+```python
+root_dir = "/path/to/root/directory"
+directory_tree = get_directory_tree(root_dir)
+```
+
+The `directory_tree` variable will contain a nested dictionary representing the full directory structure, with directories as keys and their contents (subdirectories and files) as values.
+
+To include this in your script, you can add the following code after the `read_summary_of_context` function:
+
+```python
+def get_directory_tree(root_dir):
+    """
+    Returns a dictionary representing the directory tree structure with all files.
+    """
+    directory = {}
+    
+    # Fetch the contents of the root directory
+    filenames = os.listdir(root_dir)
+    
+    # Iterate over the contents
+    for item in filenames:
+        path = os.path.join(root_dir, item)
+        if os.path.isdir(path):
+            # If the item is a directory, recursively call the function
+            directory[item] = get_directory_tree(path)
+        else:
+            # If the item is a file, add it to the dictionary
+            directory[item] = None
+            
+    return directory
+
+# Get the directory tree and convert it to a JSON string
+directory_tree_json = json.dumps(get_directory_tree("/workspaces/greatsun-dev"))
+```
+
+Then, you can include the `directory_tree_json` variable in the `message_content` before sending it to the AI:
+
+```python
+message_content = "\n\n".join(filter(None, [
+    avatar_readme_content,
+    readme_content,
+    message_to_send_content,
+    f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+    f"# Attached file path \n{file_path}" if file_path else None,
+    f"# Attached file contents\n{included_file_content}" if included_file_content else None,
+    f"# Directory tree\n{directory_tree_json}"
+]))
+```
+
+This will include the full directory tree structure in the message sent to the AI, along with any other relevant context.
+2024-09-14 22:09:06,803 - Content written to avatar/currentContext/responseReceived.txt
+2024-09-14 22:09:06,803 - Error parsing JSON response

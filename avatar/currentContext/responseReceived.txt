@@ -1,0 +1,79 @@
+Here's a Python function that recursively scans a directory and lists all files and subdirectories:
+
+```python
+import os
+
+def get_directory_tree(root_dir):
+    """
+    Returns a dictionary representing the directory tree structure with all files.
+    """
+    directory = {}
+    
+    # Fetch the contents of the root directory
+    filenames = os.listdir(root_dir)
+    
+    # Iterate over the contents
+    for item in filenames:
+        path = os.path.join(root_dir, item)
+        if os.path.isdir(path):
+            # If the item is a directory, recursively call the function
+            directory[item] = get_directory_tree(path)
+        else:
+            # If the item is a file, add it to the dictionary
+            directory[item] = None
+            
+    return directory
+```
+
+You can call this function by passing the root directory path as an argument:
+
+```python
+root_dir = "/path/to/root/directory"
+directory_tree = get_directory_tree(root_dir)
+```
+
+The `directory_tree` variable will contain a nested dictionary representing the full directory structure, with directories as keys and their contents (subdirectories and files) as values.
+
+To include this in your script, you can add the following code after the `read_summary_of_context` function:
+
+```python
+def get_directory_tree(root_dir):
+    """
+    Returns a dictionary representing the directory tree structure with all files.
+    """
+    directory = {}
+    
+    # Fetch the contents of the root directory
+    filenames = os.listdir(root_dir)
+    
+    # Iterate over the contents
+    for item in filenames:
+        path = os.path.join(root_dir, item)
+        if os.path.isdir(path):
+            # If the item is a directory, recursively call the function
+            directory[item] = get_directory_tree(path)
+        else:
+            # If the item is a file, add it to the dictionary
+            directory[item] = None
+            
+    return directory
+
+# Get the directory tree and convert it to a JSON string
+directory_tree_json = json.dumps(get_directory_tree("/workspaces/greatsun-dev"))
+```
+
+Then, you can include the `directory_tree_json` variable in the `message_content` before sending it to the AI:
+
+```python
+message_content = "\n\n".join(filter(None, [
+    avatar_readme_content,
+    readme_content,
+    message_to_send_content,
+    f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+    f"# Attached file path \n{file_path}" if file_path else None,
+    f"# Attached file contents\n{included_file_content}" if included_file_content else None,
+    f"# Directory tree\n{directory_tree_json}"
+]))
+```
+
+This will include the full directory tree structure in the message sent to the AI, along with any other relevant context.
