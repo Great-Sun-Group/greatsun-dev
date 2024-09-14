@@ -1,1 +1,0 @@
-I want to add the full folder structure to the context sent in this script. add a function to recursively scan and list the full directory tree with all files, and send it with the message to the ai. after the README and before the messageToSend.
