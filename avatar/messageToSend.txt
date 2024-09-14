@@ -1,1 +1,1 @@
-move getDirectoryTree, seeageSent, and response received from currentContect to context, and update this file so that it imports and writes them to the new locations.
+move getDirectoryTree, seeageSent, and response received from currentContect to context, and update this file so that it imports them from and writes them to the new locations.
