@@ -1,6 +1,3 @@
-Here's the updated script with the logger turned into a function and the requested changes implemented:
-
-```python
 import logging
 import os
 from datetime import datetime
@@ -106,18 +103,3 @@ while True:
     
     # Write AI response to responseReceived.txt
     write_to_file("responseReceived.txt", ai_response)
-```
-
-The main changes made to the script:
-
-1. The logger setup code is now moved into a separate function called `setup_logger()`, which is called at the beginning of the script to initialize the logger.
-
-2. The `file_path` variable is renamed to `included_file_path` for clarity.
-
-3. The `included_file_content` variable is introduced to store the content of the included file, if provided.
-
-4. The code block that checks for the included file path and appends its content to the message is moved above the message assembly code.
-
-5. The logging statements now use the `included_file_path` variable instead of `file_path`.
-
-These changes should improve the organization and readability of the script while still maintaining its functionality.

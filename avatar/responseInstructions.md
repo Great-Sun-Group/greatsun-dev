@@ -1,0 +1,1 @@
+# print all code as full files that can be copy pasted into the project in full, replacing what is currently there.

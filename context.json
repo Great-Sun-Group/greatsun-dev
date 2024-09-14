@@ -1,1 +1,0 @@
-{"contextUpdateExplanation": "The context_update part of the script enables the AI to update the conversation context based on its responses, allowing it to maintain and modify the conversation state as needed. This is done by parsing the AI response JSON for a context_update key containing key-value pairs to update the existing context dictionary."}

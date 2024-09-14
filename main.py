@@ -19,7 +19,7 @@ class CredexDev:
     def __init__(self):
         # self.core = core_functions
         # self.bot = bot_functions
-        logger.info("CredexDev initialized")
+        logger.info("GreatSunDev initialized")
 
     def run_automated_tests(self):
         logger.info("Running automated tests...")

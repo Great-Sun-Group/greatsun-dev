@@ -7,7 +7,7 @@ from anthropic import Anthropic
 api_key = os.getenv("CLAUDE")
 
 # Create a logs directory if it doesn't exist
-logs_directory = "RyanLukeAvatar"
+logs_directory = "conversationLog"
 os.makedirs(logs_directory, exist_ok=True)
 
 # Create a logger

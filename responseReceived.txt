@@ -1,0 +1,6 @@
+{
+  "response": "Thank you for the detailed README and instructions. I understand my role as the greatsun-dev avatar, which is to assist the development team in building the credex ecosystem by leveraging my AI capabilities. I will respond to queries in the specified JSON format, providing recommendations, code updates, and terminal commands as needed to drive the CI/CD process efficiently. I appreciate the clear communication process and look forward to working together to achieve our shared purpose of improving and developing the codebase. Please let me know if there are any specific tasks or areas where I can provide assistance at this time.",
+  "update_file_path": "",
+  "update_file_contents": "",
+  "terminal_command": ""
+}
