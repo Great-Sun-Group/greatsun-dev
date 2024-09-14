@@ -1,8 +1,9 @@
-Here's the updated script with the logger turned into a function and the requested changes implemented:
+Here's the updated file with logging added to debug the file writing error:
 
 ```python
 import logging
 import os
+import json
 from datetime import datetime
 from anthropic import Anthropic
 
@@ -44,16 +45,17 @@ def read_file_content(file_path):
         with open(file_path, 'r') as file:
             return file.read()
     except Exception as e:
-        print(f"Error reading file: {e}")
+        logger.error(f"Error reading file: {e}")
         return None
 
 def write_to_file(file_path, content):
     try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)  # Create directory if it doesn't exist
         with open(file_path, 'w') as file:
             file.write(content)
-        print(f"Content written to {file_path}")
+        logger.info(f"Content written to {file_path}")
     except Exception as e:
-        print(f"Error writing to file: {e}")
+        logger.error(f"Error writing to file: {file_path}, {e}")
 
 while True:
     user_input = input("User: ")
@@ -66,7 +68,7 @@ while True:
     
     avatar_readme_content = read_file_content("avatarREADME.md")
     readme_content = read_file_content("README.md")
-    message_to_send_content = read_file_content("messageToSend.txt")
+    message_to_send_content = read_file_content("avatar/messageToSend.txt")
     included_file_path = file_path
     included_file_content = read_file_content(file_path) if file_path else None
     
@@ -75,6 +77,8 @@ while True:
         message_content += avatar_readme_content + "\n\n"
     if readme_content:
         message_content += readme_content + "\n\n"
+    if message_to_send_content:
+        message_content += message_to_send_content + "\n\n"
     
     if included_file_path:
         message_content += "# Attached file path \n"
@@ -86,38 +90,49 @@ while True:
     # Write the assembled message to messageSent.txt
     write_to_file("messageSent.txt", message_content)
     
-    # Send user input and optional file content to Anthropic API
-    message = client.messages.create(
-        model="claude-3-opus-20240229",
-        max_tokens=2000,
-        messages=[
-            {"role": "user", "content": message_content}
-        ]
-    )
-    
-    ai_response = message.content[0].text
-    
-    print(f"AI: {ai_response}")
-    
-    logger.info(f"User: {user_input}")
-    if included_file_path:
-        logger.info(f"File: {included_file_path}")
-    logger.info(f"AI: {ai_response}")
-    
-    # Write AI response to responseReceived.txt
-    write_to_file("responseReceived.txt", ai_response)
+    try:
+        # Send user input and optional file content to Anthropic API
+        message = client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=2000,
+            messages=[
+                {"role": "user", "content": message_content}
+            ]
+        )
+        
+        avatar_response = message.content[0].text
+        
+        print(f"Avatar: {avatar_response}")
+        
+        logger.info(f"User: {user_input}")
+        if included_file_path:
+            logger.info(f"File: {included_file_path}")
+        logger.info(f"Avatar: {avatar_response}")
+        
+        # Write avatar response to responseReceived.txt
+        write_to_file("responseReceived.txt", avatar_response)
+        
+        # Parse the avatar response as JSON
+        try:
+            response_json = json.loads(avatar_response)
+            file_contents_update = response_json.get("update_file_contents")
+            if file_contents_update:
+                # Write the file_contents_update to pasteFile.py
+                write_to_file("avatar/pasteFile.py", file_contents_update)
+        except json.JSONDecodeError:
+            logger.error("Error parsing JSON response")
+    except Exception as e:
+        logger.error(f"Error communicating with Anthropic API: {e}")
 ```
 
-The main changes made to the script:
+The main changes made to the file are:
 
-1. The logger setup code is now moved into a separate function called `setup_logger()`, which is called at the beginning of the script to initialize the logger.
+1. Instead of using `print()` statements to log errors, the `logger.error()` method is used to log error messages. This will write the error messages to the log file.
 
-2. The `file_path` variable is renamed to `included_file_path` for clarity.
+2. In the `write_to_file()` function, the `file_path` is included in the error log message to identify which file path caused the error.
 
-3. The `included_file_content` variable is introduced to store the content of the included file, if provided.
+3. The error message for parsing JSON response is now logged using `logger.error()` instead of `print()`.
 
-4. The code block that checks for the included file path and appends its content to the message is moved above the message assembly code.
+4. The error message for communicating with the Anthropic API is also logged using `logger.error()`.
 
-5. The logging statements now use the `included_file_path` variable instead of `file_path`.
-
-These changes should improve the organization and readability of the script while still maintaining its functionality.
+With these changes, the error messages will be logged to the specified log file, including the file path that caused the error. This should help in debugging the "No such file or directory" error you encountered.
