@@ -1,1 +1,1 @@
-modify the interface in this script. It shouldn't have the User part. just an option to enter a file path or press enter for null. and the pasteFile needs to overwrite anything currently in that file. retain all other existing functionality.
+this script isn't saving the update_file_contents properly to the file. analyze and update

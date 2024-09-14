@@ -1024,3 +1024,207 @@ With these changes, the error messages will be logged to the specified log file,
 }
 2024-09-14 19:30:50,174 - Error writing to file: responseReceived.txt, [Errno 2] No such file or directory: ''
 2024-09-14 19:30:50,175 - Content written to avatar/pasteFile.py
+2024-09-14 19:49:44,976 - Error writing to file: messageSent.txt, [Errno 2] No such file or directory: ''
+2024-09-14 19:50:32,709 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 19:50:32,709 - Avatar: {
+  "response": "I have updated the avatarUp.py file to implement the summary_of_context logic as outlined in the avatarREADME. The key changes are:
+
+1. I added a new variable `summary_of_context` to store the array of context summaries. 
+
+2. After receiving the avatar's response, I parse the JSON and extract the `summary_of_context` field.
+
+3. I check the length of the `summary_of_context` array. If it has reached the maximum of 5 items, I remove the last item.
+
+4. I prepend the new summary item from the avatar's response to the `summary_of_context` array.
+
+5. When preparing the next message to send, I include the updated `summary_of_context` array in the message content.
+
+This allows the context summaries to be passed back and forth between the developer and the avatar, maintaining a shared understanding of the conversation history while limiting it to the 5 most recent relevant items.",
+
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+
+  "update_file_contents": "import logging\nimport os\nimport json\nfrom datetime import datetime\nfrom anthropic import Anthropic\n\n# Get the API key from the environment variable\napi_key = os.getenv(\"CLAUDE\")\n\n# Create a logs directory if it doesn't exist\nlogs_directory = \"conversationLog\"\nos.makedirs(logs_directory, exist_ok=True)\n\ndef setup_logger():\n logger = logging.getLogger(__name__)\n logger.setLevel(logging.INFO)\n \n current_date = datetime.now().strftime(\"%Y-%m-%d\")\n log_file = f\"{logs_directory}/{current_date}.log\"\n file_handler = logging.FileHandler(log_file)\n file_handler.setLevel(logging.INFO)\n \n formatter = logging.Formatter('%(asctime)s - %(message)s')\n file_handler.setFormatter(formatter)\n \n logger.addHandler(file_handler)\n return logger\n\nlogger = setup_logger()\nclient = Anthropic(api_key=api_key)\n\nsummary_of_context = []\n\ndef read_file_content(file_path):\n try:\n with open(file_path, 'r') as file:\n return file.read()\n except Exception as e:\n logger.error(f\"Error reading file: {e}\")\n return None\n\ndef write_to_file(file_path, content):\n try:\n os.makedirs(os.path.dirname(file_path), exist_ok=True)\n with open(file_path, 'w') as file:\n file.write(content)\n logger.info(f\"Content written to {file_path}\")\n except Exception as e:\n logger.error(f\"Error writing to file: {file_path}, {e}\")\n\nwhile True:\n file_path = input(\"Optional file path (press Enter to skip): \").strip()\n \n if file_path.lower() == \"exit\":\n print(\"Goodbye!\")\n break\n \n avatar_readme_content = read_file_content(\"avatarREADME.md\")\n readme_content = read_file_content(\"README.md\")\n message_to_send_content = read_file_content(\"avatar/messageToSend.txt\")\n included_file_content = read_file_content(file_path) if file_path else None\n \n message_content = \"\\n\\n\".join(filter(None, [\n avatar_readme_content,\n readme_content,\n message_to_send_content,\n f\"# Attached file path \\n{file_path}\" if file_path else None,\n f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None,\n f\"# Summary of context\\n{json.dumps(summary_of_context)}\" if summary_of_context else None\n ]))\n \n write_to_file(\"messageSent.txt\", message_content)\n \n try:\n message = client.messages.create(\n model=\"claude-3-opus-20240229\",\n max_tokens=2000,\n messages=[\n {\"role\": \"user\", \"content\": message_content}\n ]\n )\n \n avatar_response = message.content[0].text\n \n print(f\"Avatar: {avatar_response}\")\n \n logger.info(f\"File: {file_path}\")\n logger.info(f\"Avatar: {avatar_response}\")\n \n write_to_file(\"responseReceived.txt\", avatar_response)\n \n try:\n response_json = json.loads(avatar_response)\n \n file_contents_update = response_json.get(\"update_file_contents\")\n file_path_update = response_json.get(\"update_file_path\")\n if file_contents_update and file_path_update:\n write_to_file(file_path_update, file_contents_update)\n \n response_summary = response_json.get(\"summary_of_context\")\n if response_summary:\n if len(summary_of_context) == 5:\n summary_of_context.pop()\n summary_of_context.insert(0, response_summary)\n \n except json.JSONDecodeError:\n logger.error(\"Error parsing JSON response\")\n except Exception as e:\n logger.error(f\"Error communicating with Anthropic API: {e}\")\n",
+
+  "terminal_command": "",
+  
+  "summary_of_context": [
+    "The avatarUp.py script has been updated to implement the summary_of_context logic, allowing context summaries to be passed back and forth between the developer and avatar. The script maintains an array of the 5 most recent relevant context summaries, updating it with each avatar response.",
+    "The developer asked the avatar to update the avatarUp.py script to implement the summary_of_context logic outlined in the avatarREADME, enabling the script to pass conversation context back and forth."
+  ]
+}
+2024-09-14 19:50:32,710 - Error writing to file: responseReceived.txt, [Errno 2] No such file or directory: ''
+2024-09-14 19:50:32,710 - Error parsing JSON response
+2024-09-14 19:53:41,736 - Error writing to file: messageSent.txt, [Errno 2] No such file or directory: ''
+2024-09-14 19:54:38,681 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 19:54:38,681 - Avatar: Here is the updated code with the requested changes:
+
+```json
+{
+  "response": "Looks great! I've made the following updates to the avatarUp.py script:\n\n1. Added a new function to read and write the summary_of_context from/to a JSON file.\n\n2. Modified the main loop to read the summary_of_context from the file at the start of each iteration, and pass it in the message content to the API.\n\n3. After receiving the API response, the updated summary_of_context is extracted and written back to the JSON file.\n\nThis will allow the script to maintain conversational continuity across restarts by persisting the summary in the JSON file. Let me know if you have any other questions!",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": "import logging\nimport os\nimport json\nfrom datetime import datetime\nfrom anthropic import Anthropic\n\n# Get the API key from the environment variable\napi_key = os.getenv(\"CLAUDE\")\n\n# Create a logs directory if it doesn't exist\nlogs_directory = \"conversationLog\"\nos.makedirs(logs_directory, exist_ok=True)\n\ndef setup_logger():\n    logger = logging.getLogger(__name__)\n    logger.setLevel(logging.INFO)\n\n    current_date = datetime.now().strftime(\"%Y-%m-%d\")\n    log_file = f\"{logs_directory}/{current_date}.log\"\n    file_handler = logging.FileHandler(log_file)\n    file_handler.setLevel(logging.INFO)\n\n    formatter = logging.Formatter('%(asctime)s - %(message)s')\n    file_handler.setFormatter(formatter)\n\n    logger.addHandler(file_handler)\n    return logger\n\nlogger = setup_logger()\nclient = Anthropic(api_key=api_key)\n\ndef read_file_content(file_path):\n    try:\n        with open(file_path, 'r') as file:\n            return file.read()\n    except Exception as e:\n        logger.error(f\"Error reading file: {e}\")\n        return None\n\ndef write_to_file(file_path, content):\n    try:\n        os.makedirs(os.path.dirname(file_path), exist_ok=True)\n        with open(file_path, 'w') as file:\n            file.write(content)\n        logger.info(f\"Content written to {file_path}\")\n    except Exception as e:\n        logger.error(f\"Error writing to file: {file_path}, {e}\")\n        \ndef read_summary_of_context():\n    file_path = \"summary_of_context.json\"\n    try:\n        with open(file_path, 'r') as file:\n            return json.load(file)\n    except FileNotFoundError:\n        return []\n    except Exception as e:\n        logger.error(f\"Error reading summary of context: {e}\")\n        return []\n\ndef write_summary_of_context(summary):\n    file_path = \"summary_of_context.json\"\n    try:\n        with open(file_path, 'w') as file:\n            json.dump(summary, file, indent=2)\n        logger.info(\"Summary of context updated\")\n    except Exception as e:\n        logger.error(f\"Error writing summary of context: {e}\")\n\nwhile True:\n    file_path = input(\"Optional file path (press Enter to skip): \").strip()\n    \n    if file_path.lower() == \"exit\":\n        print(\"Goodbye!\")\n        break\n    \n    avatar_readme_content = read_file_content(\"avatarREADME.md\")\n    readme_content = read_file_content(\"README.md\")\n    message_to_send_content = read_file_content(\"avatar/messageToSend.txt\")\n    included_file_content = read_file_content(file_path) if file_path else None\n    \n    summary_of_context = read_summary_of_context()\n    \n    message_content = \"\\n\\n\".join(filter(None, [\n        avatar_readme_content,\n        readme_content,\n        message_to_send_content,\n        f\"# Summary of context\\n{json.dumps(summary_of_context, indent=2)}\",\n        f\"# Attached file path \\n{file_path}\" if file_path else None,\n        f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None\n    ]))\n    \n    write_to_file(\"messageSent.txt\", message_content)\n    \n    try:\n        message = client.messages.create(\n            model=\"claude-3-opus-20240229\",\n            max_tokens=2000,\n            messages=[\n                {\"role\": \"user\", \"content\": message_content}\n            ]\n        )\n        \n        avatar_response = message.content[0].text\n        \n        print(f\"Avatar: {avatar_response}\")\n        \n        logger.info(f\"File: {file_path}\")\n        logger.info(f\"Avatar: {avatar_response}\")\n        \n        write_to_file(\"responseReceived.txt\", avatar_response)\n        \n        try:\n            response_json = json.loads(avatar_response)\n            \n            file_contents_update = response_json.get(\"update_file_contents\")\n            file_path_update = response_json.get(\"update_file_path\")\n            if file_contents_update and file_path_update:\n                write_to_file(file_path_update, file_contents_update)\n            \n            updated_summary = response_json.get(\"summary_of_context\")\n            if updated_summary:\n                write_summary_of_context(updated_summary)            \n        except json.JSONDecodeError:\n            logger.error(\"Error parsing JSON response\")\n    except Exception as e:\n        logger.error(f\"Error communicating with Anthropic API: {e}\")\n",
+  "terminal_command": "",
+  "summary_of_context": [
+    {
+      "Customer": "Let's save the summary_of_context in a JSON file and read it from the file to maintain continuity if the script stops running.",
+      "Assistant": "Added functions to read and write the summary_of_context to a JSON file. Modified the main loop to read the summary at the start of each iteration, pass it to the API, and write the updated summary received in the response back to the JSON file. This will allow the script to maintain conversational continuity across restarts by persisting the summary."
+    }
+  ]
+}
+```
+
+Some key changes:
+
+1. Added new functions `read_summary_of_context()` and `write_summary_of_context()` to handle reading from and writing to the `summary_of_context.json` file.
+
+2. In the main loop, `read_summary_of_context()` is called to get the existing summary at the start of each iteration. 
+
+3. The summary is included in the `message_content` that gets sent to the API.
+
+4. After receiving the response, the updated `summary_of_context` is extracted from the JSON and passed to `write_summary_of_context()` to update the JSON file.
+
+This way, the summary will be loaded from the file at the beginning of each loop, sent to the API to provide context, and the updated summary received back will be saved to the file. Even if the script is stopped and restarted, it can pick up the conversation from where it left off using the persisted summary in the JSON file.
+
+Let me know if you have any other questions!
+2024-09-14 19:54:38,682 - Error writing to file: responseReceived.txt, [Errno 2] No such file or directory: ''
+2024-09-14 19:54:38,682 - Error parsing JSON response
+2024-09-14 20:01:10,370 - Error writing to file: messageSent.txt, [Errno 2] No such file or directory: ''
+2024-09-14 20:01:47,608 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-14 20:01:47,608 - Avatar: Here is the updated Python script with the fix for saving the `update_file_contents` properly:
+
+```python
+import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+
+api_key = os.getenv("CLAUDE")
+
+logs_directory = "conversationLog"
+os.makedirs(logs_directory, exist_ok=True)
+
+def setup_logger():
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    log_file = f"{logs_directory}/{current_date}.log"
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    logger.addHandler(file_handler)
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=api_key)
+
+def read_file_content(file_path):
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except Exception as e:
+        logger.error(f"Error reading file: {e}")
+        return None
+
+def write_to_file(file_path, content):
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f"Content written to {file_path}")
+    except Exception as e:
+        logger.error(f"Error writing to file: {file_path}, {e}")
+
+def read_summary_of_context():
+    file_path = "summary_of_context.json"
+    try:
+        with open(file_path, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        return []
+    except Exception as e:
+        logger.error(f"Error reading summary of context: {e}")
+        return []
+
+def write_summary_of_context(summary):
+    file_path = "summary_of_context.json"
+    try:
+        with open(file_path, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info("Summary of context updated")
+    except Exception as e:
+        logger.error(f"Error writing summary of context: {e}")
+
+while True:
+    file_path = input("Optional file path (press Enter to skip): ").strip()
+    
+    if file_path.lower() == "exit":
+        print("Goodbye!")
+        break
+    
+    avatar_readme_content = read_file_content("avatarREADME.md")
+    readme_content = read_file_content("README.md")
+    message_to_send_content = read_file_content("avatar/messageToSend.txt")
+    included_file_content = read_file_content(file_path) if file_path else None
+    
+    summary_of_context = read_summary_of_context()
+    
+    message_content = "\n\n".join(filter(None, [
+        avatar_readme_content,
+        readme_content,
+        message_to_send_content,
+        f"# Summary of context\n{json.dumps(summary_of_context, indent=2)}",
+        f"# Attached file path \n{file_path}" if file_path else None,
+        f"# Attached file contents\n{included_file_content}" if included_file_content else None
+    ]))
+    
+    write_to_file("messageSent.txt", message_content)
+    
+    try:
+        message = client.messages.create(
+            model="claude-3-opus-20240229",
+            max_tokens=2000,
+            messages=[
+                {"role": "user", "content": message_content}
+            ]
+        )
+        
+        avatar_response = message.json()['completion']
+        
+        print(f"Avatar: {avatar_response}")
+        logger.info(f"File: {file_path}")
+        logger.info(f"Avatar: {avatar_response}")
+        
+        write_to_file("responseReceived.txt", avatar_response)
+        
+        try:
+            response_json = json.loads(avatar_response)
+            
+            file_contents_update = response_json.get("update_file_contents")
+            file_path_update = response_json.get("update_file_path")
+            if file_contents_update and file_path_update:
+                write_to_file(file_path_update, file_contents_update)
+            
+            updated_summary = response_json.get("summary_of_context")
+            if updated_summary:
+                write_summary_of_context(updated_summary)            
+        except json.JSONDecodeError:
+            logger.error("Error parsing JSON response")
+    except Exception as e:
+        logger.error(f"Error communicating with Anthropic API: {e}")
+```
+
+The main change is in the line:
+
+```python
+avatar_response = message.json()['completion']
+```
+
+This line retrieves the actual response content from the JSON object returned by the API call, ensuring that the `avatar_response` variable contains the JSON string sent by the avatar.
+
+With this fix, the `update_file_contents` should be saved correctly when the avatar provides a valid JSON response with the necessary fields.
+
+Let me know if you have any further questions!
+2024-09-14 20:01:47,608 - Error writing to file: responseReceived.txt, [Errno 2] No such file or directory: ''
+2024-09-14 20:01:47,608 - Error parsing JSON response
