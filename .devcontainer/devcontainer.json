@@ -13,11 +13,11 @@
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.linting.enabled": true,
-                "python.linting.pylintEnabled": true,
-                "python.formatting.provider": "black"
+                "python.linting.pylintEnabled": true
             }
         }
     },
     "postCreateCommand": "poetry install",
-"postStartCommand": "mkdir -p ~/.local/bin && echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \"avatar up\" to start the avatar.\"\nfi' > ~/.local/bin/avatar && chmod +x ~/.local/bin/avatar && echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc && . ~/.bashrc && echo 'Avatar script created at:' && ls -l ~/.local/bin/avatar && echo 'Current PATH:' && echo $PATH",    "remoteUser": "vscode"
+    "postStartCommand": "echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \"avatar up\" to start the avatar.\"\nfi' > ~/.local/bin/avatar && chmod +x ~/.local/bin/avatar && echo 'export PATH=$PATH:~/.local/bin' >> ~/.bashrc",
+    "remoteUser": "vscode"
 }
