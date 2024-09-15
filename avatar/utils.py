@@ -100,7 +100,7 @@ def extract_json_from_response(response: str) -> tuple[Optional[Dict[str, Any]],
         # Try to parse the entire response as JSON5
         parsed = json5.loads(response)
         return parsed, ""
-    except json5.JSONDecodeError as e:
+    except json.JSONDecodeError as e:
         # If parsing fails, log the error and return None
         logger.error(f"Failed to parse response as JSON: {e}")
         return None, response
