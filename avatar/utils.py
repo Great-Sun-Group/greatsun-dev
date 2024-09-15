@@ -35,15 +35,17 @@ def setup_logger() -> logging.Logger:
 
 logger = setup_logger()
 
-def read_file_content(file_path: str) -> Optional[str]:
+def read_file_content(file_path):
+    if not file_path or not os.path.exists(file_path):
+        return None
+    if os.path.isdir(file_path):
+        return f"Directory contents of {file_path}:\n" + "\n".join(os.listdir(file_path))
     try:
         with open(file_path, 'r') as file:
             return file.read()
-    except FileNotFoundError:
-        logger.error(f"File not found: {file_path}")
     except Exception as e:
         logger.error(f"Error reading file: {e}")
-    return None
+        return None
 
 def write_to_file(file_path: str, content: str) -> None:
     try:

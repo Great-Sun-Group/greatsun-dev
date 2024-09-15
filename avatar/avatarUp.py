@@ -64,7 +64,7 @@ Additional information:
         write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
         logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
 
-def get_message_content(file_path: str, included_file_content: Optional[str]) -> str:
+def get_message_content(file_path: str, included_content: Optional[str]) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
         read_file_content(AVATAR_README),
@@ -73,10 +73,10 @@ def get_message_content(file_path: str, included_file_content: Optional[str]) ->
         read_file_content(MESSAGE_TO_SEND),
         f"""## Summary of context
 
-## Attached file path 
+## Attached path 
 {file_path}""" if file_path else None,
-        f"""### Attached file contents
-{included_file_content}""" if included_file_content else None,
+        f"""### Attached path contents
+{included_content}""" if included_content else None,
         f"""### Last 15 minutes of logs
 {read_recent_logs(minutes=15)}""",
         f"""### Directory structure
@@ -93,9 +93,9 @@ def main():
             print("Goodbye!")
             break
         
-        included_file_content = read_file_content(file_path) if file_path else None
-        message_content = get_message_content(file_path, included_file_content)
-        
+        included_content = read_file_content(file_path) if file_path else None
+        message_content = get_message_content(file_path, included_content) 
+               
         write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
         
         try:
