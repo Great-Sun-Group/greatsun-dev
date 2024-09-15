@@ -18,6 +18,6 @@
         }
     },
     "postCreateCommand": "poetry install",
-"postStartCommand": "echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \\\"avatar up\\\" to start the avatar.\"\nfi' > /workspaces/greatsun-dev/avatar/start && chmod +x /workspaces/greatsun-dev/avatar/start && echo 'export PATH=$PATH:/workspaces/greatsun-dev' >> ~/.bashrc && source ~/.bashrc",
+"postStartCommand": "echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \\\"avatar up\\\" to start the avatar.\"\nfi' > /workspaces/greatsun-dev/avatar/avatar && chmod +x /workspaces/greatsun-dev/avatar/avatar && echo 'export PATH=$PATH:/workspaces/greatsun-dev' >> ~/.bashrc && source ~/.bashrc",
 "remoteUser": "vscode"
 }
