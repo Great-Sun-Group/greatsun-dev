@@ -47,15 +47,22 @@ def read_file_content(file_path):
         logger.error(f"Error reading file: {e}")
         return None
 
+import os
+
 def write_to_file(file_path: str, content: str) -> None:
     try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as file:
+        # Ensure the file path is absolute
+        abs_file_path = os.path.abspath(file_path)
+        
+        # Ensure the directory exists
+        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+        
+        with open(abs_file_path, 'w') as file:
             file.write(content)
-        logger.info(f"Content written to {file_path}")
+        logger.info(f"Content written to {abs_file_path}")
     except Exception as e:
         logger.error(f"Error writing to file: {file_path}, {e}")
-
+        
 def read_summary_of_context() -> List[Dict[str, str]]:
     try:
         with open(SUMMARY_FILE, 'r') as file:

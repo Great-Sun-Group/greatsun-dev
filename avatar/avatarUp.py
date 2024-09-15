@@ -36,7 +36,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         response_text = response_json.get("response", "")
         if remaining_text:
             response_text += f"\n\nAdditional information:\n{remaining_text}"
-        write_to_file(CURRENT_RESPONSE_FILE, response_text)
+        write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), response_text)
         logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
 
         # Handle file requests
@@ -60,7 +60,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         # Handle terminal command
         terminal_command = response_json.get("terminal_command")
         if terminal_command:
-            with open(TERMINAL_COMMANDS_FILE, "a") as file:
+            with open(os.path.join(os.getcwd(), TERMINAL_COMMANDS_FILE), "a") as file:
                 file.write(terminal_command + "\n")
             logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
 
@@ -69,12 +69,13 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             update_file_path = response_json.get(f"update_file_path_{i}")
             update_file_contents = response_json.get(f"update_file_contents_{i}")
             if update_file_path and update_file_contents:
-                write_to_file(update_file_path, update_file_contents)
-                logger.info(f"File updated: {update_file_path}")
+                abs_file_path = os.path.join(os.getcwd(), update_file_path)
+                write_to_file(abs_file_path, update_file_contents)
+                logger.info(f"File updated: {abs_file_path}")
                 actions_recommended = True
     else:
         logger.warning("No valid JSON found in the response.")
-        write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
+        write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
         logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
 
     return requested_files, actions_recommended
