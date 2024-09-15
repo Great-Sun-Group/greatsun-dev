@@ -51,14 +51,17 @@ def write_summary_of_context(context_summary: str, summary_file: str = 'summary_
         json.dump(context_summary, file)
 
 def extract_json_from_response(response: str) -> tuple[dict | None, str]:
-    json_match = re.search(r'\{[\s\S]*?\}', response)
+    json_match = re.search(r'\{[\s\S]*\}', response)
     if json_match:
         try:
-            json_data = json.loads(json_match.group())
+            json_str = json_match.group()
+            # Replace escaped quotes within JSON strings
+            json_str = re.sub(r'(?<!\\)\\(?!\\)"', '"', json_str)
+            json_data = json.loads(json_str)
             remaining_text = response[:json_match.start()] + response[json_match.end():]
             return json_data, remaining_text.strip()
-        except json.JSONDecodeError:
-            print("Failed to parse JSON from response")
+        except json.JSONDecodeError as e:
+            print(f"Failed to parse JSON from response: {e}")
     return None, response
 
 def get_directory_tree(directory: str) -> dict:

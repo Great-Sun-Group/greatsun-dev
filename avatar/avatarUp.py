@@ -117,19 +117,24 @@ def main():
             
             response_json, remaining_text = extract_json_from_response(avatar_response)
             
-            if response_json and "response" in response_json:
-                if any(key.startswith("file_requested_") for key in response_json):
-                    # AI is requesting more context
-                    requested_files = [value for key, value in response_json.items() if key.startswith("file_requested_")]
-                    additional_content = "\n\n".join([f"### Contents of {file}\n{read_file_content(file)}" for file in requested_files])
-                    message_content += f"\n\nAdditional requested content:\n{additional_content}"
-                    continue
+            if response_json:
+                if "response" in response_json:
+                    if any(key.startswith("file_requested_") for key in response_json):
+                        # AI is requesting more context
+                        requested_files = [value for key, value in response_json.items() if key.startswith("file_requested_")]
+                        additional_content = "\n\n".join([f"### Contents of {file}\n{read_file_content(file)}" for file in requested_files])
+                        message_content += f"\n\nAdditional requested content:\n{additional_content}"
+                        print("AI requested more files. Sending updated message with additional content.")
+                        continue
+                    else:
+                        # AI is recommending actions
+                        process_ai_response(response_json, remaining_text)
+                        break
                 else:
-                    # AI is recommending actions
-                    process_ai_response(response_json, remaining_text)
+                    logger.warning("Invalid response format from AI: missing 'response' key")
                     break
             else:
-                logger.warning("Invalid response format from AI")
+                logger.warning("Failed to parse JSON from AI response")
                 break
 
 if __name__ == "__main__":
