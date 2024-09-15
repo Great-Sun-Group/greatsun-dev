@@ -1,24 +1,23 @@
 {
-    "name": "Credex Dev Environment",
-    "build": {
-        "dockerfile": "Dockerfile"
+    "name": "Python 3",
+    "image": "mcr.microsoft.com/devcontainers/python:1-3.11-bullseye",
+    "features": {
+        "ghcr.io/devcontainers-contrib/features/poetry:2": {}
     },
     "customizations": {
         "vscode": {
             "extensions": [
-                "saoudrizwan.claude-dev",
-                "ms-python.python"
-            ]
+                "ms-python.python",
+                "ms-python.vscode-pylance"
+            ],
+            "settings": {
+                "python.defaultInterpreterPath": "/usr/local/bin/python",
+                "python.linting.enabled": true,
+                "python.linting.pylintEnabled": true,
+                "python.formatting.provider": "black"
+            }
         }
     },
-    "forwardPorts": [],
-    "workspaceFolder": "/workspaces/greatsun-dev",
-    "postCreateCommand": "bash /workspaces/greatsun-dev/init-environment.sh",
-    "postStartCommand": "bash /workspaces/greatsun-dev/git_manager.sh startup",
-    "remoteEnv": {
-        "GH_PAT": "${localEnv:GH_PAT}"
-    },
-    "features": {
-        "ghcr.io/devcontainers/features/github-cli:1": {}
-    }
+    "postCreateCommand": "poetry install",
+"postStartCommand": "mkdir -p ~/.local/bin && echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \"avatar up\" to start the avatar.\"\nfi' > ~/.local/bin/avatar && chmod +x ~/.local/bin/avatar && echo 'export PATH=$PATH:$HOME/.local/bin' >> ~/.bashrc && . ~/.bashrc && echo 'Avatar script created at:' && ls -l ~/.local/bin/avatar && echo 'Current PATH:' && echo $PATH",    "remoteUser": "vscode"
 }

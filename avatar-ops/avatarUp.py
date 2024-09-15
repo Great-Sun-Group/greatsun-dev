@@ -1,4 +1,5 @@
 import os
+import sys
 from anthropic import Anthropic
 from utils.file_operations import setup_logger, read_file_content, write_to_file
 from utils.ai_processing import process_ai_response, extract_json_from_response
@@ -9,14 +10,14 @@ API_KEY = os.getenv("CLAUDE")
 if not API_KEY:
     raise ValueError("CLAUDE API key not found in environment variables")
 
-LOGS_DIRECTORY = "avatar/logs"
-RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
+LOGS_DIRECTORY = "avatar-ops/logs"
+RESPONSE_INSTRUCTIONS = "avatar-ops/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
-MESSAGE_TO_SEND = "avatar/messageToSend.md"
-CONTEXT_DIR = "avatar/context"
-TERMINAL_COMMANDS_FILE = "avatar/terminalCommands.txt"
-CURRENT_RESPONSE_FILE = "avatar/currentResponse.txt"
+MESSAGE_TO_SEND = "avatar-ops/messageToSend.md"
+CONTEXT_DIR = "avatar-ops/context"
+TERMINAL_COMMANDS_FILE = "avatar-ops/terminalCommands.txt"
+CURRENT_RESPONSE_FILE = "avatar-ops/currentResponse.txt"
 
 # Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
@@ -27,11 +28,20 @@ os.makedirs(os.path.dirname(CURRENT_RESPONSE_FILE), exist_ok=True)
 logger = setup_logger()
 client = Anthropic(api_key=API_KEY)
 
+def clear_terminal():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def main():
+    clear_terminal()
+    print("welcome, this is the greatsun-dev environment")
+    print("enter your message to me in avatar-ops/messageToSend.txt then press enter")
+    print("before you press enter, you can optionally paste a file path here as a starting point for my work")
+    print("@ryanlukewatson:")
+
     while True:
-        file_path = input("Optional file path (press Enter to skip, 'exit' to quit): ").strip()
+        file_path = input().strip()
         
-        if file_path.lower() == "exit":
+        if file_path.lower() == "down":
             print("Goodbye!")
             break
         

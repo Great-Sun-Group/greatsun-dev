@@ -1,0 +1,7 @@
+#!/bin/bash
+
+if [ "$1" = "up" ]; then
+    python /workspaces/greatsun-dev/avatar/avatarUp.py
+else
+    echo "Unknown command. Use 'avatar up' to start the avatar."
+fi
