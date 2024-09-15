@@ -32,18 +32,22 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
     actions_recommended = False
 
     if response_json:
+        logger.info(f"Processing AI response: {json.dumps(response_json, indent=2)}")
+
         # Handle response
         response_text = response_json.get("response", "")
         if remaining_text:
             response_text += f"\n\nAdditional information:\n{remaining_text}"
-        write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), response_text)
-        logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+        try:
+            write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), response_text)
+            logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+        except Exception as e:
+            logger.error(f"Error writing response to file: {e}")
 
         # Handle file requests
-        for i in range(1, 5):  # Assuming up to 4 file requests
+        for i in range(1, 6):  # Assuming up to 5 file requests
             file_key = f"file_requested_{i}"
             if file_key in response_json:
-                # Clean the file path
                 clean_file_path = response_json[file_key].strip('"{}')
                 requested_files.append(clean_file_path)
         
@@ -56,33 +60,45 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         # Handle context summary update
         context_summary = response_json.get("context_summary")
         if context_summary:
-            write_summary_of_context(context_summary)
-            logger.info("Context summary updated")
+            try:
+                write_summary_of_context(context_summary)
+                logger.info("Context summary updated")
+            except Exception as e:
+                logger.error(f"Error updating context summary: {e}")
 
         # Handle terminal command
         terminal_command = response_json.get("terminal_command")
         if terminal_command:
-            with open(os.path.join(os.getcwd(), TERMINAL_COMMANDS_FILE), "a") as file:
-                file.write(terminal_command + "\n")
-            logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
+            try:
+                with open(os.path.join(os.getcwd(), TERMINAL_COMMANDS_FILE), "a") as file:
+                    file.write(terminal_command + "\n")
+                logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
+            except Exception as e:
+                logger.error(f"Error writing terminal command: {e}")
 
         # Handle file updates
         for i in range(1, 6):
             update_file_path = response_json.get(f"update_file_path_{i}")
             update_file_contents = response_json.get(f"update_file_contents_{i}")
             if update_file_path and update_file_contents:
-                # Clean the file path
-                clean_file_path = update_file_path.strip('"{}')
-                abs_file_path = os.path.join(os.getcwd(), clean_file_path)
-                write_to_file(abs_file_path, update_file_contents)
-                logger.info(f"File updated: {abs_file_path}")
-                actions_recommended = True
+                try:
+                    clean_file_path = update_file_path.strip('"{}')
+                    abs_file_path = os.path.join(os.getcwd(), clean_file_path)
+                    write_to_file(abs_file_path, update_file_contents)
+                    logger.info(f"File updated: {abs_file_path}")
+                    actions_recommended = True
+                except Exception as e:
+                    logger.error(f"Error updating file {clean_file_path}: {e}")
     else:
         logger.warning("No valid JSON found in the response.")
-        write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
-        logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
+        try:
+            write_to_file(os.path.join(os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
+            logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
+        except Exception as e:
+            logger.error(f"Error writing full response to file: {e}")
 
     return requested_files, actions_recommended
+
 def get_message_content(file_path: str, included_content: Optional[str], requested_files: List[str] = None) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
@@ -154,7 +170,13 @@ def main():
                 write_to_file(os.path.join(CONTEXT_DIR, "fullResponseReceived.txt"), avatar_response)
                 
                 response_json, remaining_text = extract_json_from_response(avatar_response)
+                logger.info(f"Extracted JSON: {json.dumps(response_json, indent=2)}")
+                logger.info(f"Remaining text: {remaining_text}")
+                
                 new_requested_files, actions_recommended = process_ai_response(response_json, remaining_text)
+                
+                logger.info(f"New requested files: {new_requested_files}")
+                logger.info(f"Actions recommended: {actions_recommended}")
                 
                 if actions_recommended:
                     print("AI has recommended actions. These have been processed and written to the appropriate files.")
