@@ -1,1 +1,0 @@
-refactor this code to modern best practices for security, clarity, logging, efficiency, and resilience. also review the utils.py file, and include that content in your updates. recommend changes to these two files, and recommend the creation of other files and their contents if appropriate, including creating subfolders if recommended.
