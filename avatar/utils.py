@@ -1,5 +1,6 @@
 import os
 import json
+import json5
 import logging
 from typing import Optional, Dict, Any, List
 import re
@@ -94,13 +95,12 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         logger.error(f"Error getting directory tree: {e}")
         return {}
 
-def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
-    json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
-    if json_match:
-        try:
-            json_data = json.loads(json_match.group(1))
-            remaining_text = response[:json_match.start()] + response[json_match.end():]
-            return json_data, remaining_text.strip()
-        except json.JSONDecodeError:
-            logger.error("Failed to parse JSON from response")
-    return None, response
+def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+    try:
+        # Try to parse the entire response as JSON5
+        parsed = json5.loads(response)
+        return parsed, ""
+    except json5.JSONDecodeError as e:
+        # If parsing fails, log the error and return None
+        logger.error(f"Failed to parse response as JSON: {e}")
+        return None, response
