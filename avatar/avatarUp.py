@@ -4,9 +4,10 @@ import json
 from datetime import datetime
 from anthropic import Anthropic
 from typing import Optional, Dict, Any, List
+import re
 
 API_KEY = os.getenv("CLAUDE")
-LOGS_DIRECTORY = "avatar/conversationLog"
+LOGS_DIRECTORY = "avatar/context/conversationLog"
 SUMMARY_FILE = "avatar/context/context_summary.json"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
@@ -91,6 +92,18 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         logger.error(f"Error getting directory tree: {e}")
     return directory
 
+def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
+    json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
+    if json_match:
+        try:
+            json_data = json.loads(json_match.group(1))
+            remaining_text = response[:json_match.start()] + response[json_match.end():]
+            return json_data, remaining_text.strip()
+        except json.JSONDecodeError:
+            return None, response
+    return None, response
+
+
 def main():
     while True:
         file_path = input("Optional file path (press Enter to skip, 'exit' to quit): ").strip()
@@ -137,9 +150,9 @@ def main():
             
             write_to_file(os.path.join(CONTEXT_DIR, "responseReceived.txt"), avatar_response)
             
-            try:
-                response_json = json.loads(avatar_response)
-                
+            response_json, remaining_text = extract_json_from_response(avatar_response)
+            
+            if response_json:
                 # Handle file update
                 file_contents_update = response_json.get("update_file_contents")
                 file_path_update = response_json.get("update_file_path")
@@ -162,11 +175,13 @@ def main():
                 
                 # Print response
                 print(response_json.get("response", "No response provided"))
-                
-            except json.JSONDecodeError:
-                logger.error("Error parsing JSON response")
-                print("Error: The AI's response was not in the expected JSON format.")
-                
+            else:
+                print("No valid JSON found in the response.")
+            
+            if remaining_text:
+                print("Additional information from the AI:")
+                print(remaining_text)
+            
         except Exception as e:
             logger.error(f"Error communicating with Anthropic API: {e}")
 
