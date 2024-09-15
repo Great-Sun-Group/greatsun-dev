@@ -1,6 +1,6 @@
 import os
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 from anthropic import Anthropic
 from utils import setup_logger, read_file_content, write_to_file, read_recent_logs, write_summary_of_context, extract_json_from_response, get_directory_tree
 
@@ -27,17 +27,29 @@ os.makedirs(os.path.dirname(CURRENT_RESPONSE_FILE), exist_ok=True)
 logger = setup_logger()
 client = Anthropic(api_key=API_KEY)
 
-def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> None:
+def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> tuple[List[str], bool]:
+    requested_files = []
+    actions_recommended = False
+
     if response_json:
         # Handle response
         response_text = response_json.get("response", "")
         if remaining_text:
-            response_text += f"""
-
-Additional information:
-{remaining_text}"""
+            response_text += f"\n\nAdditional information:\n{remaining_text}"
         write_to_file(CURRENT_RESPONSE_FILE, response_text)
         logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+
+        # Handle file requests
+        for i in range(1, 5):  # Assuming up to 4 file requests
+            file_key = f"file_requested_{i}"
+            if file_key in response_json:
+                requested_files.append(response_json[file_key])
+        
+        if requested_files:
+            logger.info(f"Files requested: {', '.join(requested_files)}")
+        else:
+            actions_recommended = True
+            logger.info("No files requested. Processing recommended actions.")
 
         # Handle context summary update
         context_summary = response_json.get("context_summary")
@@ -64,7 +76,9 @@ Additional information:
         write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
         logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
 
-def get_message_content(file_path: str, included_content: Optional[str]) -> str:
+    return requested_files, actions_recommended
+
+def get_message_content(file_path: str, included_content: Optional[str], requested_files: List[str] = None) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
         read_file_content(AVATAR_README),
@@ -77,12 +91,21 @@ def get_message_content(file_path: str, included_content: Optional[str]) -> str:
 {file_path}""" if file_path else None,
         f"""### Attached path contents
 {included_content}""" if included_content else None,
+    ]
+
+    if requested_files:
+        for file in requested_files:
+            content = read_file_content(file)
+            content_parts.append(f"### Contents of {file}\n{content}")
+
+    content_parts.extend([
         f"""### Last 15 minutes of logs
 {read_recent_logs(minutes=15)}""",
         f"""### Directory structure
 {json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2)}""",
         read_file_content(RESPONSE_INSTRUCTIONS)
-    ]
+    ])
+
     return "\n\n".join(filter(None, content_parts))
 
 def main():
@@ -94,32 +117,46 @@ def main():
             break
         
         included_content = read_file_content(file_path) if file_path else None
-        message_content = get_message_content(file_path, included_content) 
-               
-        write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
+        requested_files = []
         
-        try:
-            message = client.messages.create(
-                model="claude-3-sonnet-20240229",
-                max_tokens=4096,
-                messages=[
-                    {"role": "user", "content": message_content}
-                ]
-            )
+        while True:
+            message_content = get_message_content(file_path, included_content, requested_files)
+            write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
             
-            avatar_response = message.content[0].text
-            
-            print(f"Avatar: {avatar_response}")
-            logger.info(f"File: {file_path}")
-            logger.info(f"Avatar: {avatar_response}")
-            
-            write_to_file(os.path.join(CONTEXT_DIR, "fullResponseReceived.txt"), avatar_response)
-            
-            response_json, remaining_text = extract_json_from_response(avatar_response)
-            process_ai_response(response_json, remaining_text)
-            
-        except Exception as e:
-            logger.error(f"Error communicating with Anthropic API: {e}")
+            try:
+                message = client.messages.create(
+                    model="claude-3-sonnet-20240229",
+                    max_tokens=4096,
+                    messages=[
+                        {"role": "user", "content": message_content}
+                    ]
+                )
+                
+                avatar_response = message.content[0].text
+                
+                print(f"Avatar: {avatar_response}")
+                logger.info(f"File: {file_path}")
+                logger.info(f"Avatar: {avatar_response}")
+                
+                write_to_file(os.path.join(CONTEXT_DIR, "fullResponseReceived.txt"), avatar_response)
+                
+                response_json, remaining_text = extract_json_from_response(avatar_response)
+                new_requested_files, actions_recommended = process_ai_response(response_json, remaining_text)
+                
+                if actions_recommended:
+                    print("AI has recommended actions. These have been processed and written to the appropriate files.")
+                    logger.info("AI recommended actions processed.")
+                    break  # Break the inner loop to get a new file path from the user
+                
+                if not new_requested_files:
+                    print("AI didn't request any new files or recommend actions. Please provide a new file path.")
+                    break  # Break the inner loop to get a new file path from the user
+                
+                requested_files = new_requested_files
+                
+            except Exception as e:
+                logger.error(f"Error communicating with Anthropic API: {e}")
+                break  # Break the inner loop on error
 
 if __name__ == "__main__":
     main()

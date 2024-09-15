@@ -95,7 +95,7 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         logger.error(f"Error getting directory tree: {e}")
         return {}
 
-def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+def extract_json_from_response(response: str) -> tuple[Optional[Dict[str, Any]], str]:
     try:
         # Try to parse the entire response as JSON5
         parsed = json5.loads(response)
