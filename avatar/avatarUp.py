@@ -98,7 +98,10 @@ def get_message_content(file_path: str, included_content: Optional[str], request
     if requested_files:
         for file in requested_files:
             content = read_file_content(file)
-            content_parts.append(f"### Contents of {file}\n{content}")
+            if content:
+                content_parts.append(f"### Contents of {file}\n{content}")
+            else:
+                content_parts.append(f"### File {file} not found or empty")
 
     content_parts.extend([
         f"""### Last 15 minutes of logs
@@ -120,6 +123,7 @@ def main():
         
         included_content = read_file_content(file_path) if file_path else None
         requested_files = []
+        provided_files = set()
         
         while True:
             message_content = get_message_content(file_path, included_content, requested_files)
@@ -151,9 +155,16 @@ def main():
                     break  # Break the inner loop to get a new file path from the user
                 
                 if new_requested_files:
-                    print(f"AI has requested additional files: {', '.join(new_requested_files)}")
-                    logger.info(f"AI requested additional files: {', '.join(new_requested_files)}")
-                    requested_files = new_requested_files
+                    # Filter out files that have already been provided
+                    new_requested_files = [f for f in new_requested_files if f not in provided_files]
+                    if new_requested_files:
+                        print(f"AI has requested additional files: {', '.join(new_requested_files)}")
+                        logger.info(f"AI requested additional files: {', '.join(new_requested_files)}")
+                        requested_files = new_requested_files
+                        provided_files.update(new_requested_files)
+                    else:
+                        print("AI requested files that have already been provided. Moving to next iteration.")
+                        break  # Break the inner loop to get a new file path from the user
                 else:
                     print("AI didn't request any new files or recommend actions. Please provide a new file path.")
                     logger.info("AI didn't request new files or recommend actions.")
