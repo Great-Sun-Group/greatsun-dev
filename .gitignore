@@ -1,0 +1,27 @@
+# Exclude avatar script files
+avatar/currentResponse.txt
+avatar/terminalCommands.txt
+avatar/context_summary.json
+avatar/messageToSend.md
+avatar/context/fullResponseReceived.txt
+avatar/context/messageSent.txt
+
+# Exclude Python cache files
+__pycache__/
+*.pyc
+
+# Exclude environment files
+.env
+.venv
+env/
+venv/
+
+# Exclude editor files
+.vscode/
+.idea/
+
+# Exclude miscellaneous files
+*.log
+*.swp
+*.out
+*.DS_Store

@@ -1,21 +1,43 @@
-# Credex-Dev
+# greatsun-dev README
 
-Research and development environment for the credex ecosystem, including credex-core API and credex-bot client apps.
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client (which is currently called credex-bot in the code).
 
-## Overview
+This container is managed by an AI avatar called greatsun-dev, which includes logs of developer conversations with the underlying AI models that power our development. As a developer in this environment, your commits are logged, and so are the conversations with AI models that co-create those commits. As a developer, your job is to express your intent to LLMs, test and verify that the results embody your intent, and submit pull requests when you feel the code is ready to share. With a call response dialogue with LLMs you can produce high quality code at an incredibly rapid rate, and this process is the heart of both our CI/CD pipeline and our econony-modelling engine.
 
-This repository provides tools for testing, data analysis, and transaction simulation for the credex ecosystem, and modelling tools for economic networks.
+## Project
+
+## /avatar
+Processing queries to LLMs and their results for developer approval and implementation. Instructions and management files, as well as logs.
+
+## central-logs
+Folder to be created for compiling and monitoring logs from projects in credex-ecosystem.
+
+## /credex-ecosystem
+The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
+
+- Currenty under development are:
+  - credex-core, our core API on an express.js server.
+  - vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
+
+## /data-analysis
+Tools to analyze existing data in the credex-ecosystem
+
+## /simulations
+Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+
+## /tests
+Folder to be created for unit tests, performance tests, etc
 
 ## Prerequisites
 
-- GitHub account with access to Credex repositories
-- Git
+- GitHub account with access to Great Sun Group repositories
+- Git (for local development)
 - Docker and Docker Compose (for local development)
-- Visual Studio Code (recommended)
+- Visual Studio Code (for local development)
 
 ## Environment Variables and Secrets
 
-The following secrets are required for the Credex development environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
+The following secrets are required for the greatsun-dev environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
 
 - CLAUDE (optional)
   - To get this secret from Anthropic:
@@ -75,7 +97,7 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 3. The Codespace will automatically set up the environment and submodules using the `init-environment.sh` script.
 
-### For Local Development
+### For Local Development (this needs to be tested)
 
 1. Clone this repository:
    ```
@@ -83,10 +105,7 @@ Refer to the `.env.example` file in the root directory for a template of these e
    cd credex-dev
    ```
 
-2. Create a `.env` file in the root of the project with your GitHub Personal Access Token:
-   ```
-   GH_PAT=your_personal_access_token
-   ```
+2. Create a `.env` file in the root of the project based on .env.example
 
 3. Build and start the development container:
    ```
@@ -95,92 +114,3 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 4. Attach VS Code to the running container or use `docker exec` to access the container's shell.
 
-## Usage
-
-### Starting Services and Managing Git
-
-To start all services (credex-core, credex-bot, and credex-dev) and manage Git operations across all repositories, follow these steps:
-
-1. Start the services:
-   ```bash
-   bash /workspaces/credex-dev/start-services.sh
-   ```
-   This will start all services and display their logs.
-
-2. For Git management, use `git_manager.sh` to help manage Git operations across all three repositories (credex-bot, credex-core, and credex-dev) simultaneously:
-
-   a. Make the script executable (if not already):
-      ```bash
-      chmod +x /workspaces/credex-dev/git_manager.sh
-      ```
-
-   b. Run the script:
-      ```bash
-      ./git_manager.sh
-      ```
-
-   c. The script will prompt you to enter a branch name. This branch will be created or checked out in all three repositories.
-
-   d. After that, you'll see a menu with the following options:
-      - Create new branches
-      - Checkout branches
-      - Push changes
-      - Exit
-
-   e. When pushing changes, you'll be prompted for a commit message. The script will automatically generate a UUID and append it to your commit message. It will then stage, commit, and push changes in all repositories that have modifications.
-
-This script streamlines the process of managing branches and commits across the Credex ecosystem, ensuring consistency across all repositories.
-
-### Running Tests
-
-To run automated tests:
-
-```bash
-python -m pytest tests/
-```
-
-### Analyzing Data
-
-Data analysis functionality can be accessed through the `CredexDev` class in `main.py`. Refer to the class methods for specific analysis capabilities.
-
-### Simulating Transactions
-
-Transaction simulation is also available through the `CredexDev` class in `main.py`.
-
-## Project Structure
-
-- `credex-core/`: Submodule containing the Credex Core API
-- `credex-bot/`: Submodule containing the Credex Bot
-- `.devcontainer/`: Configuration files for the development container
-- `tests/`: Automated tests for the development environment
-- `main.py`: Main Python script for credex-dev functionality
-- `requirements.txt`: Python dependencies for credex-dev
-- `init-environment.sh`: Script to set up the submodules and environment
-- `start-services.sh`: Script to start all services
-- `git_manager.sh`: Script to manage Git operations across all repositories
-
-## Contributing
-
-Please refer to the individual submodule repositories for contribution guidelines specific to credex-core and credex-bot.
-
-For changes to the development environment itself, please create a pull request in this repository.
-
-## Troubleshooting
-
-If you encounter any issues during setup or usage, please check the following:
-
-1. Ensure all required environment variables are set correctly.
-2. Check the logs of individual services in case of startup failures.
-3. Verify that your GitHub Personal Access Token has the necessary permissions.
-4. If you encounter issues with the Python virtual environment, try rebuilding the container or manually creating the venv:
-   ```
-   python3 -m venv /home/vscode/venv
-   source /home/vscode/venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-For more detailed troubleshooting, refer to the documentation in each submodule.
-
-## Support
-
-If you need assistance or have any questions, please open an issue in this repository or contact the Credex development team.
