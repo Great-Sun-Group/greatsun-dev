@@ -1,3 +1,5 @@
 [
-  "The script has been updated to extract terminal commands and AI responses from the JSON response and save them to separate files."
+  {
+    "summary": "The script has been updated to extract terminal commands and AI responses from the JSON response and save them to separate files."
+  }
 ]

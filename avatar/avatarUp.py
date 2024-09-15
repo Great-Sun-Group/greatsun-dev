@@ -10,7 +10,7 @@ import re
 API_KEY = os.getenv("CLAUDE")
 LOGS_DIRECTORY = "avatar/context/conversationLog"
 SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
-RESPONSE_INSTRUCTIONS = "avatar/responseInstructions.md"
+RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
