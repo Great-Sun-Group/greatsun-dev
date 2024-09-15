@@ -1,14 +1,216 @@
+```json
 {
-  "response": "The changes have been made to the `avatarUp.py` script to reflect the new directory structure and imports. The `currentContext` directory has been renamed to `context`, and the `conversationLog` directory has been moved into the `avatar` directory.",
-  "update_file_path": "",
-  "update_file_contents": "",
+  "response": "The provided script looks good overall, but there are a few improvements that can be made. First, it's important to handle the case where the context_summary.json file doesn't exist initially. The read_summary_of_context function should create an empty file if it doesn't exist. Second, the write_summary_of_context function should create the necessary directories if they don't exist before writing to the file. Finally, it would be better to fetch the context_summary.json file path from the same location where it is saved, rather than hardcoding the path.",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": """import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+from typing import Optional, Dict, Any, List
+import re
+
+API_KEY = os.getenv("CLAUDE")
+LOGS_DIRECTORY = "avatar/context/conversationLog"
+SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
+AVATAR_README = "avatarREADME.md"
+README = "README.md"
+MESSAGE_TO_SEND = "avatar/messageToSend.txt"
+CONTEXT_DIR = "avatar/context"
+
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
+
+def setup_logger() -> logging.Logger:
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime("%Y-%m-%d")
+    log_file = f"{LOGS_DIRECTORY}/{current_date}.log"
+    
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(file_formatter)
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=API_KEY)
+
+def read_file_content(file_path: str) -> Optional[str]:
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f"File not found: {file_path}")
+    except Exception as e:
+        logger.error(f"Error reading file: {e}")
+    return None
+
+def write_to_file(file_path: str, content: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f"Content written to {file_path}")
+    except Exception as e:
+        logger.error(f"Error writing to file: {file_path}, {e}")
+
+def read_summary_of_context() -> List[Dict[str, str]]:
+    try:
+        with open(SUMMARY_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info("Summary of context file not found, creating an empty file")
+        write_summary_of_context([])
+        return []
+    except Exception as e:
+        logger.error(f"Error reading summary of context: {e}")
+        return []
+
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
+    summary_file_dir = os.path.dirname(SUMMARY_FILE)
+    try:
+        os.makedirs(summary_file_dir, exist_ok=True)
+        with open(SUMMARY_FILE, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info("Summary of context updated")
+    except Exception as e:
+        logger.error(f"Error writing summary of context: {e}")
+
+def get_directory_tree(root_dir: str) -> Dict[str, Any]:
+    directory = {}
+    try:
+        for item in os.listdir(root_dir):
+            path = os.path.join(root_dir, item)
+            if os.path.isdir(path):
+                directory[item] = get_directory_tree(path)
+            else:
+                directory[item] = None
+    except Exception as e:
+        logger.error(f"Error getting directory tree: {e}")
+    return directory
+
+def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
+    json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
+    if json_match:
+        try:
+            json_data = json.loads(json_match.group(1))
+            remaining_text = response[:json_match.start()] + response[json_match.end():]
+            return json_data, remaining_text.strip()
+        except json.JSONDecodeError:
+            return None, response
+    return None, response
+
+
+def main():
+    while True:
+        file_path = input("Optional file path (press Enter to skip, 'exit' to quit): ").strip()
+        
+        if file_path.lower() == "exit":
+            print("Goodbye!")
+            break
+        
+        avatar_readme_content = read_file_content(AVATAR_README)
+        readme_content = read_file_content(README)
+        message_to_send_content = read_file_content(MESSAGE_TO_SEND)
+        included_file_content = read_file_content(file_path) if file_path else None
+        
+        summary_of_context = read_summary_of_context()
+
+        directory_tree_json = json.dumps(get_directory_tree("/workspaces/greatsun-dev"))
+        
+        message_content = "\n\n".join(filter(None, [
+            avatar_readme_content,
+            readme_content,
+            message_to_send_content,
+            f"### Summary of context (required)\n{json.dumps(summary_of_context, indent=2)}",
+            f"# Directory structure\n{directory_tree_json}",
+            f"# Attached file path \n{file_path}" if file_path else None,
+            f"# Attached file contents\n{included_file_content}" if included_file_content else None
+        ]))
+        
+        write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
+        
+        try:
+            message = client.messages.create(
+                model="claude-3-sonnet-20240229",
+                max_tokens=4096,
+                messages=[
+                    {"role": "user", "content": message_content}
+                ]
+            )
+            
+            avatar_response = message.content[0].text
+            
+            print(f"Avatar: {avatar_response}")
+            logger.info(f"File: {file_path}")
+            logger.info(f"Avatar: {avatar_response}")
+            
+            write_to_file(os.path.join(CONTEXT_DIR, "responseReceived.txt"), avatar_response)
+            
+            response_json, remaining_text = extract_json_from_response(avatar_response)
+            
+            if response_json:
+                # Handle file update
+                file_contents_update = response_json.get("update_file_contents")
+                file_path_update = response_json.get("update_file_path")
+                if file_contents_update and file_path_update:
+                    write_to_file(file_path_update, file_contents_update)
+                    logger.info(f"File updated: {file_path_update}")
+                
+                # Handle context summary update
+                context_summary = response_json.get("context_summary")
+                if context_summary:
+                    write_summary_of_context(context_summary)
+                    logger.info("Context summary updated")
+                
+                # Handle terminal command
+                terminal_command = response_json.get("terminal_command")
+                if terminal_command:
+                    print(f"Suggested terminal command: {terminal_command}")
+                    logger.info(f"Suggested terminal command: {terminal_command}")
+                
+                # Print response
+                print(response_json.get("response", "No response provided"))
+            else:
+                print("No valid JSON found in the response.")
+            
+            if remaining_text:
+                print("Additional information from the AI:")
+                print(remaining_text)
+            
+        except Exception as e:
+            logger.error(f"Error communicating with Anthropic API: {e}")
+
+if __name__ == "__main__":
+    main()
+""",
   "terminal_command": "",
-  "summary_of_context": [
+  "context_summary": [
     {
-      "summary": "The developer requested to rename the 'currentContext' directory to 'context', move the 'conversationLog' directory into the 'avatar' directory, and update the 'avatarUp.py' script to reflect these changes in the directory structure and imports."
-    },
-    {
-      "summary": "The requested changes have been made to the 'avatarUp.py' script, renaming the 'currentContext' directory to 'context', moving the 'conversationLog' directory into the 'avatar' directory, and updating the relevant file paths and imports accordingly."
+      "task": "Improve handling of context_summary.json file in avatarUp.py",
+      "completed": false
     }
   ]
 }
+```
+
+The key changes made in the updated script are:
+
+1. The `read_summary_of_context` function now creates an empty `context_summary.json` file if it doesn't exist initially.
+2. The `write_summary_of_context` function creates the necessary directories if they don't exist before writing to the `context_summary.json` file.
+3. The `SUMMARY_FILE` path is now constructed using `os.path.join` instead of hardcoding the path.
+4. In the `write_summary_of_context` function, the `context_summary` is directly passed to the function instead of hardcoding the file path.
+
+These changes should ensure that the script handles the `context_summary.json` file correctly, creating it if it doesn't exist and writing to it properly. Additionally, the file path for the `context_summary.json` file is now fetched from the same location where it is saved.
+
+The `context_summary` field has been updated to reflect the task of improving the handling of the `context_summary.json` file. Once this task is completed, you should mark it as completed in the `context_summary` and move on to the next task.
