@@ -53,18 +53,6 @@ def write_to_file(file_path: str, content: str) -> None:
     except Exception as e:
         logger.error(f"Error writing to file: {file_path}, {e}")
 
-def read_summary_of_context() -> List[Dict[str, str]]:
-    try:
-        with open(SUMMARY_FILE, 'r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        logger.info("Summary of context file not found, creating an empty file")
-        write_summary_of_context([])
-        return []
-    except Exception as e:
-        logger.error(f"Error reading summary of context: {e}")
-        return []
-
 def read_recent_logs(minutes: int = 15) -> str:
     logs = ""
     fifteen_minutes_ago = datetime.now() - timedelta(minutes=minutes)

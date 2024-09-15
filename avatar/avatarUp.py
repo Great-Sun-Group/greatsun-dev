@@ -5,7 +5,7 @@ from datetime import datetime
 from anthropic import Anthropic
 from typing import Optional, Dict, Any, List
 import re
-from utils import read_file_content, write_to_file, read_summary_of_context, write_summary_of_context, get_directory_tree
+from utils import read_file_content, write_to_file, read_recent_logs, write_summary_of_context, get_directory_tree
 
 # Constants
 API_KEY = os.getenv("CLAUDE")
@@ -97,11 +97,12 @@ def get_message_content(file_path: str, included_file_content: Optional[str]) ->
         read_file_content(RESPONSE_INSTRUCTIONS),
         read_file_content(AVATAR_README),
         read_file_content(README),
+        f"# **Current Avatar Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
-        f"### Summary of context (required)\n{json.dumps(read_summary_of_context(), indent=2)}",
-        f"# Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
-        f"# Attached file path \n{file_path}" if file_path else None,
-        f"# Attached file contents\n{included_file_content}" if included_file_content else None,
+        f"# Summary of context\n\n## Attached file path \n{file_path}" if file_path else None,
+        f"## Attached file contents\n{included_file_content}" if included_file_content else None,
+        f"## Last 15 minutes of logs\n{json.dumps(read_recent_logs(), indent=2)}",
+        f"## Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
         read_file_content(RESPONSE_INSTRUCTIONS)
     ]
     return "\n\n".join(filter(None, content_parts))
