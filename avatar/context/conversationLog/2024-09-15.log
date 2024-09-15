@@ -246,3 +246,464 @@ Since my response did not contain any terminal commands or additional response t
 
 The context_summary is left as an empty list, as the provided context did not require any updates to the summary.
 2024-09-15 00:15:34,769 - Content written to avatar/context/responseReceived.txt
+2024-09-15 00:49:26,121 - File not found: avatar/responseInstructions.md
+2024-09-15 00:49:26,128 - Content written to avatar/context/messageSent.txt
+2024-09-15 00:49:56,086 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-15 00:49:56,086 - Avatar: ```json
+{
+  "response": "This script has been updated to extract the terminal commands and responses from the AI's output and save them to separate files. The terminal commands are saved in the 'avatar/terminalCommands' file, and the AI's responses are saved in the 'avatar/currentResponse' file. These files will be created if they don't exist, or overwritten if they do exist.",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": "import logging\nimport os\nimport json\nfrom datetime import datetime\nfrom anthropic import Anthropic\nfrom typing import Optional, Dict, Any, List\nimport re\n\nAPI_KEY = os.getenv(\"CLAUDE\")\nLOGS_DIRECTORY = \"avatar/context/conversationLog\"\nSUMMARY_FILE = os.path.join(\"avatar\", \"context\", \"context_summary.json\")\nRESPONSE_INSTRUCTIONS = \"avatar/responseInstructions.md\"\nAVATAR_README = \"avatarREADME.md\"\nREADME = \"README.md\"\nMESSAGE_TO_SEND = \"avatar/messageToSend.md\"\nCONTEXT_DIR = \"avatar/context\"\n\nos.makedirs(LOGS_DIRECTORY, exist_ok=True)\nos.makedirs(CONTEXT_DIR, exist_ok=True)\n\ndef setup_logger() -> logging.Logger:\n    logger = logging.getLogger(__name__)\n    logger.setLevel(logging.INFO)\n    current_date = datetime.now().strftime(\"%Y-%m-%d\")\n    log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"\n    \n    file_handler = logging.FileHandler(log_file)\n    file_handler.setLevel(logging.INFO)\n    file_formatter = logging.Formatter('%(asctime)s - %(message)s')\n    file_handler.setFormatter(file_formatter)\n    \n    console_handler = logging.StreamHandler()\n    console_handler.setLevel(logging.ERROR)\n    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')\n    console_handler.setFormatter(console_formatter)\n    \n    logger.addHandler(file_handler)\n    logger.addHandler(console_handler)\n    \n    return logger\n\nlogger = setup_logger()\nclient = Anthropic(api_key=API_KEY)\n\ndef read_file_content(file_path: str) -> Optional[str]:\n    try:\n        with open(file_path, 'r') as file:\n            return file.read()\n    except FileNotFoundError:\n        logger.error(f\"File not found: {file_path}\")\n    except Exception as e:\n        logger.error(f\"Error reading file: {e}\")\n    return None\n\ndef write_to_file(file_path: str, content: str) -> None:\n    try:\n        os.makedirs(os.path.dirname(file_path), exist_ok=True)\n        with open(file_path, 'w') as file:\n            file.write(content)\n        logger.info(f\"Content written to {file_path}\")\n    except Exception as e:\n        logger.error(f\"Error writing to file: {file_path}, {e}\")\n\ndef read_summary_of_context() -> List[Dict[str, str]]:\n    try:\n        with open(SUMMARY_FILE, 'r') as file:\n            return json.load(file)\n    except FileNotFoundError:\n        logger.info(\"Summary of context file not found, creating an empty file\")\n        write_summary_of_context([])\n        return []\n    except Exception as e:\n        logger.error(f\"Error reading summary of context: {e}\")\n        return []\n\ndef write_summary_of_context(summary: List[Dict[str, str]]) -> None:\n    summary_file_dir = os.path.dirname(SUMMARY_FILE)\n    try:\n        os.makedirs(summary_file_dir, exist_ok=True)\n        with open(SUMMARY_FILE, 'w') as file:\n            json.dump(summary, file, indent=2)\n        logger.info(\"Summary of context updated\")\n    except Exception as e:\n        logger.error(f\"Error writing summary of context: {e}\")\n\ndef get_directory_tree(root_dir: str) -> Dict[str, Any]:\n    directory = {}\n    try:\n        for item in os.listdir(root_dir):\n            path = os.path.join(root_dir, item)\n            if os.path.isdir(path):\n                directory[item] = get_directory_tree(path)\n            else:\n                directory[item] = None\n    except Exception as e:\n        logger.error(f\"Error getting directory tree: {e}\")\n    return directory\n\ndef extract_json_from_response(response: str) -> tuple[Optional[dict], str]:\n    json_match = re.search(r'```json\\n(.*?)\\n```', response, re.DOTALL)\n    if json_match:\n        try:\n            json_data = json.loads(json_match.group(1))\n            remaining_text = response[:json_match.start()] + response[json_match.end():]\n            return json_data, remaining_text.strip()\n        except json.JSONDecodeError:\n            return None, response\n    return None, response\n\n\ndef main():\n    while True:\n        file_path = input(\"Optional file path (press Enter to skip, 'exit' to quit): \").strip()\n        \n        if file_path.lower() == \"exit\":\n            print(\"Goodbye!\")\n            break\n        \n        avatar_instructions_content = read_file_content(RESPONSE_INSTRUCTIONS)\n        avatar_readme_content = read_file_content(AVATAR_README)\n        readme_content = read_file_content(README)\n        message_to_send_content = read_file_content(MESSAGE_TO_SEND)\n        included_file_content = read_file_content(file_path) if file_path else None\n        \n        summary_of_context = read_summary_of_context()\n\n        directory_tree_json = json.dumps(get_directory_tree(\"/workspaces/greatsun-dev\"))\n        \n        message_content = \"\\n\\n\".join(filter(None, [\n            avatar_instructions_content,\n            avatar_readme_content,\n            readme_content,\n            message_to_send_content,\n            f\"### Summary of context (required)\\n{json.dumps(summary_of_context, indent=2)}\",\n            f\"# Directory structure\\n{directory_tree_json}\",\n            f\"# Attached file path \\n{file_path}\" if file_path else None,\n            f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None,\n            avatar_instructions_content\n        ]))\n        \n        write_to_file(os.path.join(CONTEXT_DIR, \"messageSent.txt\"), message_content)\n        \n        try:\n            message = client.messages.create(\n                model=\"claude-3-sonnet-20240229\",\n                max_tokens=4096,\n                messages=[\n                    {\"role\": \"user\", \"content\": message_content}\n                ]\n            )\n            \n            avatar_response = message.content[0].text\n            \n            print(f\"Avatar: {avatar_response}\")\n            logger.info(f\"File: {file_path}\")\n            logger.info(f\"Avatar: {avatar_response}\")\n            \n            write_to_file(os.path.join(CONTEXT_DIR, \"responseReceived.txt\"), avatar_response)\n            \n            response_json, remaining_text = extract_json_from_response(avatar_response)\n            \n            if response_json:\n                # Handle file update\n                file_contents_update = response_json.get(\"update_file_contents\")\n                file_path_update = response_json.get(\"update_file_path\")\n                if file_contents_update and file_path_update:\n                    write_to_file(file_path_update, file_contents_update)\n                    logger.info(f\"File updated: {file_path_update}\")\n                \n                # Handle context summary update\n                context_summary = response_json.get(\"context_summary\")\n                if context_summary:\n                    write_summary_of_context(context_summary)\n                    logger.info(\"Context summary updated\")\n                \n                # Handle terminal command\n                terminal_command = response_json.get(\"terminal_command\")\n                if terminal_command:\n                    write_to_file(\"avatar/terminalCommands\", terminal_command + \"\\n\")\n                    logger.info(f\"Terminal command written to 'avatar/terminalCommands': {terminal_command}\")\n                \n                # Handle response\n                response_text = response_json.get(\"response\")\n                if response_text:\n                    write_to_file(\"avatar/currentResponse\", response_text)\n                    logger.info(\"Response written to 'avatar/currentResponse'\")\n                \n            else:\n                print(\"No valid JSON found in the response.\")\n            \n            if remaining_text:\n                print(\"Additional information from the AI:\")\n                print(remaining_text)\n            \n        except Exception as e:\n            logger.error(f\"Error communicating with Anthropic API: {e}\")\n\nif __name__ == \"__main__\":\n    main()\n",
+  "context_summary": ["The script has been updated to extract terminal commands and AI responses from the JSON response and save them to separate files."]
+}
+```
+
+The key changes made to the `avatarUp.py` script are:
+
+1. A new function `extract_json_from_response` has been added to extract the JSON data from the AI's response. It uses a regular expression to find the JSON block within the response string.
+
+2. In the `main` function, after the AI's response is received, it is processed with `extract_json_from_response`. If a valid JSON is found, the following actions are taken:
+
+   - If the JSON contains an `update_file_contents` and `update_file_path` key, the file at the specified path is updated with the new contents.
+   - If the JSON contains a `context_summary` key, the `context_summary.json` file is updated with the new summary.
+   - If the JSON contains a `terminal_command` key, the command is appended to the `avatar/terminalCommands` file, which will be created if it doesn't exist.
+   - If the JSON contains a `response` key, the response text is written to the `avatar/currentResponse` file, which will be created if it doesn't exist.
+
+3. Any additional text outside the JSON block in the AI's response is printed as "Additional information from the AI."
+
+By extracting the terminal commands and responses from the JSON and saving them to separate files, it becomes easier to process and act on the AI's recommendations.
+2024-09-15 00:49:56,086 - Content written to avatar/context/responseReceived.txt
+2024-09-15 00:49:56,087 - Content written to /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-15 00:49:56,087 - File updated: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-15 00:49:56,087 - Summary of context updated
+2024-09-15 00:49:56,087 - Context summary updated
+2024-09-15 00:50:19,754 - File not found: avatar/responseInstructions.md
+2024-09-15 00:50:19,761 - Content written to avatar/context/messageSent.txt
+2024-09-15 00:50:47,891 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-15 00:50:47,891 - Avatar: ```json
+{
+  "response": "The script has been updated to extract terminal commands, AI responses, and context summaries from the JSON response and save them to separate files. The terminal commands are written to 'avatar/terminalCommands', the AI response is written to 'avatar/currentResponse', and the context summary is updated in the 'avatar/context/context_summary.json' file.",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": "import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+from typing import Optional, Dict, Any, List
+import re
+
+API_KEY = os.getenv(\"CLAUDE\")
+LOGS_DIRECTORY = \"avatar/context/conversationLog\"
+SUMMARY_FILE = os.path.join(\"avatar\", \"context\", \"context_summary.json\")
+RESPONSE_INSTRUCTIONS = \"avatar/responseInstructions.md\"
+AVATAR_README = \"avatarREADME.md\"
+README = \"README.md\"
+MESSAGE_TO_SEND = \"avatar/messageToSend.md\"
+CONTEXT_DIR = \"avatar/context\"
+
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
+
+def setup_logger() -> logging.Logger:
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime(\"%Y-%m-%d\")
+    log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"
+    
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_formatter = logging.Formatter('%(asctime)s - %(message)s')
+    file_handler.setFormatter(file_formatter)
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+    console_handler.setFormatter(console_formatter)
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=API_KEY)
+
+def read_file_content(file_path: str) -> Optional[str]:
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f\"File not found: {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error reading file: {e}\")
+    return None
+
+def write_to_file(file_path: str, content: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f\"Content written to {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error writing to file: {file_path}, {e}\")
+
+def read_summary_of_context() -> List[Dict[str, str]]:
+    try:
+        with open(SUMMARY_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info(\"Summary of context file not found, creating an empty file\")
+        write_summary_of_context([])
+        return []
+    except Exception as e:
+        logger.error(f\"Error reading summary of context: {e}\")
+        return []
+
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
+    summary_file_dir = os.path.dirname(SUMMARY_FILE)
+    try:
+        os.makedirs(summary_file_dir, exist_ok=True)
+        with open(SUMMARY_FILE, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info(\"Summary of context updated\")
+    except Exception as e:
+        logger.error(f\"Error writing summary of context: {e}\")
+
+def get_directory_tree(root_dir: str) -> Dict[str, Any]:
+    directory = {}
+    try:
+        for item in os.listdir(root_dir):
+            path = os.path.join(root_dir, item)
+            if os.path.isdir(path):
+                directory[item] = get_directory_tree(path)
+            else:
+                directory[item] = None
+    except Exception as e:
+        logger.error(f\"Error getting directory tree: {e}\")
+    return directory
+
+def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
+    json_match = re.search(r'```json\\n(.*?)\\n```', response, re.DOTALL)
+    if json_match:
+        try:
+            json_data = json.loads(json_match.group(1))
+            remaining_text = response[:json_match.start()] + response[json_match.end():]
+            return json_data, remaining_text.strip()
+        except json.JSONDecodeError:
+            return None, response
+    return None, response
+
+
+def main():
+    while True:
+        file_path = input(\"Optional file path (press Enter to skip, 'exit' to quit): \").strip()
+        
+        if file_path.lower() == \"exit\":
+            print(\"Goodbye!\")
+            break
+        
+        avatar_instructions_content = read_file_content(RESPONSE_INSTRUCTIONS)
+        avatar_readme_content = read_file_content(AVATAR_README)
+        readme_content = read_file_content(README)
+        message_to_send_content = read_file_content(MESSAGE_TO_SEND)
+        included_file_content = read_file_content(file_path) if file_path else None
+        
+        summary_of_context = read_summary_of_context()
+
+        directory_tree_json = json.dumps(get_directory_tree(\"/workspaces/greatsun-dev\"))
+        
+        message_content = \"\\n\\n\".join(filter(None, [
+            avatar_instructions_content,
+            avatar_readme_content,
+            readme_content,
+            message_to_send_content,
+            f\"### Summary of context (required)\\n{json.dumps(summary_of_context, indent=2)}\",
+            f\"# Directory structure\\n{directory_tree_json}\",
+            f\"# Attached file path \\n{file_path}\" if file_path else None,
+            f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None,
+            avatar_instructions_content
+        ]))
+        
+        write_to_file(os.path.join(CONTEXT_DIR, \"messageSent.txt\"), message_content)
+        
+        try:
+            message = client.messages.create(
+                model=\"claude-3-sonnet-20240229\",
+                max_tokens=4096,
+                messages=[
+                    {\"role\": \"user\", \"content\": message_content}
+                ]
+            )
+            
+            avatar_response = message.content[0].text
+            
+            print(f\"Avatar: {avatar_response}\")
+            logger.info(f\"File: {file_path}\")
+            logger.info(f\"Avatar: {avatar_response}\")
+            
+            write_to_file(os.path.join(CONTEXT_DIR, \"responseReceived.txt\"), avatar_response)
+            
+            response_json, remaining_text = extract_json_from_response(avatar_response)
+            
+            if response_json:
+                # Handle file update
+                file_contents_update = response_json.get(\"update_file_contents\")
+                file_path_update = response_json.get(\"update_file_path\")
+                if file_contents_update and file_path_update:
+                    write_to_file(file_path_update, file_contents_update)
+                    logger.info(f\"File updated: {file_path_update}\")
+                
+                # Handle context summary update
+                context_summary = response_json.get(\"context_summary\")
+                if context_summary:
+                    write_summary_of_context(context_summary)
+                    logger.info(\"Context summary updated\")
+                
+                # Handle terminal command
+                terminal_command = response_json.get(\"terminal_command\")
+                if terminal_command:
+                    write_to_file(\"avatar/terminalCommands\", terminal_command + \"\\n\")
+                    logger.info(f\"Terminal command written to 'avatar/terminalCommands': {terminal_command}\")
+                
+                # Handle response
+                response_text = response_json.get(\"response\")
+                if response_text:
+                    write_to_file(\"avatar/currentResponse\", response_text)
+                    logger.info(\"Response written to 'avatar/currentResponse'\")
+                
+            else:
+                print(\"No valid JSON found in the response.\")
+            
+            if remaining_text:
+                print(\"Additional information from the AI:\")
+                print(remaining_text)
+            
+        except Exception as e:
+            logger.error(f\"Error communicating with Anthropic API: {e}\")
+
+if __name__ == \"__main__\":
+    main()
+",
+  "terminal_command": null,
+  "context_summary": [
+    "The script has been updated to extract terminal commands and AI responses from the JSON response and save them to separate files."
+  ]
+}
+```
+
+The key changes made are:
+
+1. Added a function `extract_json_from_response` that extracts the JSON data from the AI response (if present) and separates it from the remaining text.
+
+2. In the `main` function, after receiving the AI response, the `extract_json_from_response` function is called to get the JSON data and remaining text.
+
+3. If JSON data is present, the following actions are taken:
+   - If `update_file_contents` and `update_file_path` are present, the file at the specified path is updated with the new contents.
+   - If `context_summary` is present, the `context_summary.json` file is updated with the new summary.
+   - If `terminal_command` is present, it is written to the `avatar/terminalCommands` file.
+   - If `response` is present, it is written to the `avatar/currentResponse` file.
+
+4. If there is any remaining text from the AI response (not in JSON format), it is printed as "Additional information from the AI".
+
+This way, the script can handle and process the various components of the AI response (file updates, context summary, terminal commands, and response text) and save them to separate files for further use or processing.
+2024-09-15 00:50:47,892 - Content written to avatar/context/responseReceived.txt
+2024-09-15 01:01:05,934 - File not found: avatar/responseInstructions.md
+2024-09-15 01:01:05,940 - File not found: avatar/responseInstructions.md
+2024-09-15 01:01:05,941 - Content written to avatar/context/messageSent.txt
+2024-09-15 01:01:30,474 - File: /workspaces/greatsun-dev/avatar/avatarUp.py
+2024-09-15 01:01:30,475 - Avatar: {
+  "response": "The script has been updated to append any text from the AI response that is not in JSON format to the end of the 'response' field in the JSON object.",
+  "update_file_path": "/workspaces/greatsun-dev/avatar/avatarUp.py",
+  "update_file_contents": "import logging
+import os
+import json
+from datetime import datetime
+from anthropic import Anthropic
+from typing import Optional, Dict, Any, List
+import re
+
+# Constants
+API_KEY = os.getenv("CLAUDE")
+LOGS_DIRECTORY = \"avatar/context/conversationLog\"
+SUMMARY_FILE = os.path.join(\"avatar\", \"context\", \"context_summary.json\")
+RESPONSE_INSTRUCTIONS = \"avatar/responseInstructions.md\"
+AVATAR_README = \"avatarREADME.md\"
+README = \"README.md\"
+MESSAGE_TO_SEND = \"avatar/messageToSend.md\"
+CONTEXT_DIR = \"avatar/context\"
+
+# Ensure directories exist
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
+
+def setup_logger() -> logging.Logger:
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime(\"%Y-%m-%d\")
+    log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"
+    
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+client = Anthropic(api_key=API_KEY)
+
+def read_file_content(file_path: str) -> Optional[str]:
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f\"File not found: {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error reading file: {e}\")
+    return None
+
+def write_to_file(file_path: str, content: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f\"Content written to {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error writing to file: {file_path}, {e}\")
+
+def read_summary_of_context() -> List[Dict[str, str]]:
+    try:
+        with open(SUMMARY_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info(\"Summary of context file not found, creating an empty file\")
+        write_summary_of_context([])
+        return []
+    except Exception as e:
+        logger.error(f\"Error reading summary of context: {e}\")
+        return []
+
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
+    try:
+        with open(SUMMARY_FILE, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info(\"Summary of context updated\")
+    except Exception as e:
+        logger.error(f\"Error writing summary of context: {e}\")
+
+def get_directory_tree(root_dir: str) -> Dict[str, Any]:
+    try:
+        return {item: get_directory_tree(os.path.join(root_dir, item)) if os.path.isdir(os.path.join(root_dir, item)) else None
+                for item in os.listdir(root_dir)}
+    except Exception as e:
+        logger.error(f\"Error getting directory tree: {e}\")
+
+def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
+    json_match = re.search(r'```json\\n(.*?)\\n```', response, re.DOTALL)
+    if json_match:
+        try:
+            json_data = json.loads(json_match.group(1))
+            remaining_text = response[:json_match.start()] + response[json_match.end():]
+            return json_data, remaining_text.strip()
+        except json.JSONDecodeError:
+            logger.error(\"Failed to parse JSON from response\")
+    return None, response
+
+def process_ai_response(response_json: Dict[str, Any], remaining_text: str) -> None:
+    if response_json:
+        # Handle file update
+        file_contents_update = response_json.get(\"update_file_contents\")
+        file_path_update = response_json.get(\"update_file_path\")
+        if file_contents_update and file_path_update:
+            write_to_file(file_path_update, file_contents_update)
+            logger.info(f\"File updated: {file_path_update}\")
+        
+        # Handle context summary update
+        context_summary = response_json.get(\"context_summary\")
+        if context_summary:
+            write_summary_of_context(context_summary)
+            logger.info(\"Context summary updated\")
+        
+        # Handle terminal command
+        terminal_command = response_json.get(\"terminal_command\")
+        if terminal_command:
+            write_to_file(\"avatar/terminalCommands\", terminal_command + \"\\n\")
+            logger.info(f\"Terminal command written to 'avatar/terminalCommands': {terminal_command}\")
+        
+        # Handle response
+        response_text = response_json.get(\"response\")
+        if response_text:
+            write_to_file(\"avatar/currentResponse\", response_text + \"\\n\" + remaining_text)
+            logger.info(\"Response written to 'avatar/currentResponse'\")
+    else:
+        logger.warning(\"No valid JSON found in the response.\")
+    
+    if remaining_text:
+        print(\"Additional information from the AI:\")
+        print(remaining_text)
+
+def get_message_content(file_path: str, included_file_content: Optional[str]) -> str:
+    content_parts = [
+        read_file_content(RESPONSE_INSTRUCTIONS),
+        read_file_content(AVATAR_README),
+        read_file_content(README),
+        read_file_content(MESSAGE_TO_SEND),
+        f\"### Summary of context (required)\\n{json.dumps(read_summary_of_context(), indent=2)}\",
+        f\"# Directory structure\\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}\",
+        f\"# Attached file path \\n{file_path}\" if file_path else None,
+        f\"# Attached file contents\\n{included_file_content}\" if included_file_content else None,
+        read_file_content(RESPONSE_INSTRUCTIONS)
+    ]
+    return \"\\n\\n\".join(filter(None, content_parts))
+
+def main():
+    while True:
+        file_path = input(\"Optional file path (press Enter to skip, 'exit' to quit): \").strip()
+        
+        if file_path.lower() == \"exit\":
+            print(\"Goodbye!\")
+            break
+        
+        included_file_content = read_file_content(file_path) if file_path else None
+        message_content = get_message_content(file_path, included_file_content)
+        
+        write_to_file(os.path.join(CONTEXT_DIR, \"messageSent.txt\"), message_content)
+        
+        try:
+            message = client.messages.create(
+                model=\"claude-3-sonnet-20240229\",
+                max_tokens=4096,
+                messages=[
+                    {\"role\": \"user\", \"content\": message_content}
+                ]
+            )
+            
+            avatar_response = message.content[0].text
+            print(f\"Avatar: {avatar_response}\")
+            logger.info(f\"File: {file_path}\")
+            logger.info(f\"Avatar: {avatar_response}\")
+            
+            write_to_file(os.path.join(CONTEXT_DIR, \"responseReceived.txt\"), avatar_response)
+            
+            response_json, remaining_text = extract_json_from_response(avatar_response)
+            process_ai_response(response_json, remaining_text)
+            
+        except Exception as e:
+            logger.error(f\"Error communicating with Anthropic API: {e}\")
+
+if __name__ == \"__main__\":
+    main()
+",
+  "context_summary": [
+    "The script has been updated to append any text from the AI response that is not in JSON format to the end of the 'response' field in the JSON object.",
+    "The updated script has been provided in the 'update_file_contents' field."
+  ]
+}
+2024-09-15 01:01:30,475 - Content written to avatar/context/responseReceived.txt
+2024-09-15 01:01:30,475 - No valid JSON found in the response.

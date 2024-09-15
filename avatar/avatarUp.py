@@ -6,17 +6,23 @@ from anthropic import Anthropic
 from typing import Optional, Dict, Any, List
 import re
 
+# Constants
 API_KEY = os.getenv("CLAUDE")
 LOGS_DIRECTORY = "avatar/context/conversationLog"
 SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
-RESPOSE_INSTRUCTIONS = "avatar/responseInstructions.md"
+RESPONSE_INSTRUCTIONS = "avatar/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
+TERMINAL_COMMANDS_FILE = "avatar/terminalCommands"
+CURRENT_RESPONSE_FILE = "avatar/currentResponse"
 
+# Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
 os.makedirs(CONTEXT_DIR, exist_ok=True)
+os.makedirs(os.path.dirname(TERMINAL_COMMANDS_FILE), exist_ok=True)
+os.makedirs(os.path.dirname(CURRENT_RESPONSE_FILE), exist_ok=True)
 
 def setup_logger() -> logging.Logger:
     logger = logging.getLogger(__name__)
@@ -26,13 +32,11 @@ def setup_logger() -> logging.Logger:
     
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.INFO)
-    file_formatter = logging.Formatter('%(asctime)s - %(message)s')
-    file_handler.setFormatter(file_formatter)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
     
     console_handler = logging.StreamHandler()
     console_handler.setLevel(logging.ERROR)
-    console_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-    console_handler.setFormatter(console_formatter)
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
     
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
@@ -74,9 +78,7 @@ def read_summary_of_context() -> List[Dict[str, str]]:
         return []
 
 def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
-    summary_file_dir = os.path.dirname(SUMMARY_FILE)
     try:
-        os.makedirs(summary_file_dir, exist_ok=True)
         with open(SUMMARY_FILE, 'w') as file:
             json.dump(summary, file, indent=2)
         logger.info("Summary of context updated")
@@ -84,17 +86,12 @@ def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
         logger.error(f"Error writing summary of context: {e}")
 
 def get_directory_tree(root_dir: str) -> Dict[str, Any]:
-    directory = {}
     try:
-        for item in os.listdir(root_dir):
-            path = os.path.join(root_dir, item)
-            if os.path.isdir(path):
-                directory[item] = get_directory_tree(path)
-            else:
-                directory[item] = None
+        return {item: get_directory_tree(os.path.join(root_dir, item)) if os.path.isdir(os.path.join(root_dir, item)) else None
+                for item in os.listdir(root_dir)}
     except Exception as e:
         logger.error(f"Error getting directory tree: {e}")
-    return directory
+        return {}
 
 def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
     json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
@@ -104,9 +101,56 @@ def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
             remaining_text = response[:json_match.start()] + response[json_match.end():]
             return json_data, remaining_text.strip()
         except json.JSONDecodeError:
-            return None, response
+            logger.error("Failed to parse JSON from response")
     return None, response
 
+def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> None:
+    if response_json:
+        # Handle file update
+        file_contents_update = response_json.get("update_file_contents")
+        file_path_update = response_json.get("update_file_path")
+        if file_contents_update and file_path_update:
+            write_to_file(file_path_update, file_contents_update)
+            logger.info(f"File updated: {file_path_update}")
+        
+        # Handle context summary update
+        context_summary = response_json.get("context_summary")
+        if context_summary:
+            write_summary_of_context(context_summary)
+            logger.info("Context summary updated")
+        
+        # Handle terminal command
+        terminal_command = response_json.get("terminal_command")
+        if terminal_command:
+            write_to_file(TERMINAL_COMMANDS_FILE, terminal_command + "\n")
+            logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
+        
+        # Handle response
+        response_text = response_json.get("response", "")
+        if remaining_text:
+            response_text += f"\n\nAdditional information:\n{remaining_text}"
+        
+        if response_text:
+            write_to_file(CURRENT_RESPONSE_FILE, response_text)
+            logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+    else:
+        logger.warning("No valid JSON found in the response.")
+        write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
+        logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
+
+def get_message_content(file_path: str, included_file_content: Optional[str]) -> str:
+    content_parts = [
+        read_file_content(RESPONSE_INSTRUCTIONS),
+        read_file_content(AVATAR_README),
+        read_file_content(README),
+        read_file_content(MESSAGE_TO_SEND),
+        f"### Summary of context (required)\n{json.dumps(read_summary_of_context(), indent=2)}",
+        f"# Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
+        f"# Attached file path \n{file_path}" if file_path else None,
+        f"# Attached file contents\n{included_file_content}" if included_file_content else None,
+        read_file_content(RESPONSE_INSTRUCTIONS)
+    ]
+    return "\n\n".join(filter(None, content_parts))
 
 def main():
     while True:
@@ -116,27 +160,8 @@ def main():
             print("Goodbye!")
             break
         
-        avatar_instructions_content = read_file_content(RESPOSE_INSTRUCTIONS)
-        avatar_readme_content = read_file_content(AVATAR_README)
-        readme_content = read_file_content(README)
-        message_to_send_content = read_file_content(MESSAGE_TO_SEND)
         included_file_content = read_file_content(file_path) if file_path else None
-        
-        summary_of_context = read_summary_of_context()
-
-        directory_tree_json = json.dumps(get_directory_tree("/workspaces/greatsun-dev"))
-        
-        message_content = "\n\n".join(filter(None, [
-            avatar_instructions_content,
-            avatar_readme_content,
-            readme_content,
-            message_to_send_content,
-            f"### Summary of context (required)\n{json.dumps(summary_of_context, indent=2)}",
-            f"# Directory structure\n{directory_tree_json}",
-            f"# Attached file path \n{file_path}" if file_path else None,
-            f"# Attached file contents\n{included_file_content}" if included_file_content else None,
-            avatar_instructions_content
-        ]))
+        message_content = get_message_content(file_path, included_file_content)
         
         write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
         
@@ -158,35 +183,7 @@ def main():
             write_to_file(os.path.join(CONTEXT_DIR, "responseReceived.txt"), avatar_response)
             
             response_json, remaining_text = extract_json_from_response(avatar_response)
-            
-            if response_json:
-                # Handle file update
-                file_contents_update = response_json.get("update_file_contents")
-                file_path_update = response_json.get("update_file_path")
-                if file_contents_update and file_path_update:
-                    write_to_file(file_path_update, file_contents_update)
-                    logger.info(f"File updated: {file_path_update}")
-                
-                # Handle context summary update
-                context_summary = response_json.get("context_summary")
-                if context_summary:
-                    write_summary_of_context(context_summary)
-                    logger.info("Context summary updated")
-                
-                # Handle terminal command
-                terminal_command = response_json.get("terminal_command")
-                if terminal_command:
-                    print(f"Suggested terminal command: {terminal_command}")
-                    logger.info(f"Suggested terminal command: {terminal_command}")
-                
-                # Print response
-                print(response_json.get("response", "No response provided"))
-            else:
-                print("No valid JSON found in the response.")
-            
-            if remaining_text:
-                print("Additional information from the AI:")
-                print(remaining_text)
+            process_ai_response(response_json, remaining_text)
             
         except Exception as e:
             logger.error(f"Error communicating with Anthropic API: {e}")
