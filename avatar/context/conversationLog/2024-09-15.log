@@ -1350,3 +1350,6 @@ if __name__ == "__main__":
 2024-09-15 02:32:00,199 - No valid JSON found in the response.
 2024-09-15 02:32:00,199 - Content written to avatar/currentResponse
 2024-09-15 02:32:00,199 - Full response written to 'avatar/currentResponse'
+2024-09-15 02:37:14,476 - Content written to avatar/context/messageSent.txt
+2024-09-15 02:37:22,305 - Content written to avatar/context/fullResponseReceived.txt
+2024-09-15 02:37:22,305 - Content written to avatar/currentResponse.txt
