@@ -11,7 +11,7 @@ README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
 TERMINAL_COMMANDS_FILE = "avatar/terminalCommands.txt"
-CURRENT_RESPONSE_FILE = "avatar/currentResponse.txt"
+CURRENT_RESPONSE_FILE = "avatar/context/currentResponse.txt"
 
 # Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)

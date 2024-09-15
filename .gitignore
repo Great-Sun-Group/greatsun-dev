@@ -1,5 +1,5 @@
 # Exclude avatar script files
-avatar/currentResponse.txt
+avatar/context/currentResponse.txt
 avatar/terminalCommands.txt
 avatar/context_summary.json
 avatar/messageToSend.txt
