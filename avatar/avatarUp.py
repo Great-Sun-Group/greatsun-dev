@@ -148,11 +148,14 @@ def main():
                     logger.info("AI recommended actions processed.")
                     break  # Break the inner loop to get a new file path from the user
                 
-                if not new_requested_files:
+                if new_requested_files:
+                    print(f"AI has requested additional files: {', '.join(new_requested_files)}")
+                    logger.info(f"AI requested additional files: {', '.join(new_requested_files)}")
+                    requested_files = new_requested_files
+                else:
                     print("AI didn't request any new files or recommend actions. Please provide a new file path.")
+                    logger.info("AI didn't request new files or recommend actions.")
                     break  # Break the inner loop to get a new file path from the user
-                
-                requested_files = new_requested_files
                 
             except Exception as e:
                 logger.error(f"Error communicating with Anthropic API: {e}")
