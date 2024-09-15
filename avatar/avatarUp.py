@@ -9,15 +9,15 @@ from utils import read_file_content, write_to_file, read_recent_logs, write_summ
 
 # Constants
 API_KEY = os.getenv("CLAUDE")
-LOGS_DIRECTORY = "avatar/context/conversationLog"
-SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
+LOGS_DIRECTORY = "avatar/logs"
+SUMMARY_FILE = os.path.join("avatar", "context_summary.json")
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
 TERMINAL_COMMANDS_FILE = "avatar/terminalCommands.txt"
-CURRENT_RESPONSE_FILE = "avatar/currentResponse"
+CURRENT_RESPONSE_FILE = "avatar/currentResponse.txt"
 
 # Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
@@ -76,7 +76,8 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         # Handle terminal command
         terminal_command = response_json.get("terminal_command")
         if terminal_command:
-            write_to_file(TERMINAL_COMMANDS_FILE, terminal_command + "\\n")
+            with open(TERMINAL_COMMANDS_FILE, "a") as file:
+                file.write(terminal_command + "\\n")
             logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
 
         # Handle file updates
