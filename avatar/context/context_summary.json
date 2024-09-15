@@ -1,5 +1,8 @@
 [
   {
     "summary": "The script has been updated to extract terminal commands and AI responses from the JSON response and save them to separate files."
+  },
+  {
+    "summary": "A new file called `utils.py` has been created to hold utility functions like file reading/writing, directory tree generation, and context summary handling."
   }
 ]

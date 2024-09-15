@@ -15,7 +15,7 @@ AVATAR_README = "avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
-TERMINAL_COMMANDS_FILE = "avatar/terminalCommands"
+TERMINAL_COMMANDS_FILE = "avatar/terminalCommands.txt"
 CURRENT_RESPONSE_FILE = "avatar/currentResponse"
 
 # Ensure directories exist

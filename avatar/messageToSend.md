@@ -1,3 +1,3 @@
 # **Current Avatar Instructions from Developer**
 
-review the logging processes in this file and suggest any upgrades
+given this content in a new avatar/utils.py file, update avatarUp to import and use these instead of declaring them in the file
