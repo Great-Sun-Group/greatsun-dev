@@ -2,7 +2,7 @@
 avatar/currentResponse.txt
 avatar/terminalCommands.txt
 avatar/context_summary.json
-#avatar/messageToSend.md
+avatar/messageToSend.md
 avatar/context/fullResponseReceived.txt
 avatar/context/messageSent.txt
 

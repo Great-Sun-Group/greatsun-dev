@@ -17,16 +17,17 @@ Commits are done in a commonly named and identified commit across all affected r
 You will communicate with the avatar through a terminal. Responses are logged and recommended actions are saved imediately to files.
 - `avatar up` launches the avatar.
 
-In your command line interface, you have the following options:
-1. Press Enter to send the LLM the avatar context and the query currently entered into avatar/
-
-
-- `down` exits the avatar back to the shell.
+#### LLM commands
+1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar/messageToSend.md](avatar/messageToSend.md) with your message and press Enter.
+2. To send a query and a first reference file to the LLM, enter the path of the file in the interface and press Enter
 
 #### Shell commands
 Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
 - `command`: description
 - `command`: description
+
+Exit
+- `down` exits the avatar back to the shell.
 
 ## Project
 Our project consists of the following top level directories:
