@@ -9,8 +9,7 @@ from utils import read_file_content, write_to_file, read_recent_logs, write_summ
 
 # Constants
 API_KEY = os.getenv("CLAUDE")
-LOGS_DIRECTORY = "avatar/logs"
-SUMMARY_FILE = os.path.join("avatar", "context_summary.json")
+LOGS_DIRECTORY = "avatar/context/conversationLogs"
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"

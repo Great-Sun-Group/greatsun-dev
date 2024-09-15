@@ -1,1 +1,0 @@
-provide an updated .gitignore so that we are not tracking any of the files changes by this script except for the logs.
