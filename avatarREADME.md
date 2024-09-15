@@ -11,6 +11,6 @@ There are specific formats we need you to respond in. These formats are been add
 
 ## Code requirements
 - All code returned will be to current best practices regarding commenting, clarity, etc.
-- Thoroughly log all code with the loggers provided in each credex-ecosystem repository. Data from these loggers is compiled, processed, and monitored in greatsun-dev.
+- Thoroughly log all code with the loggers provided in each credex-ecosystem repository. Data from these loggers is compiled, processed, and monitored in greatsun-dev, which has it's own internal loggers as well.
 - Latest security standards will be applied to all code. The code in this repository has to access the code in other repos without introducing vulnerabilities in the other repository's security as a stand alone app.
 - Don't add notes as comments about what you've changed, just leave thorough comments describing the way the updated code works.
