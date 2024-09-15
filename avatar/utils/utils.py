@@ -6,8 +6,8 @@ import re
 from datetime import datetime, timedelta
 
 # Constants
-LOGS_DIRECTORY = "avatar-ops/logs"
-CONTEXT_DIR = "avatar-ops/context"
+LOGS_DIRECTORY = "avatar/logs"
+CONTEXT_DIR = "avatar/context"
 SUMMARY_FILE = os.path.join(CONTEXT_DIR, "context_summary.json")
 
 # Ensure directories exist

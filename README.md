@@ -21,7 +21,7 @@ You will communicate with the avatar through a terminal. Responses are logged an
 - `avatar up` launches the avatar.
 
 #### LLM commands
-1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar-ops/messageToSend.md](avatar-ops/messageToSend.md) with your message and press Enter in the terminal.
+1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar/messageToSend.md](avatar/messageToSend.md) with your message and press Enter in the terminal.
 2. To send a query (can be empty) and the contents of a first reference file to the LLM, enter the path of the file in the terminal and press Enter.
 
 #### Shell commands

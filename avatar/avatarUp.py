@@ -10,14 +10,14 @@ API_KEY = os.getenv("CLAUDE")
 if not API_KEY:
     raise ValueError("CLAUDE API key not found in environment variables")
 
-LOGS_DIRECTORY = "avatar-ops/logs"
-RESPONSE_INSTRUCTIONS = "avatar-ops/context/responseInstructions.md"
+LOGS_DIRECTORY = "avatar/logs"
+RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
-MESSAGE_TO_SEND = "avatar-ops/messageToSend.md"
-CONTEXT_DIR = "avatar-ops/context"
-TERMINAL_COMMANDS_FILE = "avatar-ops/terminalCommands.txt"
-CURRENT_RESPONSE_FILE = "avatar-ops/currentResponse.txt"
+MESSAGE_TO_SEND = "avatar/messageToSend.md"
+CONTEXT_DIR = "avatar/context"
+TERMINAL_COMMANDS_FILE = "avatar/terminalCommands.txt"
+CURRENT_RESPONSE_FILE = "avatar/currentResponse.txt"
 
 # Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
@@ -34,7 +34,7 @@ def clear_terminal():
 def main():
     clear_terminal()
     print("welcome, this is the greatsun-dev environment")
-    print("enter your message to me in avatar-ops/messageToSend.txt then press enter")
+    print("enter your message to me in avatar/messageToSend.txt then press enter")
     print("before you press enter, you can optionally paste a file path here as a starting point for my work")
     print("@ryanlukewatson:")
 

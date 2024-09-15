@@ -13,9 +13,9 @@ Respond with json indicating that you would like to review to receive more infor
 If you respond in this way, we will append the contents of the files requested to this message and resend it so that you have all the context that you need. You can request more files if you need to recursively, up to a total of 7 times, enabling you to have up to 49 files sent to you for a single recommended update (proceeding to option 2 below). If you have files to request reply in this format, only sending as many file_requested key/values as you need, up to 7:
 {
   "response": "To better understand how to assist, I would like to review these relevant files.",
-  "file_requested_1": "avatar-ops/utils.py"
+  "file_requested_1": "avatar/utils.py"
   "file_requested_2": "README.md"
-  "file_requested_3": "avatar-ops/detDirectoryTree.py"
+  "file_requested_3": "avatar/detDirectoryTree.py"
   "file_requested_4": "credex-ecosystem/credex-core/.gitignore"
   "file_requested_5": "credex-ecosystem/credex-core/placeholderFilame1.txt"
   "file_requested_6": "credex-ecosystem/credex-core/placeholderFilame2.txt"
