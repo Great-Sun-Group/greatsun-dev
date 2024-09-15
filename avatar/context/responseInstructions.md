@@ -45,3 +45,6 @@ DO not include anything in your response except the json above. Anything that yo
 - update_file_contents_4
 - update_file_path_5
 - update_file_contents_5
+
+### Important
+Do not recommend updates to any file that has not been sent to you. If you need to recommend a file, first request it using option 1 above.

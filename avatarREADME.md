@@ -39,6 +39,9 @@ If you respond in json (option 2 above) then **your responses will be parsed bef
   "update_file_contents_5": "complete file contents here of the fifth file you recommend that we update",
 }
 
+### Important
+Do not recommend updates to any file that has not been sent to you. If you need to recommend a file, first request it using option 1 above.
+
 DO not include anything in your response except the json above. Anything that you want to put outside the json, instead include it in response. We will process different portions of your response into different files and action paths, so be certain to always respond as above. 
 
 ### Required fields that must be included in every response:
