@@ -1,6 +1,5 @@
 import os
 import json
-import json5
 import logging
 from typing import Tuple, Optional, Dict, Any, List
 import re
@@ -95,6 +94,10 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         logger.error(f"Error getting directory tree: {e}")
         return {}
 
+import json
+import re
+from typing import Tuple, Optional, Dict, Any
+
 def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
     # Try to find JSON-like content within the outermost curly braces
     json_pattern = re.compile(r'\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}')
@@ -105,11 +108,25 @@ def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]],
         try:
             # Replace newlines and other control characters within string values
             json_str = re.sub(r'("(?:(?!(?<!\\)").)*")', lambda m: json.dumps(m.group(1)[1:-1])[1:-1], json_str)
-            # Use json5 to parse the JSON-like string
-            parsed = json5.loads(json_str)
+            # Remove any remaining control characters
+            json_str = ''.join(ch for ch in json_str if ord(ch) >= 32)
+            # Use json.loads to parse the JSON string
+            parsed = json.loads(json_str)
             return parsed, response[:match.start()] + response[match.end():]
-        except Exception as e:
+        except json.JSONDecodeError as e:
             logger.error(f"Failed to parse extracted JSON: {e}")
+            # If JSON parsing fails, try to extract key-value pairs manually
+            try:
+                manual_parse = {}
+                for line in json_str.split('\n'):
+                    if ':' in line:
+                        key, value = line.split(':', 1)
+                        key = key.strip().strip('"')
+                        value = value.strip().strip(',').strip().strip('"')
+                        manual_parse[key] = value
+                return manual_parse, response[:match.start()] + response[match.end():]
+            except Exception as e:
+                logger.error(f"Failed to manually parse JSON: {e}")
     
     logger.warning("No valid JSON found in the response.")
     return None, response

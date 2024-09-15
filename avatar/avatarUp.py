@@ -71,6 +71,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             if update_file_path and update_file_contents:
                 write_to_file(update_file_path, update_file_contents)
                 logger.info(f"File updated: {update_file_path}")
+                actions_recommended = True
     else:
         logger.warning("No valid JSON found in the response.")
         write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
