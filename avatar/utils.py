@@ -50,18 +50,24 @@ def write_summary_of_context(context_summary: str, summary_file: str = 'summary_
     with open(summary_file, 'w') as file:
         json.dump(context_summary, file)
 
+import json
+import re
+
 def extract_json_from_response(response: str) -> tuple[dict | None, str]:
     json_match = re.search(r'\{[\s\S]*\}', response)
     if json_match:
         try:
             json_str = json_match.group()
-            # Replace escaped quotes within JSON strings
-            json_str = re.sub(r'(?<!\\)\\(?!\\)"', '"', json_str)
+            # Replace newlines and escape quotes within the nested JSON strings
+            json_str = re.sub(r'("update_file_contents_\d+": ")([^"]*)("})', 
+                              lambda m: m.group(1) + m.group(2).replace('\n', '\\n').replace('"', '\\"') + m.group(3),
+                              json_str)
             json_data = json.loads(json_str)
             remaining_text = response[:json_match.start()] + response[json_match.end():]
             return json_data, remaining_text.strip()
         except json.JSONDecodeError as e:
             print(f"Failed to parse JSON from response: {e}")
+            print(f"Problematic JSON string: {json_str}")
     return None, response
 
 def get_directory_tree(directory: str) -> dict:

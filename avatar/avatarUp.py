@@ -40,7 +40,9 @@ def process_ai_response(response_json: dict | None, remaining_text: str) -> None
                     index = key.split("_")[-1]
                     content_key = f"update_file_contents_{index}"
                     if content_key in response_json:
-                        write_to_file(value, response_json[content_key])
+                        # Unescape newlines before writing to file
+                        file_content = response_json[content_key].replace('\\n', '\n')
+                        write_to_file(value, file_content)
                         logger.info(f"Updated file: {value}")
                     else:
                         logger.warning(f"Missing content for file: {value}")
@@ -48,9 +50,6 @@ def process_ai_response(response_json: dict | None, remaining_text: str) -> None
                     with open(TERMINAL_COMMANDS_FILE, "a") as f:
                         f.write(value + "\n")
                     logger.info(f"Added terminal command: {value}")
-                elif key == "context_summary":
-                    write_summary_of_context(value)
-                    logger.info("Updated context summary")
                 elif key == "response":
                     write_to_file(CURRENT_RESPONSE_FILE, value)
                     logger.info(f"Wrote response to {CURRENT_RESPONSE_FILE}")
@@ -60,7 +59,7 @@ def process_ai_response(response_json: dict | None, remaining_text: str) -> None
     if remaining_text:
         write_to_file(os.path.join(CONTEXT_DIR, "remaining_text.txt"), remaining_text)
         logger.info("Wrote remaining text to file")
-
+        
 def get_message_content(file_path: str, included_file_content: str | None) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
