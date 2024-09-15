@@ -93,9 +93,7 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         return {}
 
 def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
-    json_match = re.search(r'```json
-(.*?)
-```', response, re.DOTALL)
+    json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
     if json_match:
         try:
             json_data = json.loads(json_match.group(1))

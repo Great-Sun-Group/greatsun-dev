@@ -1,5 +1,6 @@
 import os
 import json
+from typing import Optional, Dict, Any
 from anthropic import Anthropic
 from utils import setup_logger, read_file_content, write_to_file, read_recent_logs, write_summary_of_context, extract_json_from_response, get_directory_tree
 
@@ -31,10 +32,10 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         # Handle response
         response_text = response_json.get("response", "")
         if remaining_text:
-            response_text += f"
+            response_text += f"""
 
 Additional information:
-{remaining_text}"
+{remaining_text}"""
         write_to_file(CURRENT_RESPONSE_FILE, response_text)
         logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
 
@@ -48,7 +49,7 @@ Additional information:
         terminal_command = response_json.get("terminal_command")
         if terminal_command:
             with open(TERMINAL_COMMANDS_FILE, "a") as file:
-                file.write(terminal_command + "")
+                file.write(terminal_command + "\n")
             logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
 
         # Handle file updates
@@ -68,21 +69,21 @@ def get_message_content(file_path: str, included_file_content: Optional[str]) ->
         read_file_content(RESPONSE_INSTRUCTIONS),
         read_file_content(AVATAR_README),
         read_file_content(README),
-        f"# **Current Avatar Instructions from Developer**",
+        "# **Current Avatar Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
-        f"## Summary of context
+        f"""## Summary of context
 
 ## Attached file path 
-{file_path}" if file_path else None,
-        f"### Attached file contents
-{included_file_content}" if included_file_content else None,
-        f"### Last 15 minutes of logs
-{read_recent_logs(minutes=15)}",
-        f"### Directory structure
-{json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2)}",
+{file_path}""" if file_path else None,
+        f"""### Attached file contents
+{included_file_content}""" if included_file_content else None,
+        f"""### Last 15 minutes of logs
+{read_recent_logs(minutes=15)}""",
+        f"""### Directory structure
+{json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2)}""",
         read_file_content(RESPONSE_INSTRUCTIONS)
     ]
-    return "".join(filter(None, content_parts))
+    return "\n\n".join(filter(None, content_parts))
 
 def main():
     while True:
