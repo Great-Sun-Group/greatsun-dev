@@ -7,7 +7,7 @@ avatar/context/fullResponseReceived.txt
 avatar/context/messageSent.txt
 
 # Exclude Python cache files
-__pycache__/
+#__pycache__/
 *.pyc
 
 # Exclude environment files

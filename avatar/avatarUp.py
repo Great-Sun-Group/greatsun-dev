@@ -83,5 +83,5 @@ def main():
                 file_request_count = 0
                 provided_files.clear()
 
-    if __name__ == "__main__":
-        main()
+if __name__ == "__main__":
+    main()
