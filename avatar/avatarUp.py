@@ -60,33 +60,32 @@ def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
 
 def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> None:
     if response_json:
-        # Handle file update
-        file_contents_update = response_json.get("update_file_contents")
-        file_path_update = response_json.get("update_file_path")
-        if file_contents_update and file_path_update:
-            write_to_file(file_path_update, file_contents_update)
-            logger.info(f"File updated: {file_path_update}")
-        
+        # Handle response
+        response_text = response_json.get("response", "")
+        if remaining_text:
+            response_text += f"\\n\\nAdditional information:\\n{remaining_text}"
+        write_to_file(CURRENT_RESPONSE_FILE, response_text)
+        logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+
         # Handle context summary update
         context_summary = response_json.get("context_summary")
         if context_summary:
             write_summary_of_context(context_summary)
             logger.info("Context summary updated")
-        
+
         # Handle terminal command
         terminal_command = response_json.get("terminal_command")
         if terminal_command:
-            write_to_file(TERMINAL_COMMANDS_FILE, terminal_command + "\n")
+            write_to_file(TERMINAL_COMMANDS_FILE, terminal_command + "\\n")
             logger.info(f"Terminal command written to '{TERMINAL_COMMANDS_FILE}': {terminal_command}")
-        
-        # Handle response
-        response_text = response_json.get("response", "")
-        if remaining_text:
-            response_text += f"\n\nAdditional information:\n{remaining_text}"
-        
-        if response_text:
-            write_to_file(CURRENT_RESPONSE_FILE, response_text)
-            logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")  
+
+        # Handle file updates
+        for i in range(1, 6):
+            update_file_path = response_json.get(f"update_file_path_{i}")
+            update_file_contents = response_json.get(f"update_file_contents_{i}")
+            if update_file_path and update_file_contents:
+                write_to_file(update_file_path, update_file_contents)
+                logger.info(f"File updated: {update_file_path}")
     else:
         logger.warning("No valid JSON found in the response.")
         write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
@@ -99,13 +98,13 @@ def get_message_content(file_path: str, included_file_content: Optional[str]) ->
         read_file_content(README),
         f"# **Current Avatar Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
-        f"## Summary of context\n\n## Attached file path \n{file_path}" if file_path else None,
-        f"### Attached file contents\n{included_file_content}" if included_file_content else None,
-        f"### Last 15 minutes of logs\n{json.dumps(read_recent_logs(), indent=2)}",
-        f"### Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
+        f"## Summary of context\\n\\n## Attached file path \\n{file_path}" if file_path else None,
+        f"### Attached file contents\\n{included_file_content}" if included_file_content else None,
+        f"### Last 15 minutes of logs\\n{json.dumps(read_recent_logs(), indent=2)}",
+        f"### Directory structure\\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
         read_file_content(RESPONSE_INSTRUCTIONS)
     ]
-    return "\n\n".join(filter(None, content_parts))
+    return "\\n\\n".join(filter(None, content_parts))
 
 def main():
     while True:
