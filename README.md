@@ -13,13 +13,16 @@ As a human developer on the Great Sun dev team, you use commits to closely monit
 
 Commits are done in a commonly named and identified commit across all affected repos with the `command here` command to the avatar.
 
+#### Undo
+If since the last commit you've made changes that you don't want to lose, and the avatar messes with your code, the undo command works on each file changed.
+
 ### Command line interface
 You will communicate with the avatar through a terminal. Responses are logged and recommended actions are saved imediately to files.
 - `avatar up` launches the avatar.
 
 #### LLM commands
-1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar/messageToSend.md](avatar/messageToSend.md) with your message and press Enter.
-2. To send a query and a first reference file to the LLM, enter the path of the file in the interface and press Enter
+1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar/messageToSend.md](avatar/messageToSend.md) with your message and press Enter in the terminal.
+2. To send a query (can be empty) and the contents of a first reference file to the LLM, enter the path of the file in the terminal and press Enter.
 
 #### Shell commands
 Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
