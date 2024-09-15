@@ -8,7 +8,7 @@ API_KEY = os.getenv("CLAUDE")
 if not API_KEY:
     raise ValueError("CLAUDE API key not found in environment variables")
 
-LOGS_DIRECTORY = "avatar/context/conversationLogs"
+LOGS_DIRECTORY = "avatar/context/conversationLog"
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
@@ -79,7 +79,7 @@ def get_ai_response(client, message_content):
     try:
         message = client.messages.create(
             model="claude-3-sonnet-20240229",
-            max_tokens=10000,
+            max_tokens=4096,
             messages=[
                 {"role": "user", "content": message_content}
             ]
