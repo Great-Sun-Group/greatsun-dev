@@ -160,6 +160,7 @@ def main():
                 
             except Exception as e:
                 logger.error(f"Error communicating with Anthropic API: {e}")
+                print(f"An error occurred: {e}")
                 break  # Break the inner loop on error
 
 if __name__ == "__main__":
