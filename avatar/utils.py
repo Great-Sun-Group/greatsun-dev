@@ -1,14 +1,24 @@
 import os
-import logging
-from datetime import datetime
 import json
+import logging
+from typing import Optional, Dict, Any, List
 import re
+from datetime import datetime, timedelta
 
-def setup_logger(logs_directory: str) -> logging.Logger:
+# Constants
+LOGS_DIRECTORY = "avatar/logs"
+CONTEXT_DIR = "avatar/context"
+SUMMARY_FILE = os.path.join(CONTEXT_DIR, "context_summary.json")
+
+# Ensure directories exist
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
+
+def setup_logger() -> logging.Logger:
     logger = logging.getLogger(__name__)
     logger.setLevel(logging.INFO)
     current_date = datetime.now().strftime("%Y-%m-%d")
-    log_file = f"{logs_directory}/{current_date}.log"
+    log_file = os.path.join(LOGS_DIRECTORY, f"{current_date}.log")
     
     file_handler = logging.FileHandler(log_file)
     file_handler.setLevel(logging.INFO)
@@ -23,63 +33,74 @@ def setup_logger(logs_directory: str) -> logging.Logger:
     
     return logger
 
-def read_file_content(file_path: str) -> str:
+logger = setup_logger()
+
+def read_file_content(file_path: str) -> Optional[str]:
     try:
         with open(file_path, 'r') as file:
-            content = file.read()
-        return content
+            return file.read()
     except FileNotFoundError:
-        return ''
+        logger.error(f"File not found: {file_path}")
+    except Exception as e:
+        logger.error(f"Error reading file: {e}")
+    return None
 
 def write_to_file(file_path: str, content: str) -> None:
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
-    with open(file_path, 'w') as file:
-        file.write(content)
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f"Content written to {file_path}")
+    except Exception as e:
+        logger.error(f"Error writing to file: {file_path}, {e}")
 
-def read_recent_logs(logs_directory: str, max_logs: int = 15) -> list[dict]:
-    log_files = sorted([f for f in os.listdir(logs_directory) if f.endswith('.log')], reverse=True)
-    recent_logs = []
-    for log_file in log_files[:max_logs]:
-        log_path = os.path.join(logs_directory, log_file)
-        with open(log_path, 'r') as file:
-            log_content = file.read()
-        recent_logs.append({'file': log_file, 'content': log_content})
-    return recent_logs
+def read_summary_of_context() -> List[Dict[str, str]]:
+    try:
+        with open(SUMMARY_FILE, 'r') as file:
+            return json.load(file)
+    except FileNotFoundError:
+        logger.info("Summary of context file not found, creating an empty file")
+        write_summary_of_context([])
+        return []
+    except Exception as e:
+        logger.error(f"Error reading summary of context: {e}")
+        return []
 
-def write_summary_of_context(context_summary: str, summary_file: str = 'summary_of_context.json') -> None:
-    with open(summary_file, 'w') as file:
-        json.dump(context_summary, file)
+def write_summary_of_context(summary: List[Dict[str, Any]]) -> None:
+    try:
+        with open(SUMMARY_FILE, 'w') as file:
+            json.dump(summary, file, indent=2)
+        logger.info("Summary of context updated")
+    except Exception as e:
+        logger.error(f"Error writing summary of context: {e}")
 
-import json
-import re
+def read_recent_logs(minutes: int = 15) -> str:
+    logs = ""
+    fifteen_minutes_ago = datetime.now() - timedelta(minutes=minutes)
+    for log_file in sorted(os.listdir(LOGS_DIRECTORY), reverse=True):
+        log_file_path = os.path.join(LOGS_DIRECTORY, log_file)
+        log_file_datetime = datetime.fromtimestamp(os.path.getmtime(log_file_path))
+        if log_file_datetime >= fifteen_minutes_ago:
+            logs += read_file_content(log_file_path) or ""
+    return logs
 
-def extract_json_from_response(response: str) -> tuple[dict | None, str]:
-    json_match = re.search(r'\{[\s\S]*\}', response)
+def get_directory_tree(root_dir: str) -> Dict[str, Any]:
+    try:
+        return {item: get_directory_tree(os.path.join(root_dir, item)) if os.path.isdir(os.path.join(root_dir, item)) else None
+                for item in os.listdir(root_dir)}
+    except Exception as e:
+        logger.error(f"Error getting directory tree: {e}")
+        return {}
+
+def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
+    json_match = re.search(r'```json
+(.*?)
+```', response, re.DOTALL)
     if json_match:
         try:
-            json_str = json_match.group()
-            # Replace newlines and escape quotes within the nested JSON strings
-            json_str = re.sub(r'("update_file_contents_\d+": ")([^"]*)("})', 
-                              lambda m: m.group(1) + m.group(2).replace('\n', '\\n').replace('"', '\\"') + m.group(3),
-                              json_str)
-            json_data = json.loads(json_str)
+            json_data = json.loads(json_match.group(1))
             remaining_text = response[:json_match.start()] + response[json_match.end():]
             return json_data, remaining_text.strip()
-        except json.JSONDecodeError as e:
-            print(f"Failed to parse JSON from response: {e}")
-            print(f"Problematic JSON string: {json_str}")
+        except json.JSONDecodeError:
+            logger.error("Failed to parse JSON from response")
     return None, response
-
-def get_directory_tree(directory: str) -> dict:
-    tree = {}
-    for root, dirs, files in os.walk(directory):
-        rel_path = os.path.relpath(root, directory)
-        if rel_path == '.':
-            rel_path = ''
-        node = tree
-        parts = rel_path.split(os.path.sep)
-        for part in parts:
-            node = node.setdefault(part, {})
-        for file in files:
-            node[file] = None
-    return tree
