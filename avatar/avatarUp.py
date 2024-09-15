@@ -1,9 +1,13 @@
 import os
+import json
 from anthropic import Anthropic
 from utils import setup_logger, read_file_content, write_to_file, read_recent_logs, write_summary_of_context, extract_json_from_response, get_directory_tree
 
 # Constants
 API_KEY = os.getenv("CLAUDE")
+if not API_KEY:
+    raise ValueError("CLAUDE API key not found in environment variables")
+
 LOGS_DIRECTORY = "avatar/context/conversationLogs"
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
@@ -20,7 +24,12 @@ os.makedirs(os.path.dirname(TERMINAL_COMMANDS_FILE), exist_ok=True)
 os.makedirs(os.path.dirname(CURRENT_RESPONSE_FILE), exist_ok=True)
 
 logger = setup_logger(LOGS_DIRECTORY)
-client = Anthropic(api_key=API_KEY)
+
+try:
+    client = Anthropic(api_key=API_KEY)
+except Exception as e:
+    logger.error(f"Error initializing Anthropic client: {e}")
+    raise
 
 def process_ai_response(response_json: dict | None, remaining_text: str) -> None:
     if response_json:
@@ -37,7 +46,7 @@ def process_ai_response(response_json: dict | None, remaining_text: str) -> None
                         logger.warning(f"Missing content for file: {value}")
                 elif key == "terminal_command":
                     with open(TERMINAL_COMMANDS_FILE, "a") as f:
-                        f.write(value + "\\n")
+                        f.write(value + "\n")
                     logger.info(f"Added terminal command: {value}")
                 elif key == "context_summary":
                     write_summary_of_context(value)
@@ -59,13 +68,13 @@ def get_message_content(file_path: str, included_file_content: str | None) -> st
         read_file_content(README),
         f"# **Current Avatar Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
-        f"## Summary of context\\n\\n## Attached file path \\n{file_path}" if file_path else None,
-        f"### Attached file contents\\n{included_file_content}" if included_file_content else None,
-        f"### Last 15 minutes of logs\\n{json.dumps(read_recent_logs(LOGS_DIRECTORY), indent=2)}",
-        f"### Directory structure\\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
+        f"## Summary of context\n\n## Attached file path \n{file_path}" if file_path else None,
+        f"### Attached file contents\n{included_file_content}" if included_file_content else None,
+        f"### Last 15 minutes of logs\n{json.dumps(read_recent_logs(LOGS_DIRECTORY), indent=2)}",
+        f"### Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
         read_file_content(RESPONSE_INSTRUCTIONS)
     ]
-    return "\\n\\n".join(filter(None, content_parts))
+    return "\n\n".join(filter(None, content_parts))
 
 def main():
     while True:
@@ -100,6 +109,8 @@ def main():
             response_json, remaining_text = extract_json_from_response(avatar_response)
             process_ai_response(response_json, remaining_text)
 
+        except AttributeError as e:
+            logger.error(f"AttributeError: {e}. This might be due to an unexpected response structure.")
         except Exception as e:
             logger.error(f"Error communicating with Anthropic API: {e}")
 
