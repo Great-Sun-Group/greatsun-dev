@@ -89,6 +89,9 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
                     actions_recommended = True
                 except Exception as e:
                     logger.error(f"Error updating file {clean_file_path}: {e}")
+            elif update_file_path and not update_file_contents:
+                logger.warning(f"Incomplete update for file {update_file_path}. Contents missing.")
+                actions_recommended = False  # Set to False to trigger a retry
     else:
         logger.warning("No valid JSON found in the response.")
         try:
@@ -98,7 +101,6 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             logger.error(f"Error writing full response to file: {e}")
 
     return requested_files, actions_recommended
-
 def get_message_content(file_path: str, included_content: Optional[str], requested_files: List[str] = None) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
