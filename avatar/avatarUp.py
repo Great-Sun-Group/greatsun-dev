@@ -71,7 +71,9 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             update_file_path = response_json.get(f"update_file_path_{i}")
             update_file_contents = response_json.get(f"update_file_contents_{i}")
             if update_file_path and update_file_contents:
-                abs_file_path = os.path.join(os.getcwd(), update_file_path)
+                # Clean the file path
+                clean_file_path = update_file_path.strip('"{}')
+                abs_file_path = os.path.join(os.getcwd(), clean_file_path)
                 write_to_file(abs_file_path, update_file_contents)
                 logger.info(f"File updated: {abs_file_path}")
                 actions_recommended = True
@@ -81,7 +83,6 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         logger.info(f"Full response written to '{CURRENT_RESPONSE_FILE}'")
 
     return requested_files, actions_recommended
-
 def get_message_content(file_path: str, included_content: Optional[str], requested_files: List[str] = None) -> str:
     content_parts = [
         read_file_content(RESPONSE_INSTRUCTIONS),
