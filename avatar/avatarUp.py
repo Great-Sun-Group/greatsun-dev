@@ -79,7 +79,7 @@ def get_ai_response(client, message_content):
     try:
         message = client.messages.create(
             model="claude-3-sonnet-20240229",
-            max_tokens=4096,
+            max_tokens=10000,
             messages=[
                 {"role": "user", "content": message_content}
             ]
