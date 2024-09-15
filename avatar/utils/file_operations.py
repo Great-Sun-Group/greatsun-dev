@@ -35,13 +35,39 @@ def read_file_content(file_path):
         logger.error(f"Error reading file: {e}")
         return None
 
+def check_write_permissions(file_path: str) -> bool:
+    dir_path = os.path.dirname(file_path)
+    if os.path.exists(dir_path):
+        return os.access(dir_path, os.W_OK)
+    return os.access(os.path.dirname(dir_path), os.W_OK)
 
 def write_to_file(file_path: str, content: str) -> None:
+    abs_file_path = os.path.abspath(file_path)
+    logger.info(f"Attempting to write to file: {abs_file_path}")
+    
+    if not check_write_permissions(abs_file_path):
+        logger.error(f"No write permissions for file: {abs_file_path}")
+        return
+    
     try:
-        with open(file_path, 'w') as file:
+        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
+        with open(abs_file_path, 'w') as file:
             file.write(content)
+        logger.info(f"Content successfully written to {abs_file_path}")
+        
+        # Verify file contents
+        with open(abs_file_path, 'r') as file:
+            written_content = file.read()
+        if written_content == content:
+            logger.info(f"File contents verified for {abs_file_path}")
+        else:
+            logger.warning(f"File contents do not match expected content for {abs_file_path}")
+    except PermissionError:
+        logger.error(f"Permission denied when writing to file: {abs_file_path}")
+    except IOError as e:
+        logger.error(f"IO error occurred when writing to file: {abs_file_path}, {e}")
     except Exception as e:
-        logger.error(f"Error writing to file {file_path}: {e}")
+        logger.error(f"Unexpected error writing to file: {abs_file_path}, {e}")
 
 def append_to_file(file_path: str, content: str) -> None:
     try:
