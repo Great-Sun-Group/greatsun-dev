@@ -2,6 +2,7 @@ import os
 import json
 import logging
 from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta
 
 # Constants
 LOGS_DIRECTORY = "avatar/context/conversationLog"
@@ -63,6 +64,16 @@ def read_summary_of_context() -> List[Dict[str, str]]:
     except Exception as e:
         logger.error(f"Error reading summary of context: {e}")
         return []
+
+def read_recent_logs(minutes: int = 15) -> str:
+    logs = ""
+    fifteen_minutes_ago = datetime.now() - timedelta(minutes=minutes)
+    for log_file in sorted(os.listdir(LOGS_DIRECTORY)):
+        log_file_path = os.path.join(LOGS_DIRECTORY, log_file)
+        log_file_datetime = datetime.strptime(log_file.split('.')[0], "%Y-%m-%d")
+        if log_file_datetime >= fifteen_minutes_ago:
+            logs += read_file_content(log_file_path) or ""
+    return logs
 
 def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
     try:

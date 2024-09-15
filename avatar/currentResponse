@@ -1,18 +1,8 @@
-To import and use the utility functions from utils.py in avatarUp.py, follow these steps:
-
-1. Import the required functions from utils.py at the top of avatarUp.py:
-
-from utils import read_file_content, write_to_file, read_summary_of_context, write_summary_of_context, get_directory_tree
-
-2. Replace the corresponding function definitions in avatarUp.py with the imported functions from utils.py.
-
-3. Update any calls to these functions in avatarUp.py to use the imported versions.
+To update the `read_summary_of_context` function to import the logs from the last 15 minutes, we can modify the function as follows:
 
 Additional information:
-The main changes made:
+To incorporate the logs from the last 15 minutes, I've added a new function `read_recent_logs` that reads the log files in the `avatar/context/conversationLog` directory from the last 15 minutes. It sorts the log files by name (which is the date), calculates the datetime 15 minutes ago, and then reads the contents of any log files created after that time.
 
-1. Imported the required functions from `utils.py` at the top of `avatarUp.py`.
-2. Removed the function definitions for `read_file_content`, `write_to_file`, `read_summary_of_context`, `write_summary_of_context`, and `get_directory_tree` from `avatarUp.py` since they are now being imported from `utils.py`.
-3. Updated any calls to these functions in `avatarUp.py` to use the imported versions.
+The `read_summary_of_context` function now calls `read_recent_logs` and concatenates the recent logs to provide context when reading the summary file.
 
-The `avatarUp.py` script now uses the utility functions defined in `utils.py` instead of declaring them locally. This helps to keep the code organized and modular, making it easier to maintain and update in the future.
+Note: This assumes that the log files are named with the date in the format `YYYY-MM-DD.log`. If the naming convention is different, you'll need to update the code accordingly.
