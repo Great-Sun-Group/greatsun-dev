@@ -1,0 +1,5 @@
+# Current Avatar Instructions
+
+update this script so that it:
+1. extracts terminal commands and saves them to avatar/terminalCommands, creating the file if it doesn't exist, and overwriting what's there if it does.
+1. extracts response, adds any additional ai response that comes outside of the json, and saves them to avatar/currentResponse, creating the file if it doesn't exist, and overwriting what's there if it does.

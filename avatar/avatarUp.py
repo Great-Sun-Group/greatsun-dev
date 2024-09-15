@@ -9,9 +9,10 @@ import re
 API_KEY = os.getenv("CLAUDE")
 LOGS_DIRECTORY = "avatar/context/conversationLog"
 SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
+RESPOSE_INSTRUCTIONS = "avatar/responseInstructions.md"
 AVATAR_README = "avatarREADME.md"
 README = "README.md"
-MESSAGE_TO_SEND = "avatar/messageToSend.txt"
+MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
 
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
@@ -115,6 +116,7 @@ def main():
             print("Goodbye!")
             break
         
+        avatar_instructions_content = read_file_content(RESPOSE_INSTRUCTIONS)
         avatar_readme_content = read_file_content(AVATAR_README)
         readme_content = read_file_content(README)
         message_to_send_content = read_file_content(MESSAGE_TO_SEND)
@@ -125,13 +127,15 @@ def main():
         directory_tree_json = json.dumps(get_directory_tree("/workspaces/greatsun-dev"))
         
         message_content = "\n\n".join(filter(None, [
+            avatar_instructions_content,
             avatar_readme_content,
             readme_content,
             message_to_send_content,
             f"### Summary of context (required)\n{json.dumps(summary_of_context, indent=2)}",
             f"# Directory structure\n{directory_tree_json}",
             f"# Attached file path \n{file_path}" if file_path else None,
-            f"# Attached file contents\n{included_file_content}" if included_file_content else None
+            f"# Attached file contents\n{included_file_content}" if included_file_content else None,
+            avatar_instructions_content
         ]))
         
         write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)

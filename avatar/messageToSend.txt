@@ -1,1 +1,0 @@
-this script needs to save the context_summary properly. make sure that it creates the file if it doesn't exist, and that it is fetching it from the same place it saves it.
