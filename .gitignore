@@ -21,7 +21,7 @@ venv/
 .idea/
 
 # Exclude miscellaneous files
-#*.log
+*.log
 *.swp
 *.out
 *.DS_Store

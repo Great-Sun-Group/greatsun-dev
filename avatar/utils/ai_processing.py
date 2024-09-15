@@ -1,8 +1,8 @@
 import json
 import os
 from typing import Optional, Dict, Any, List, Tuple
-from .constants import CURRENT_RESPONSE_FILE, TERMINAL_COMMANDS_FILE
-from .file_operations import write_to_file, logger
+from .constants import CURRENT_RESPONSE_FILE
+from .file_operations import write_to_file, write_terminal_command, logger
 
 def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> Tuple[List[str], bool, List[str]]:
     logger.debug(f"Entering process_ai_response with response_json: {response_json}")
@@ -59,3 +59,14 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
 
     logger.debug("Exiting process_ai_response")
     return requested_files, actions_recommended, additional_files_to_update
+def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+    try:
+        start = response.index('{')
+        end = response.rindex('}') + 1
+        json_str = response[start:end]
+        json_data = json.loads(json_str)
+        remaining_text = response[:start] + response[end:]
+        return json_data, remaining_text.strip()
+    except (ValueError, json.JSONDecodeError):
+        logger.warning("No valid JSON found in the response.")
+        return None, response
