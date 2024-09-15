@@ -4,5 +4,8 @@
   },
   {
     "summary": "A new file called `utils.py` has been created to hold utility functions like file reading/writing, directory tree generation, and context summary handling."
+  },
+  {
+    "summary": "The `avatarUp.py` script has been modified to import and use the utility functions from `utils.py` instead of defining them locally."
   }
 ]

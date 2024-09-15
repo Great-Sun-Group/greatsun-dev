@@ -1,1 +1,18 @@
-I can help you split the script into multiple files with functions. First, let's create a new file called `utils.py` to hold the utility functions. Here's the contents for `utils.py`:
+To import and use the utility functions from utils.py in avatarUp.py, follow these steps:
+
+1. Import the required functions from utils.py at the top of avatarUp.py:
+
+from utils import read_file_content, write_to_file, read_summary_of_context, write_summary_of_context, get_directory_tree
+
+2. Replace the corresponding function definitions in avatarUp.py with the imported functions from utils.py.
+
+3. Update any calls to these functions in avatarUp.py to use the imported versions.
+
+Additional information:
+The main changes made:
+
+1. Imported the required functions from `utils.py` at the top of `avatarUp.py`.
+2. Removed the function definitions for `read_file_content`, `write_to_file`, `read_summary_of_context`, `write_summary_of_context`, and `get_directory_tree` from `avatarUp.py` since they are now being imported from `utils.py`.
+3. Updated any calls to these functions in `avatarUp.py` to use the imported versions.
+
+The `avatarUp.py` script now uses the utility functions defined in `utils.py` instead of declaring them locally. This helps to keep the code organized and modular, making it easier to maintain and update in the future.

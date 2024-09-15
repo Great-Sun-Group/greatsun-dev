@@ -5,6 +5,7 @@ from datetime import datetime
 from anthropic import Anthropic
 from typing import Optional, Dict, Any, List
 import re
+from utils import read_file_content, write_to_file, read_summary_of_context, write_summary_of_context, get_directory_tree
 
 # Constants
 API_KEY = os.getenv("CLAUDE")
@@ -46,53 +47,6 @@ def setup_logger() -> logging.Logger:
 logger = setup_logger()
 client = Anthropic(api_key=API_KEY)
 
-def read_file_content(file_path: str) -> Optional[str]:
-    try:
-        with open(file_path, 'r') as file:
-            return file.read()
-    except FileNotFoundError:
-        logger.error(f"File not found: {file_path}")
-    except Exception as e:
-        logger.error(f"Error reading file: {e}")
-    return None
-
-def write_to_file(file_path: str, content: str) -> None:
-    try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as file:
-            file.write(content)
-        logger.info(f"Content written to {file_path}")
-    except Exception as e:
-        logger.error(f"Error writing to file: {file_path}, {e}")
-
-def read_summary_of_context() -> List[Dict[str, str]]:
-    try:
-        with open(SUMMARY_FILE, 'r') as file:
-            return json.load(file)
-    except FileNotFoundError:
-        logger.info("Summary of context file not found, creating an empty file")
-        write_summary_of_context([])
-        return []
-    except Exception as e:
-        logger.error(f"Error reading summary of context: {e}")
-        return []
-
-def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
-    try:
-        with open(SUMMARY_FILE, 'w') as file:
-            json.dump(summary, file, indent=2)
-        logger.info("Summary of context updated")
-    except Exception as e:
-        logger.error(f"Error writing summary of context: {e}")
-
-def get_directory_tree(root_dir: str) -> Dict[str, Any]:
-    try:
-        return {item: get_directory_tree(os.path.join(root_dir, item)) if os.path.isdir(os.path.join(root_dir, item)) else None
-                for item in os.listdir(root_dir)}
-    except Exception as e:
-        logger.error(f"Error getting directory tree: {e}")
-        return {}
-
 def extract_json_from_response(response: str) -> tuple[Optional[dict], str]:
     json_match = re.search(r'```json\n(.*?)\n```', response, re.DOTALL)
     if json_match:
@@ -132,7 +86,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         
         if response_text:
             write_to_file(CURRENT_RESPONSE_FILE, response_text)
-            logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")
+            logger.info(f"Response written to '{CURRENT_RESPONSE_FILE}'")  
     else:
         logger.warning("No valid JSON found in the response.")
         write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
