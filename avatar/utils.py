@@ -2,7 +2,7 @@ import os
 import json
 import json5
 import logging
-from typing import Tuple, Optional, Dict, Any
+from typing import Tuple, Optional, Dict, Any, List
 import re
 from datetime import datetime, timedelta
 
