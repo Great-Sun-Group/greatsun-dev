@@ -76,11 +76,25 @@ def get_message_content(file_path: str, included_file_content: str | None) -> st
     ]
     return "\n\n".join(filter(None, content_parts))
 
+def get_ai_response(client, message_content):
+    try:
+        message = client.messages.create(
+            model="claude-3-sonnet-20240229",
+            max_tokens=4096,
+            messages=[
+                {"role": "user", "content": message_content}
+            ]
+        )
+        return message.content[0].text
+    except Exception as e:
+        logger.error(f"Error communicating with Anthropic API: {e}")
+        return None
+
 def main():
     while True:
         file_path = input("Optional file path (press Enter to skip, 'exit' to quit): ").strip()
         
-        if file_path.lower() == "exit":
+        if file_path.lower() == 'exit':
             print("Goodbye!")
             break
         
@@ -89,16 +103,11 @@ def main():
         
         write_to_file(os.path.join(CONTEXT_DIR, "messageSent.txt"), message_content)
         
-        try:
-            message = client.messages.create(
-                model="claude-3-sonnet-20240229",
-                max_tokens=4096,
-                messages=[
-                    {"role": "user", "content": message_content}
-                ]
-            )
+        while True:
+            avatar_response = get_ai_response(client, message_content)
             
-            avatar_response = message.content[0].text
+            if avatar_response is None:
+                break
             
             print(f"Avatar: {avatar_response}")
             logger.info(f"File: {file_path}")
@@ -107,12 +116,21 @@ def main():
             write_to_file(os.path.join(CONTEXT_DIR, "fullResponseReceived.txt"), avatar_response)
             
             response_json, remaining_text = extract_json_from_response(avatar_response)
-            process_ai_response(response_json, remaining_text)
-
-        except AttributeError as e:
-            logger.error(f"AttributeError: {e}. This might be due to an unexpected response structure.")
-        except Exception as e:
-            logger.error(f"Error communicating with Anthropic API: {e}")
+            
+            if response_json and "response" in response_json:
+                if any(key.startswith("file_requested_") for key in response_json):
+                    # AI is requesting more context
+                    requested_files = [value for key, value in response_json.items() if key.startswith("file_requested_")]
+                    additional_content = "\n\n".join([f"### Contents of {file}\n{read_file_content(file)}" for file in requested_files])
+                    message_content += f"\n\nAdditional requested content:\n{additional_content}"
+                    continue
+                else:
+                    # AI is recommending actions
+                    process_ai_response(response_json, remaining_text)
+                    break
+            else:
+                logger.warning("Invalid response format from AI")
+                break
 
 if __name__ == "__main__":
     main()
