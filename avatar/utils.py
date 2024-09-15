@@ -95,12 +95,24 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
         logger.error(f"Error getting directory tree: {e}")
         return {}
 
-def extract_json_from_response(response: str) -> tuple[Optional[Dict[str, Any]], str]:
-    try:
-        # Try to parse the entire response as JSON5
-        parsed = json5.loads(response)
-        return parsed, ""
-    except json.JSONDecodeError as e:
-        # If parsing fails, log the error and return None
-        logger.error(f"Failed to parse response as JSON: {e}")
-        return None, response
+import json
+import re
+from typing import Tuple, Optional, Dict, Any
+
+def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+    # Try to find JSON-like content within the outermost curly braces
+    json_pattern = re.compile(r'\{(?:[^{}]|\{(?:[^{}]|\{[^{}]*\})*\})*\}')
+    match = json_pattern.search(response)
+    
+    if match:
+        json_str = match.group()
+        try:
+            # Replace newlines within string values
+            json_str = re.sub(r'("(?:(?!(?<!\\)").)*")', lambda m: m.group().replace('\n', '\\n'), json_str)
+            parsed = json.loads(json_str)
+            return parsed, response[:match.start()] + response[match.end():]
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse extracted JSON: {e}")
+    
+    logger.warning("No valid JSON found in the response.")
+    return None, response
