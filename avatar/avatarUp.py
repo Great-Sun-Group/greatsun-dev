@@ -43,7 +43,9 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         for i in range(1, 5):  # Assuming up to 4 file requests
             file_key = f"file_requested_{i}"
             if file_key in response_json:
-                requested_files.append(response_json[file_key])
+                # Clean the file path
+                clean_file_path = response_json[file_key].strip('"{}')
+                requested_files.append(clean_file_path)
         
         if requested_files:
             logger.info(f"Files requested: {', '.join(requested_files)}")
@@ -97,11 +99,15 @@ def get_message_content(file_path: str, included_content: Optional[str], request
 
     if requested_files:
         for file in requested_files:
-            content = read_file_content(file)
+            # Remove any extra quotation marks and curly braces
+            clean_file_path = file.strip('"{}')
+            # Use os.path.join to create a proper file path
+            full_path = os.path.join('/workspaces/greatsun-dev', clean_file_path)
+            content = read_file_content(full_path)
             if content:
-                content_parts.append(f"### Contents of {file}\n{content}")
+                content_parts.append(f"### Contents of {clean_file_path}\n{content}")
             else:
-                content_parts.append(f"### File {file} not found or empty")
+                content_parts.append(f"### File {clean_file_path} not found or empty")
 
     content_parts.extend([
         f"""### Last 15 minutes of logs
