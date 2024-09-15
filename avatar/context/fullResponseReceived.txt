@@ -1,6 +1,12 @@
 {
-  "response": "The issue with the script is that it uses the `json.dumps` function to convert the summary list of dictionaries to a JSON string, but it does not handle the case where the summary contains non-string values. To fix this, we can modify the `write_summary_of_context` function to handle non-string values in the summary list by converting them to strings before writing the JSON string to the log file.",
+  "response": "To update the write_summary_of_context function to write the summary into the logs in the proper format, we can modify the function as follows:
+
+1. Instead of writing to context_summary.json, we will log the summary to the current day's log file.
+2. We will format the summary as JSON with a key 'context_summary' and the value as the list of dictionaries representing the summary.
+3. We can use the existing logger instance to write the summary to the log file.",
+
   "update_file_path": "/workspaces/greatsun-dev/avatar/utils.py",
+
   "update_file_contents": "import os
 import json
 import logging
@@ -65,13 +71,11 @@ def read_recent_logs(minutes: int = 15) -> str:
             logs += read_file_content(log_file_path) or \"\"
     return logs
 
-def write_summary_of_context(summary: List[Dict[str, Any]]) -> None:
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
     try:
         current_date = datetime.now().strftime(\"%Y-%m-%d\")
         log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"
-        summary_json = json.dumps({'context_summary': [
-            {k: str(v) for k, v in item.items()} for item in summary
-        ]})
+        summary_json = json.dumps({'context_summary': summary})
         logger.info(summary_json)
         logger.info(f\"Summary of context updated in {log_file}\")
     except Exception as e:
@@ -84,6 +88,8 @@ def get_directory_tree(root_dir: str) -> Dict[str, Any]:
     except Exception as e:
         logger.error(f\"Error getting directory tree: {e}\")
         return {}",
+
   "terminal_command": null,
-  "context_summary": "The current task is to update the write_summary_of_context function in utils.py to handle non-string values in the summary list by converting them to strings before writing the JSON string to the log file."
+
+  "context_summary": "The current task is to update the write_summary_of_context function in utils.py to write the context summary into the logs in the proper format, instead of saving it to a separate context_summary.json file."
 }

@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 
 # Constants
 LOGS_DIRECTORY = "avatar/context/conversationLog"
-SUMMARY_FILE = os.path.join("avatar", "context", "context_summary.json")
 CONTEXT_DIR = "avatar/context"
 
 # Ensure directories exist
@@ -65,9 +64,11 @@ def read_recent_logs(minutes: int = 15) -> str:
 
 def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
     try:
-        with open(SUMMARY_FILE, 'w') as file:
-            json.dump(summary, file, indent=2)
-        logger.info("Summary of context updated")
+        current_date = datetime.now().strftime("%Y-%m-%d")
+        log_file = f"{LOGS_DIRECTORY}/{current_date}.log"
+        summary_json = json.dumps({'context_summary': summary})
+        logger.info(summary_json)
+        logger.info(f"Summary of context updated in {log_file}")
     except Exception as e:
         logger.error(f"Error writing summary of context: {e}")
 

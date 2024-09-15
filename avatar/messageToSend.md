@@ -1,1 +1,97 @@
-the write_summary_of_context function needs to be updated to write the summary into the logs in the proper format instead of saving it to context_summary.json
+This script save this response to fullResponseReceived.txt. It looks like properly formatted json that should have been extraced by the attached file, but terminalCommand.txt, the file_update, and currentResponse all did not get updated. see if you can fix the script to process the response properly.
+
+{
+  "response": "To update the write_summary_of_context function to write the summary into the logs in the proper format, we can modify the function as follows:
+
+1. Instead of writing to context_summary.json, we will log the summary to the current day's log file.
+2. We will format the summary as JSON with a key 'context_summary' and the value as the list of dictionaries representing the summary.
+3. We can use the existing logger instance to write the summary to the log file.",
+
+  "update_file_path": "/workspaces/greatsun-dev/avatar/utils.py",
+
+  "update_file_contents": "import os
+import json
+import logging
+from typing import Optional, Dict, Any, List
+from datetime import datetime, timedelta
+
+# Constants
+LOGS_DIRECTORY = \"avatar/context/conversationLog\"
+CONTEXT_DIR = \"avatar/context\"
+
+# Ensure directories exist
+os.makedirs(LOGS_DIRECTORY, exist_ok=True)
+os.makedirs(CONTEXT_DIR, exist_ok=True)
+
+def setup_logger() -> logging.Logger:
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    current_date = datetime.now().strftime(\"%Y-%m-%d\")
+    log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"
+    
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    file_handler.setFormatter(logging.Formatter('%(asctime)s - %(message)s'))
+    
+    console_handler = logging.StreamHandler()
+    console_handler.setLevel(logging.ERROR)
+    console_handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+    
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
+
+logger = setup_logger()
+
+def read_file_content(file_path: str) -> Optional[str]:
+    try:
+        with open(file_path, 'r') as file:
+            return file.read()
+    except FileNotFoundError:
+        logger.error(f\"File not found: {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error reading file: {e}\")
+    return None
+
+def write_to_file(file_path: str, content: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(content)
+        logger.info(f\"Content written to {file_path}\")
+    except Exception as e:
+        logger.error(f\"Error writing to file: {file_path}, {e}\")
+
+def read_recent_logs(minutes: int = 15) -> str:
+    logs = \"\"
+    fifteen_minutes_ago = datetime.now() - timedelta(minutes=minutes)
+    for log_file in sorted(os.listdir(LOGS_DIRECTORY)):
+        log_file_path = os.path.join(LOGS_DIRECTORY, log_file)
+        log_file_datetime = datetime.strptime(log_file.split('.')[0], \"%Y-%m-%d\")
+        if log_file_datetime >= fifteen_minutes_ago:
+            logs += read_file_content(log_file_path) or \"\"
+    return logs
+
+def write_summary_of_context(summary: List[Dict[str, str]]) -> None:
+    try:
+        current_date = datetime.now().strftime(\"%Y-%m-%d\")
+        log_file = f\"{LOGS_DIRECTORY}/{current_date}.log\"
+        summary_json = json.dumps({'context_summary': summary})
+        logger.info(summary_json)
+        logger.info(f\"Summary of context updated in {log_file}\")
+    except Exception as e:
+        logger.error(f\"Error writing summary of context: {e}\")
+
+def get_directory_tree(root_dir: str) -> Dict[str, Any]:
+    try:
+        return {item: get_directory_tree(os.path.join(root_dir, item)) if os.path.isdir(os.path.join(root_dir, item)) else None
+                for item in os.listdir(root_dir)}
+    except Exception as e:
+        logger.error(f\"Error getting directory tree: {e}\")
+        return {}",
+
+  "terminal_command": null,
+
+  "context_summary": "The current task is to update the write_summary_of_context function in utils.py to write the context summary into the logs in the proper format, instead of saving it to a separate context_summary.json file."
+}

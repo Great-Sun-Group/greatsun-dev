@@ -99,10 +99,10 @@ def get_message_content(file_path: str, included_file_content: Optional[str]) ->
         read_file_content(README),
         f"# **Current Avatar Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
-        f"# Summary of context\n\n## Attached file path \n{file_path}" if file_path else None,
-        f"## Attached file contents\n{included_file_content}" if included_file_content else None,
-        f"## Last 15 minutes of logs\n{json.dumps(read_recent_logs(), indent=2)}",
-        f"## Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
+        f"## Summary of context\n\n## Attached file path \n{file_path}" if file_path else None,
+        f"### Attached file contents\n{included_file_content}" if included_file_content else None,
+        f"### Last 15 minutes of logs\n{json.dumps(read_recent_logs(), indent=2)}",
+        f"### Directory structure\n{json.dumps(get_directory_tree('/workspaces/greatsun-dev'))}",
         read_file_content(RESPONSE_INSTRUCTIONS)
     ]
     return "\n\n".join(filter(None, content_parts))
@@ -135,7 +135,7 @@ def main():
             logger.info(f"File: {file_path}")
             logger.info(f"Avatar: {avatar_response}")
             
-            write_to_file(os.path.join(CONTEXT_DIR, "responseReceived.txt"), avatar_response)
+            write_to_file(os.path.join(CONTEXT_DIR, "fullResponseReceived.txt"), avatar_response)
             
             response_json, remaining_text = extract_json_from_response(avatar_response)
             process_ai_response(response_json, remaining_text)
