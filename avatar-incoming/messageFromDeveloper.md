@@ -1,0 +1,1 @@
+put your message to the avatar here, then press enter in the terminal
