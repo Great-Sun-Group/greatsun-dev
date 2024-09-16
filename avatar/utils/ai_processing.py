@@ -51,6 +51,21 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         else:
             logger.info("No file update information provided in the response.")
 
+        # Handle additional files to update
+        additional_files = response_json.get("additional_files_to_update")
+        if additional_files:
+            if isinstance(additional_files, list):
+                additional_files_to_update = additional_files
+            elif isinstance(additional_files, str):
+                try:
+                    additional_files_to_update = json.loads(additional_files)
+                except json.JSONDecodeError:
+                    logger.error(
+                        "Failed to parse additional_files_to_update as JSON")
+
+            logger.info(
+                f"Additional files to update: {additional_files_to_update}")
+
     else:
         logger.warning("No valid JSON found in the response.")
         write_to_file(os.path.join(
