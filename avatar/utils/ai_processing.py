@@ -9,8 +9,6 @@ import os
 from typing import Optional, Dict, Any, List, Tuple
 from .constants import CURRENT_RESPONSE_FILE
 from .file_operations import write_to_file, logger
-from .ai_interface import send_message_to_ai  # Assuming you have this function
-
 
 def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> Tuple[List[str], bool, List[str]]:
     logger.debug(
@@ -28,8 +26,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
         response_text = response_json.get("response", "")
         if remaining_text:
             response_text += f"\n\nAdditional information:\n{remaining_text}"
-        write_to_file(os.path.join(
-            os.getcwd(), CURRENT_RESPONSE_FILE), response_text)
+        write_to_file(CURRENT_RESPONSE_FILE, response_text)
 
         # Handle file requests
         for i in range(1, 8):
@@ -52,46 +49,47 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
                 logger.info(f"Attempting to update file: {abs_file_path}")
                 write_to_file(abs_file_path, update_file_contents)
                 actions_recommended = True
-                response_text += f"\n\nFile updated: {abs_file_path}"
             except Exception as e:
                 logger.error(
                     f"Failed to update file {abs_file_path}: {str(e)}")
-                response_text += f"\n\nFailed to update file: {abs_file_path}"
-
-            # Handle additional files to update
-            additional_files = response_json.get("additional_files_to_update")
-            if additional_files:
-                if isinstance(additional_files, list):
-                    additional_files_to_update = additional_files
-                elif isinstance(additional_files, str):
-                    try:
-                        additional_files_to_update = json.loads(
-                            additional_files)
-                    except json.JSONDecodeError:
-                        logger.error(
-                            "Failed to parse additional_files_to_update as JSON")
-                        additional_files_to_update = []
-
-                logger.info(
-                    f"Additional files to update: {additional_files_to_update}")
-
-                if additional_files_to_update:
-                    response_text += f"\n\nAdditional files to update: {additional_files_to_update}"
-                    new_response = send_message_to_ai(response_text)
-                    new_response_json, new_remaining_text = extract_json_from_response(
-                        new_response)
-                    return process_ai_response(new_response_json, new_remaining_text)
-
         else:
             logger.info("No file update information provided in the response.")
 
+        # Handle additional files to update
+        additional_files = response_json.get("additional_files_to_update")
+        if additional_files:
+            if isinstance(additional_files, list):
+                additional_files_to_update = additional_files
+            elif isinstance(additional_files, str):
+                try:
+                    additional_files_to_update = json.loads(additional_files)
+                except json.JSONDecodeError:
+                    logger.error(
+                        "Failed to parse additional_files_to_update as JSON")
+                    additional_files_to_update = []
+
+            logger.info(
+                f"Additional files to update: {additional_files_to_update}")
+
     else:
         logger.warning("No valid JSON found in the response.")
-        write_to_file(os.path.join(
-            os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
-        
+        write_to_file(CURRENT_RESPONSE_FILE, remaining_text)
+
     logger.debug("Exiting process_ai_response")
     return requested_files, actions_recommended, additional_files_to_update
+
+
+def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+    try:
+        start = response.index('{')
+        end = response.rindex('}') + 1
+        json_str = response[start:end]
+        json_data = json.loads(json_str)
+        remaining_text = response[:start] + response[end:]
+        return json_data, remaining_text.strip()
+    except (ValueError, json.JSONDecodeError):
+        logger.warning("No valid JSON found in the response.")
+        return None, response
 
 def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
     try:

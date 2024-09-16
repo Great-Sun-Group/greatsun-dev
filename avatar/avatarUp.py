@@ -29,7 +29,7 @@ def main():
         file_path = input().strip()
 
         if file_path.lower() == "down":
-            print("greatsun-dev, over and out.")
+            print("\ngreatsun-dev, over and out.")
             break
 
         included_file_content = read_file_content(
