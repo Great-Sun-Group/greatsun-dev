@@ -1,6 +1,8 @@
 import os
+import json
 import logging
 from datetime import datetime, timedelta
+from typing import Optional, Dict, Any, Tuple
 from .constants import LOGS_DIRECTORY
 
 def setup_logger() -> logging.Logger:
@@ -113,4 +115,16 @@ def get_directory_tree(root_dir):
             
     return directory
 
+def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
+    try:
+        start = response.index('{')
+        end = response.rindex('}') + 1
+        json_str = response[start:end]
+        json_data = json.loads(json_str)
+        remaining_text = response[:start] + response[end:]
+        return json_data, remaining_text.strip()
+    except (ValueError, json.JSONDecodeError):
+        logger.warning("No valid JSON found in the response.")
+        return None, response
+    
 logger = setup_logger()

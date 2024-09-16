@@ -1,8 +1,8 @@
 import os
 import sys
 from anthropic import Anthropic
-from utils.file_operations import setup_logger, read_file_content, write_to_file
-from utils.ai_processing import process_ai_response, extract_json_from_response
+from utils.file_operations import setup_logger, read_file_content, write_to_file, extract_json_from_response
+from utils.ai_processing import process_ai_response
 from utils.message_handling import get_message_content
 from utils.constants import LOGS_DIRECTORY, ANTHROPIC_API_KEY, CONTEXT_DIR, CURRENT_RESPONSE_FILE
 
@@ -30,7 +30,7 @@ def main():
         file_path = input().strip()
 
         if file_path.lower() == "down":
-            print("\ngreatsun-dev, over and out.")
+            print("\ngreatsun-dev avatar, signing off\n\n")
             break
 
         included_file_content = read_file_content(
