@@ -48,7 +48,7 @@ cd /workspaces/greatsun-dev/credex-ecosystem/credex-core && npm install
 cd /workspaces/greatsun-dev/credex-ecosystem/credex-bot && pip install -r requirements.txt
 
 # Install dependencies for credex-dev
-cd /workspaces/credex-dev
+cd /workspaces/greatsun-dev
 pip install -r requirements.txt
 
 echo "Environment setup complete!"

@@ -1,1 +1,13 @@
-check .devcontainer and requirements.txt for redundency and if all packages are up to date
+This script needs to check for the presence of all these secrets and return errors if not set:
+CLAUDE
+DJANGO_SECRET
+GH_PAT
+JWT_SECRET
+NEO_4J_LEDGER_SPACE_BOLT_URL
+NEO_4J_LEDGER_SPACE_PASS
+NEO_4J_LEDGER_SPACE_USER
+NEO_4J_SEARCH_SPACE_BOLT_URL
+NEO_4J_SEARCH_SPACE_PASS
+NEO_4J_SEARCH_SPACE_USER
+OPEN_EXCHANGE_RATES_API
+WHATSAPP_BOT_API_KEY
