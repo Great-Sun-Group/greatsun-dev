@@ -12,7 +12,7 @@ if not API_KEY:
 
 LOGS_DIRECTORY = "avatar/logs"
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
-AVATAR_README = "avatarREADME.md"
+AVATAR_README = "avatar/context/avatarREADME.md"
 README = "README.md"
 MESSAGE_TO_SEND = "avatar/messageToSend.md"
 CONTEXT_DIR = "avatar/context"
