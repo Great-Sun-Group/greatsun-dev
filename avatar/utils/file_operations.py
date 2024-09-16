@@ -1,8 +1,7 @@
 import os
 import logging
-from typing import Optional, Dict, Any
 from datetime import datetime, timedelta
-from .constants import LOGS_DIRECTORY, TERMINAL_COMMANDS_FILE
+from .constants import LOGS_DIRECTORY
 
 def setup_logger() -> logging.Logger:
     logger = logging.getLogger(__name__)
@@ -82,11 +81,6 @@ def append_to_file(file_path: str, content: str) -> None:
             file.write(content + '\n')
     except Exception as e:
         logger.error(f"Error appending to file {file_path}: {e}")
-
-def write_terminal_command(command: str) -> None:
-    append_to_file(TERMINAL_COMMANDS_FILE, command)
-
-from datetime import datetime, timedelta
 
 def read_recent_logs(minutes: int = 15) -> str:
     logs = ""

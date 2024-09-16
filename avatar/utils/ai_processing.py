@@ -2,7 +2,7 @@ import json
 import os
 from typing import Optional, Dict, Any, List, Tuple
 from .constants import CURRENT_RESPONSE_FILE
-from .file_operations import write_to_file, write_terminal_command, logger
+from .file_operations import write_to_file, logger
 
 
 def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text: str) -> Tuple[List[str], bool, List[str]]:

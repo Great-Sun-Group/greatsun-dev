@@ -9,7 +9,7 @@ def get_message_content(file_path: str, included_content: Optional[str], request
         read_file_content(RESPONSE_INSTRUCTIONS),
         read_file_content(AVATAR_README),
         read_file_content(README),
-        "# **Current Avatar Instructions from Developer**",
+        "# **Current Instructions from Developer**",
         read_file_content(MESSAGE_TO_SEND),
         f"## Summary of context\n\n## Attached path\n{file_path}" if file_path else None,
         f"### Attached path contents\n{included_content}" if included_content else None,
