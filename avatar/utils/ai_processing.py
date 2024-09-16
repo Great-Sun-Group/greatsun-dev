@@ -13,7 +13,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
     actions_recommended = False
     additional_files_to_update = []
 
-    if response_json:
+    while response_json:
         logger.info(
             f"Processing AI response: {json.dumps(response_json, indent=2)}")
 
@@ -45,9 +45,11 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
                 logger.info(f"Attempting to update file: {abs_file_path}")
                 write_to_file(abs_file_path, update_file_contents)
                 actions_recommended = True
+                response_text += f"\n\nFile updated: {abs_file_path}"
             except Exception as e:
                 logger.error(
                     f"Failed to update file {abs_file_path}: {str(e)}")
+                response_text += f"\n\nFailed to update file: {abs_file_path}"
         else:
             logger.info("No file update information provided in the response.")
 
@@ -62,18 +64,28 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
                 except json.JSONDecodeError:
                     logger.error(
                         "Failed to parse additional_files_to_update as JSON")
+                    additional_files_to_update = []
 
             logger.info(
                 f"Additional files to update: {additional_files_to_update}")
 
-    else:
+            if additional_files_to_update:
+                response_text += f"\n\nAdditional files to update: {additional_files_to_update}"
+                new_response = send_message_to_ai(response_text)
+                response_json, remaining_text = extract_json_from_response(
+                    new_response)
+            else:
+                break
+        else:
+            break
+
+    if not response_json:
         logger.warning("No valid JSON found in the response.")
         write_to_file(os.path.join(
             os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
 
     logger.debug("Exiting process_ai_response")
     return requested_files, actions_recommended, additional_files_to_update
-
 
 def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
     try:
