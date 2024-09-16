@@ -57,24 +57,24 @@ def write_to_file(file_path: str, content: str, encoding: str = 'utf-8') -> None
         logger.error(traceback.format_exc())
 
     try:
-        os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
-        with open(abs_file_path, 'w') as file:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
             file.write(content)
-        logger.info(f"Content successfully written to {abs_file_path}")
+        logger.info(f"Content successfully written to {file_path}")
         
         # Verify file contents
-        with open(abs_file_path, 'r') as file:
+        with open(file_path, 'r') as file:
             written_content = file.read()
         if written_content == content:
-            logger.info(f"File contents verified for {abs_file_path}")
+            logger.info(f"File contents verified for {file_path}")
         else:
-            logger.warning(f"File contents do not match expected content for {abs_file_path}")
+            logger.warning(f"File contents do not match expected content for {file_path}")
     except PermissionError:
-        logger.error(f"Permission denied when writing to file: {abs_file_path}")
+        logger.error(f"Permission denied when writing to file: {file_path}")
     except IOError as e:
-        logger.error(f"IO error occurred when writing to file: {abs_file_path}, {e}")
+        logger.error(f"IO error occurred when writing to file: {file_path}, {e}")
     except Exception as e:
-        logger.error(f"Unexpected error writing to file: {abs_file_path}, {e}")
+        logger.error(f"Unexpected error writing to file: {file_path}, {e}")
 
 def append_to_file(file_path: str, content: str) -> None:
     try:

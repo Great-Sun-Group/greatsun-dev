@@ -42,7 +42,7 @@ def main():
         file_path = input().strip()
         
         if file_path.lower() == "down":
-            print("Goodbye!")
+            print("greatsun-dev, over and out.")
             break
         
         included_file_content = read_file_content(file_path) if file_path else None
