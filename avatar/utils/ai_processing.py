@@ -85,7 +85,7 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             os.getcwd(), CURRENT_RESPONSE_FILE), remaining_text)
 
     logger.debug("Exiting process_ai_response")
-    return requested_files, actions_recommended, additional_files_to_update
+    return requested_files, actions_recommended, additional_files_
 
 def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
     try:

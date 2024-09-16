@@ -19,7 +19,8 @@ def clear_terminal():
 
 def main():
     clear_terminal()
-    print("welcome, this is the greatsun-dev environment")
+    print("welcome to this dev environment")
+    print("I'm the greatsun-dev avatar")
     print("enter your message to me in avatar/messageToSend.txt, then press enter")
     print("before you press enter, you can optionally paste a file path as a starting point for my work")
     print("@ryanlukewatson:")

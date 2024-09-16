@@ -16,6 +16,7 @@ fastapi==0.95.1
 # Database interaction
 sqlalchemy==2.0.15
 psycopg2-binary==2.9.6
+pymongo==4.3.3
 
 # Asynchronous programming
 aiohttp==3.8.4
@@ -47,3 +48,15 @@ rich==13.3.4
 # Web scraping
 beautifulsoup4==4.11.1
 requests-html==0.10.0
+
+# Linting and formatting
+pylint==2.17.1  # Added for linting
+autopep8==2.0.2  # Added for automatic code formatting
+
+# Containerization
+docker==6.1.1  # Added for Docker support
+
+# AI and machine learning
+anthropic==0.3.2 # Added for interacting with Anthropic's AI models
+tensorflow==2.12.0 # Added for machine learning tasks
+scikit-learn==1.2.2 # Added for data mining and analysis
