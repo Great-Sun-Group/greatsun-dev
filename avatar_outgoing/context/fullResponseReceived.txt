@@ -1,0 +1,31 @@
+The provided files `init-environment.sh` and `start-services.sh` are Bash scripts used for setting up and starting various services in a development environment.
+
+Here's an overview of what each script does:
+
+**init-environment.sh**
+
+1. Defines a function `check_secret` to ensure that required environment variables (secrets) are set.
+2. Checks if the script is running in a Codespaces environment (based on the `CODESPACES` environment variable).
+   - If running in Codespaces, it expects the `GITHUB_TOKEN` to be set.
+   - If running locally, it expects a `.env` file to be present and sources it.
+3. Calls the `check_secret` function for various required secrets, such as `CLAUDE`, `DJANGO_SECRET`, `GH_PAT`, `JWT_SECRET`, Neo4j credentials, `OPEN_EXCHANGE_RATES_API`, and `WHATSAPP_BOT_API_KEY`.
+4. Defines a function `add_submodule` to add Git submodules from the `Great-Sun-Group` organization on GitHub, using the `GH_PAT` or `GITHUB_TOKEN` for authentication.
+5. Adds the `credex-ecosystem/credex-core` and `credex-ecosystem/vimbiso-pay` submodules.
+6. Activates a virtual environment located at `/home/vscode/venv/bin/activate`.
+7. Installs dependencies for the `credex-core` and `vimbiso-pay` projects.
+8. Installs dependencies for the `greatsun-dev` project.
+
+**start-services.sh**
+
+1. Defines a function `start_service` to start a service by executing a given command and redirecting its output to a log file.
+2. Starts the `greatsun-dev` service by running `python main.py` and redirecting the output to `greatsun-dev.log`.
+3. Starts the `credex-core` service by running `npm run dev` and redirecting the output to `credex-core.log`.
+4. Activates the virtual environment for `vimbiso-pay`, starts the `vimbiso-pay` service by running `python app/manage.py runserver 0.0.0.0:8000`, and deactivates the virtual environment.
+5. Waits for a maximum of 60 seconds for all services to start successfully, checking for specific log entries in their respective log files.
+   - If all services start successfully, it prints a success message.
+   - If the timeout is reached and one or more services fail to start, it prints an error message along with the last 20 lines of each service's log file.
+6. Tails (continuously prints new lines) the log files for all services (`credex-core.log`, `vimbiso-pay.log`, and `greatsun-dev.log`) in the `/workspaces/greatsun-dev/central-logs/` directory.
+
+The scripts assume that the `greatsun-dev` project and its dependencies are located in the `/workspaces/greatsun-dev` directory, and the `credex-core` and `vimbiso-pay` submodules are located in `/workspaces/greatsun-dev/credex-ecosystem/`.
+
+Please note that these scripts are specific to the development environment and project structure of the `greatsun-dev` project and its related services. They may need to be modified or adapted to work in a different environment or project structure.
