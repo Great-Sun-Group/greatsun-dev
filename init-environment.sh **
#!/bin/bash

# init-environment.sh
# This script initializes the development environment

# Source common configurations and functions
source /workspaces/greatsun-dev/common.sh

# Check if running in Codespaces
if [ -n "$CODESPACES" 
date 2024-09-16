@@ -1,0 +1,46 @@
+@avatarParserSection: SECTION_END **
+
+Finally, let's update the `main.sh` script:
+
+**@avatarParserSection: FILE_TO_WRITE: /workspaces/greatsun-dev/main.sh **
+#!/bin/bash
+
+# main.sh
+# This script provides a single entry point for managing the development environment
+
+# Source common configurations and functions
+source /workspaces/greatsun-dev/common.sh
+
+# Display usage information
+usage() {
+    echo "Usage: $0 {init|start|stop|restart|git}"
+    echo "  init    : Initialize the development environment"
+    echo "  start   : Start all services"
+    echo "  stop    : Stop all services"
+    echo "  restart : Restart all services"
+    echo "  git     : Run git management operations"
+}
+
+# Main execution
+case "$1" in
+    init)
+        ./init-environment.sh
+        ;;
+    start)
+        ./start-services.sh start
+        ;;
+    stop)
+        ./start-services.sh stop
+        ;;
+    restart)
+        ./start-services.sh restart
+        ;;
+    git)
+        ./git_manager.sh
+        ;;
+    *)
+        log_error "Invalid option: $1"
+        usage
+        exit 1
+        ;;
+esac

@@ -1,0 +1,69 @@
+@avatarParserSection: SECTION_END **
+
+Now, let's create a `common.sh` file for shared configurations and functions:
+
+**@avatarParserSection: FILE_TO_WRITE: /workspaces/greatsun-dev/common.sh **
+#!/bin/bash
+
+# common.sh
+# This file contains common configurations and functions used across multiple scripts
+
+# Logging functions
+log_info() {
+    echo "[INFO] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+log_error() {
+    echo "[ERROR] $(date '+%Y-%m-%d %H:%M:%S') - $1" >&2
+}
+
+log_warning() {
+    echo "[WARNING] $(date '+%Y-%m-%d %H:%M:%S') - $1"
+}
+
+# Required secrets
+required_secrets=(
+    CLAUDE
+    DJANGO_SECRET
+    GH_PAT
+    JWT_SECRET
+    NEO_4J_LEDGER_SPACE_BOLT_URL
+    NEO_4J_LEDGER_SPACE_PASS
+    NEO_4J_LEDGER_SPACE_USER
+    NEO_4J_SEARCH_SPACE_BOLT_URL
+    NEO_4J_SEARCH_SPACE_PASS
+    NEO_4J_SEARCH_SPACE_USER
+    OPEN_EXCHANGE_RATES_API
+    WHATSAPP_BOT_API_KEY
+)
+
+# Function to check if all required secrets are set
+check_secrets() {
+    for secret in "${required_secrets[@]}"; do
+        if [ -z "${!secret}" ]; then
+            log_error "$secret is not set. Please set it in your environment or .env file."
+            return 1
+        fi
+    done
+    return 0
+}
+
+# Function to load environment variables from .env file
+load_env() {
+    if [ -f .env ]; then
+        export $(cat .env | xargs)
+    else
+        log_warning ".env file not found. Make sure all required environment variables are set."
+    fi
+}
+
+# Function to validate input is not empty
+validate_input() {
+    local input=$1
+    local error_message=$2
+    if [ -z "$input" ]; then
+        log_error "$error_message"
+        return 1
+    fi
+    return 0
+}

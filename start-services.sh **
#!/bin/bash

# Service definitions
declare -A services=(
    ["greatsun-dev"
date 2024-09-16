@@ -1,0 +1,95 @@
+@avatarParserSection: SECTION_END **
+
+Now, let's update the `init-environment.sh` file:
+
+**@avatarParserSection: FILE_TO_WRITE: /workspaces/greatsun-dev/init-environment.sh **
+#!/bin/bash
+
+# Required secrets
+required_secrets=(
+    CLAUDE
+    DJANGO_SECRET
+    GH_PAT
+    JWT_SECRET
+    NEO_4J_LEDGER_SPACE_BOLT_URL
+    NEO_4J_LEDGER_SPACE_PASS
+    NEO_4J_LEDGER_SPACE_USER
+    NEO_4J_SEARCH_SPACE_BOLT_URL
+    NEO_4J_SEARCH_SPACE_PASS
+    NEO_4J_SEARCH_SPACE_USER
+    OPEN_EXCHANGE_RATES_API
+    WHATSAPP_BOT_API_KEY
+)
+
+# Function to check if all required secrets are set
+check_secrets() {
+    for secret in "${required_secrets[@]}"; do
+        if [ -z "${!secret}" ]; then
+            echo "Error: $secret is not set. Please set it in your environment or .env file."
+            exit 1
+        fi
+    done
+}
+
+# Check if running in Codespaces
+if [ -n "$CODESPACES" ]; then
+    echo "Running in Codespaces environment"
+    # Use GitHub Secrets
+    if [ -z "$GITHUB_TOKEN" ]; then
+        echo "Error: GITHUB_TOKEN is not set. Please set it in your GitHub Secrets."
+        exit 1
+    fi
+else
+    echo "Running in local environment"
+    # Use .env file
+    if [ -f .env ]; then
+        export $(cat .env | xargs)
+    else
+        echo "Error: .env file not found. Please create one."
+        exit 1
+    fi
+fi
+
+# Check for required secrets
+check_secrets
+
+# Function to add submodule
+add_submodule() {
+    local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git"
+    git submodule add $repo_url
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to add submodule $1"
+        exit 1
+    fi
+}
+
+# Function to update submodules
+update_submodules() {
+    git submodule update --init --recursive
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to update submodules"
+        exit 1
+    fi
+}
+
+# Add submodules
+add_submodule "credex-ecosystem/credex-core"
+add_submodule "credex-ecosystem/vimbiso-pay"
+
+# Update submodules
+update_submodules
+
+echo "Submodules added and updated successfully!"
+
+# Activate virtual environment
+source /home/vscode/venv/bin/activate
+
+# Install dependencies and set up the environment
+cd /workspaces/greatsun-dev/credex-ecosystem/credex-core && npm install
+cd /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay && pip install -r requirements.txt
+
+# Install dependencies for greatsun-dev
+cd /workspaces/greatsun-dev
+pip install -r requirements.txt
+
+echo "Environment setup complete!"

@@ -1,0 +1,72 @@
+@avatarParserSection: SECTION_END **
+
+Now, let's update the `init-environment.sh` file:
+
+**@avatarParserSection: FILE_TO_WRITE: /workspaces/greatsun-dev/init-environment.sh **
+#!/bin/bash
+
+# init-environment.sh
+# This script initializes the development environment
+
+# Source common configurations and functions
+source /workspaces/greatsun-dev/common.sh
+
+# Check if running in Codespaces
+if [ -n "$CODESPACES" ]; then
+    log_info "Running in Codespaces environment"
+    # Use GitHub Secrets
+    if [ -z "$GITHUB_TOKEN" ]; then
+        log_error "GITHUB_TOKEN is not set. Please set it in your GitHub Secrets."
+        exit 1
+    fi
+else
+    log_info "Running in local environment"
+    # Load environment variables from .env file
+    load_env
+fi
+
+# Check for required secrets
+if ! check_secrets; then
+    exit 1
+fi
+
+# Function to add submodule
+add_submodule() {
+    local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git"
+    git submodule add $repo_url
+    if [ $? -ne 0 ]; then
+        log_error "Failed to add submodule $1"
+        return 1
+    fi
+}
+
+# Function to update submodules
+update_submodules() {
+    git submodule update --init --recursive
+    if [ $? -ne 0 ]; then
+        log_error "Failed to update submodules"
+        return 1
+    fi
+}
+
+# Add submodules
+add_submodule "credex-ecosystem/credex-core"
+add_submodule "credex-ecosystem/vimbiso-pay"
+
+# Update submodules
+update_submodules
+
+log_info "Submodules added and updated successfully!"
+
+# Activate virtual environment
+source /home/vscode/venv/bin/activate
+
+# Install dependencies and set up the environment
+cd /workspaces/greatsun-dev/credex-ecosystem/credex-core && npm install
+cd /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay && pip install -r requirements.txt
+
+# Install dependencies for greatsun-dev
+cd /workspaces/greatsun-dev
+pip install -r requirements.txt
+
+log_info "Environment setup complete!"

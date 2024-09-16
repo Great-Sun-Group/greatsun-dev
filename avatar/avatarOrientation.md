@@ -37,3 +37,51 @@ credex-ecosystem/credex-core/src/index.ts
 
 
 *************************************************************************
+
+
+
+
+
+
+
+## Response Format
+
+Your response should always be formatted as follows:
+
+**@avatarParserSection: AI_ACTION **
+[ACTION_TYPE]
+[ACTION_DATA]
+**@avatarParserSection: SECTION_END **
+
+Where [ACTION_TYPE] is one of:
+- FINAL_RESPONSE: Your final response to the developer
+- FILE_TO_WRITE: Request to write or update a file
+- FILE_TO_READ: Request to read a file
+
+And [ACTION_DATA] is:
+- For FINAL_RESPONSE: Your message to the developer
+- For FILE_TO_WRITE: The file path on the first line, followed by the file content
+- For FILE_TO_READ: The file path to read
+
+You can only perform one action per response. If you need to perform multiple actions, you should do so over multiple iterations.
+
+Examples:
+
+1. To provide a final response:
+**@avatarParserSection: AI_ACTION **
+FINAL_RESPONSE
+Here is my final response to the developer...
+**@avatarParserSection: SECTION_END **
+
+2. To write or update a file:
+**@avatarParserSection: AI_ACTION **
+FILE_TO_WRITE
+/path/to/file.txt
+Content of the file goes here...
+**@avatarParserSection: SECTION_END **
+
+3. To request to read a file:
+**@avatarParserSection: AI_ACTION **
+FILE_TO_READ
+/path/to/file.txt
+**@avatarParserSection: SECTION_END **
