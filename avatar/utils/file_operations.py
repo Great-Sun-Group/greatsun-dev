@@ -41,14 +41,21 @@ def check_write_permissions(file_path: str) -> bool:
         return os.access(dir_path, os.W_OK)
     return os.access(os.path.dirname(dir_path), os.W_OK)
 
-def write_to_file(file_path: str, content: str) -> None:
-    abs_file_path = os.path.abspath(file_path)
-    logger.info(f"Attempting to write to file: {abs_file_path}")
-    
-    if not check_write_permissions(abs_file_path):
-        logger.error(f"No write permissions for file: {abs_file_path}")
-        return
-    
+
+def write_to_file(file_path: str, content: str, encoding: str = 'utf-8') -> None:
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w', encoding=encoding) as file:
+            file.write(content)
+        logger.info(f"Successfully wrote to file: {file_path}")
+    except IOError as e:
+        logger.error(f"IOError while writing to file {file_path}: {str(e)}")
+        logger.error(traceback.format_exc())
+    except Exception as e:
+        logger.error(
+            f"Unexpected error while writing to file {file_path}: {str(e)}")
+        logger.error(traceback.format_exc())
+
     try:
         os.makedirs(os.path.dirname(abs_file_path), exist_ok=True)
         with open(abs_file_path, 'w') as file:

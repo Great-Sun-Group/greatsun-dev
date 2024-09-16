@@ -2,7 +2,7 @@
 
 # Function to add submodule
 add_submodule() {
-  local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Credex/$1.git"
+  local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git"
   git submodule add $repo_url
   if [ $? -ne 0 ]; then
     echo "Error: Failed to add submodule $1"
@@ -24,7 +24,7 @@ else
   if [ -f .env ]; then
     export $(cat .env | xargs)
   else
-    echo "Error: .env file not found. Please create one with your GitHub Personal Access Token (GH_PAT)."
+    echo "Error: .env file not found. Please create one."
     exit 1
   fi
 
@@ -35,8 +35,8 @@ else
 fi
 
 # Add submodules
-add_submodule "credex-core"
-add_submodule "credex-bot"
+add_submodule "credex-ecosystem/credex-core"
+add_submodule "credex-ecosystem/credex-bot"
 
 echo "Submodules added successfully!"
 
@@ -44,8 +44,8 @@ echo "Submodules added successfully!"
 source /home/vscode/venv/bin/activate
 
 # Install dependencies and set up the environment
-cd /workspaces/credex-dev/credex-core && npm install
-cd /workspaces/credex-dev/credex-bot && pip install -r requirements.txt
+cd /workspaces/greatsun-dev/credex-ecosystem/credex-core && npm install
+cd /workspaces/greatsun-dev/credex-ecosystem/credex-bot && pip install -r requirements.txt
 
 # Install dependencies for credex-dev
 cd /workspaces/credex-dev

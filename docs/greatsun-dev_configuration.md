@@ -1,14 +1,19 @@
-## Prerequisites
+# greatsun-dev config
 
+Here's what you need to get set up in greatsun-dev:
+
+## Prerequisites
+### For all:
 - GitHub account with access to Great Sun Group repositories
-### For local development
+
+### Additional prerequisites for local development:
 - Git
 - Docker and Docker Compose
 - Visual Studio Code
 
 ## Environment Variables and Secrets
 
-The following secrets are required for the greatsun-dev environment. These should be set in the Codespace secrets or in a `.env` file in the root directory when running locally:
+The following secrets are required. These should be set in the your personal Codespace secrets or in a `.env` file in the root directory when running locally. See below for detailed instructions.
 
 - CLAUDE
   Get this secret from Anthropic or your admin.
@@ -56,7 +61,7 @@ This will technically give the avatar that you connect with access to all your g
 
 Refer to the `.env.example` file in the root directory for a template of these environment variables. Remember to never commit your actual `.env` file with real values to version control.
 
-## Setup
+## Environment setup
 
 ### For Codespaces
 
@@ -69,14 +74,14 @@ Refer to the `.env.example` file in the root directory for a template of these e
    - Select the "Codespaces" tab
    - Click "Create codespace on main"
 
-3. The Codespace will automatically set up the environment and submodules using the `init-environment.sh` script.
+3. The Codespace will automatically set up the environment.
 
 ### For Local Development (this needs to be tested)
 
 1. Clone this repository:
    ```
-   git clone https://github.com/Credex/credex-dev.git
-   cd credex-dev
+   git clone https://github.com/Great-Sun-Group/greatsun-dev.git
+   cd greatsun-dev
    ```
 
 2. Create a `.env` file in the root of the project based on .env.example
@@ -91,7 +96,7 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 ### Starting Services and Managing Git
 
-To start all services (credex-core, credex-bot, and credex-dev) and manage Git operations across all repositories, follow these steps:
+To start all services (credex-core, credex-bot, and greatsun-dev) and manage Git operations across all repositories, follow these steps:
 
 1. Start the services:
    ```bash
@@ -110,8 +115,6 @@ To start all services (credex-core, credex-bot, and credex-dev) and manage Git o
       ```bash
       ./git_manager.sh
       ```
-
-   c. The script will prompt you to enter a branch name. This branch will be created or checked out in all three repositories.
 
    d. After that, you'll see a menu with the following options:
       - Create new branches

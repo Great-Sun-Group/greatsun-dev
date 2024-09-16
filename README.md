@@ -31,7 +31,7 @@ You will communicate with the avatar through a terminal. Responses are logged an
 
 #### Shell commands
 Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
-- `commit: commit message`: stages, commits, and pushes current code to all repos with a unified commit message description (to be built)
+- `git manage`: stages, commits, and pushes current code to all repos with a unified commit message description (to be built)
 
 Exit
 - `down` exits the avatar back to the shell.
@@ -65,7 +65,6 @@ Folder to be created for deploying simulations consisting of patterns of transac
 Folder to be created for unit tests, performance tests, etc
 
 # Getting started
-
 If you've already set your configuration, just type `avatar up` in the terminal to get started
 
 # Developer resources
