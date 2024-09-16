@@ -13,12 +13,14 @@
             "settings": {
                 "python.defaultInterpreterPath": "/usr/local/bin/python",
                 "python.linting.enabled": true,
-                "python.linting.pylintEnabled": true
+                "python.linting.pylintEnabled": true,
+                "python.linting.flake8Enabled": true,
+                "python.linting.mypyEnabled": true
             }
         }
     },
     "remoteUser": "vscode",
-    "postCreateCommand": "echo 'export PATH=$PATH:/workspaces/greatsun-dev/avatar' >> ~/.bashrc && echo 'source ~/.bashrc' >> ~/.profile",
+    "postCreateCommand": "pip install flake8 mypy && pip install anthropic && echo 'export PATH=$PATH:/workspaces/greatsun-dev/avatar' >> ~/.bashrc && echo 'source ~/.bashrc' >> ~/.profile",
     "postStartCommand": "echo '#!/bin/bash\n\nif [ \"$1\" = \"up\" ]; then\n    python /workspaces/greatsun-dev/avatar/avatarUp.py\nelse\n    echo \"Unknown command. Use \\\"avatar up\\\" to start the avatar.\"\nfi' > /workspaces/greatsun-dev/avatar/avatar && chmod +x /workspaces/greatsun-dev/avatar/avatar",
     "postAttachCommand": "source ~/.profile"
 }
