@@ -1,1 +1,1 @@
-add anthropic
+check .devcontainer and requirements.txt for redundency and if all packages are up to date
