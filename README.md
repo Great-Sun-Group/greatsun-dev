@@ -31,10 +31,11 @@ You will communicate with the avatar through a terminal. Responses are logged an
 
 #### Shell commands
 Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
-- `git manage`: stages, commits, and pushes current code to all repos with a unified commit message description (to be built)
+- `avatar commit`: stages, commits, and pushes current code to all repos with a unified commit message description, and clears the avatar context. (to be built)
+- `avatar clear`: clears the avatar context (to be built)
 
 Exit
-- `down` exits the avatar back to the shell.
+- `avatar down` exits the avatar back to the shell. Ctrl-C does the same, more forcefully.
 
 ## Project
 Our project consists of the following top level directories:

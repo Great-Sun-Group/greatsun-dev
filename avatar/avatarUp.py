@@ -1,79 +1,121 @@
-import os
 import json
+import os
 import logging
-from typing import Optional, List
 from anthropic import Anthropic
+from avatarUpCommands import cross_repo_commit
 
 # Configure logging
-logging.basicConfig(level=logging.INFO,
+logging.basicConfig(filename='avatar.log', level=logging.INFO,
                     format='%(asctime)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 # Constants
-ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
-# GitHub username of the current developer
-GREATSUN_DEVELOPER = os.getenv('GITHUB_USERNAME')
-FINAL_MESSAGE_MARKER = "** @avatarParserSection: FINAL RESPONSE TO DEVELOPER **"
-UPDATE_FILE_PATH_MARKER = "** @avatarParserSection: FILE PATH TO WRITE **"
-UPDATE_FILE_CONTENT_MARKER = "** @avatarParserSection: FILE CONTENT TO WRITE **"
-REQUESTED_FILES_MARKER = "** @avatarParserSection: LIST OF UP TO SEVEN FILES REQUESTED FOR CONTEXT BY THE LLM**"
-PARSER_SECTION_END_MARKER = "** @avatarParserSection: SECTION END **"
+ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
+GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
+MAX_LLM_ITERATIONS = 7
+
+# Markers for parsing LLM responses
+FINAL_MESSAGE_MARKER = "**@avatarParserSection: FINAL_RESPONSE_TO_DEVELOPER **"
+UPDATE_FILE_MARKER = "**@avatarParserSection: FILE_TO_WRITE: "
+REQUESTED_FILES_MARKER = "**@avatarParserSection: LIST_OF_FILES_REQUESTED_FOR_CONTEXT_BY_THE_LLM **"
+PARSER_SECTION_END_MARKER = "**@avatarParserSection: SECTION_END **"
 
 # Initialize Anthropic client
 large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
+greatsun_developer = GITHUB_USERNAME
 
 
-def read_file(file_path: str) -> str:
+def read_file(file_path):
     """
-    Read and return contents of a file with error handling.
-    If the path is a directory, log it and return a message.
+    Robust function to read and return contents of a file, with solid error handling.
+    If passed the path to a directory, it checks that it is a directory, logs that, and returns a message.
 
     Args:
-        file_path (str): Path to the file or directory
+    file_path (str): Path to the file or directory to be read
 
     Returns:
-        str: File contents or a message if it's a directory
+    str: Contents of the file or a message indicating it's a directory
     """
     try:
         if os.path.isdir(file_path):
-            logger.info(f"{file_path} is a directory")
+            logging.info(f"Attempted to read directory: {file_path}")
             return "The reference is to a directory."
+
         with open(file_path, 'r') as file:
-            return file.read()
+            content = file.read()
+        logging.info(f"Successfully read file: {file_path}")
+        return content
     except FileNotFoundError:
-        logger.error(f"File not found: {file_path}")
-        return f"Error: File {file_path} not found"
-    except IOError as e:
-        logger.error(f"IO error occurred while reading {file_path}: {e}")
-        return f"Error: Unable to read {file_path}"
+        logging.error(f"File not found: {file_path}")
+        return f"Error: File not found - {file_path}"
+    except PermissionError:
+        logging.error(
+            f"Permission denied when trying to read file: {file_path}")
+        return f"Error: Permission denied - {file_path}"
+    except Exception as e:
+        logging.error(
+            f"Unexpected error when reading file {file_path}: {str(e)}")
+        return f"Error: Unexpected issue when reading file - {file_path}"
 
 
-def write_file(file_path: str, file_content: str) -> None:
+def write_file(file_path, file_content):
     """
-    Write content to a file, creating it if it doesn't exist.
+    Robust function that will create the file if it doesn't exist and write over what is there if it does exist,
+    with solid error handling.
 
     Args:
-        file_path (str): Path to the file
-        file_content (str): Content to write to the file
+    file_path (str): Path to the file to be written
+    file_content (str): Content to be written to the file
+
+    Returns:
+    bool: True if write operation was successful, False otherwise
     """
     try:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         with open(file_path, 'w') as file:
             file.write(file_content)
-        logger.info(f"Successfully wrote to {file_path}")
-    except IOError as e:
-        logger.error(f"Error writing to {file_path}: {e}")
+        logging.info(f"Successfully wrote to file: {file_path}")
+        return True
+    except PermissionError:
+        logging.error(
+            f"Permission denied when trying to write to file: {file_path}")
+        return False
+    except Exception as e:
+        logging.error(
+            f"Unexpected error when writing to file {file_path}: {str(e)}")
+        return False
 
 
-def get_directory_tree(path: str) -> dict:
+def extract_content(text, start_marker, end_marker):
+    """
+    Extract content between two markers in a text.
+
+    Args:
+    text (str): The text to search in
+    start_marker (str): The starting marker
+    end_marker (str): The ending marker
+
+    Returns:
+    str: The extracted content, or None if not found
+    """
+    start = text.find(start_marker)
+    if start == -1:
+        return None
+    start += len(start_marker)
+    end = text.find(end_marker, start)
+    if end == -1:
+        return None
+    return text[start:end].strip()
+
+
+def get_directory_tree(path):
     """
     Generate a directory tree structure.
 
     Args:
-        path (str): Root path to start the tree
+    path (str): The root path to start from
 
     Returns:
-        dict: Directory tree structure
+    dict: A nested dictionary representing the directory structure
     """
     tree = {}
     for entry in os.scandir(path):
@@ -84,82 +126,129 @@ def get_directory_tree(path: str) -> dict:
     return tree
 
 
-def extract_section(text: str, start_marker: str, end_marker: str) -> str:
+def process_llm_response(llm_response):
     """
-    Extract a section of text between two markers.
+    Process the LLM response, extracting relevant information and updating files as necessary.
 
     Args:
-        text (str): Full text to search
-        start_marker (str): Start marker of the section
-        end_marker (str): End marker of the section
+    llm_response (str): The response from the LLM
 
     Returns:
-        str: Extracted text between markers
+    tuple: (bool, str) - (whether to continue the LLM loop, extracted response to developer)
     """
-    start = text.find(start_marker)
-    if start == -1:
-        return ""
-    start += len(start_marker)
-    end = text.find(end_marker, start)
-    if end == -1:
+    # Extract response to developer
+    avatar_response = extract_content(
+        llm_response, FINAL_MESSAGE_MARKER, PARSER_SECTION_END_MARKER)
+    if avatar_response:
+        write_file("avatar/avatarResponseToDeveloper.md", avatar_response)
+        print("Avatar:")
+        print(avatar_response)
+        return False, avatar_response
 
+    # Process file updates
+    update_marker_index = llm_response.find(UPDATE_FILE_MARKER)
+    while update_marker_index != -1:
+        end_bracket = llm_response.find(']', update_marker_index)
+        file_path = llm_response[update_marker_index +
+                                 len(UPDATE_FILE_MARKER):end_bracket]
+        file_content = extract_content(
+            llm_response[end_bracket:], "**", PARSER_SECTION_END_MARKER)
+        if file_content:
+            if write_file(file_path, file_content):
+                print(f"File updated: {file_path}")
+            else:
+                print(f"Failed to update file: {file_path}")
+        update_marker_index = llm_response.find(
+            UPDATE_FILE_MARKER, end_bracket)
 
-        return text[start:].strip()
-    return text[start:end].strip()
+    # Process requested files
+    requested_files = extract_content(
+        llm_response, REQUESTED_FILES_MARKER, PARSER_SECTION_END_MARKER)
+    if requested_files:
+        files_requested_contents = ""
+        for file_path in requested_files.split('\n'):
+            file_path = file_path.strip()
+            if file_path:
+                file_content = read_file(file_path)
+                files_requested_contents += f"File: {file_path}\n\n{file_content}\n\n"
+                print(f"File requested: {file_path}")
 
-def process_llm_response(response: str) -> tuple:
-    """
-    Process the LLM response and extract relevant sections.
+        current_conversation = read_file("avatar/avatarConversation.txt")
+        write_file("avatar/avatarConversation.txt",
+                   current_conversation + files_requested_contents)
 
-    Args:
-        response (str): LLM response text
+    return True, None
 
-    Returns:
-        tuple: Contains extracted sections (avatar_response, update_file_path, update_file_content, files_requested)
-    """
-    avatar_response = extract_section(response, FINAL_MESSAGE_MARKER, PARSER_SECTION_END_MARKER)
-    update_file_path = extract_section(response, UPDATE_FILE_PATH_MARKER, PARSER_SECTION_END_MARKER)
-    update_file_content = extract_section(response, UPDATE_FILE_CONTENT_MARKER, PARSER_SECTION_END_MARKER)
-    files_requested = extract_section(response, REQUESTED_FILES_MARKER, PARSER_SECTION_END_MARKER).split('\n')
-    return avatar_response, update_file_path, update_file_content, files_requested
 
 def main():
+    first_run = True
     """
     Main function to run the avatar environment.
     """
     os.system('cls' if os.name == 'nt' else 'clear')
     print("Welcome to the greatsun-dev avatar environment")
     print("Enter your instructions or questions in avatar/messageFromDeveloper.md")
-    print("Then press enter here in the terminal, and you can first")
-    print("optionally paste a file path, as a starting point for my work.")
-    print(f"{GREATSUN_DEVELOPER}: ", end="", flush=True)
+    print("Then press enter here in the terminal, or you can first")
+    print("Optionally paste a file path as a starting point for my work")
+    print(f"{greatsun_developer}: ")
 
     while True:
         file_path = input().strip()
 
-        if file_path.lower() == "down":
+        if file_path.lower() == "avatar down":
             print("\ngreatsun-dev avatar, signing off\n\n")
             break
 
+        if file_path.lower() == "avatar commit":
+            commit_id = cross_repo_commit()
+            if commit_id:
+                write_file("avatar/avatarConversation.txt",
+                           "ready for conversation")
+                print(f"Commit {commit_id} made and avatar cleared")
+                continue
+
+
+            if file_path.lower() == "avatar clear":
+                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                print("Avatar cleared")
+                first_run = True  # Reset the flag when clearing
+                continue
+            
+        # Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
-        reference_file_content = read_file(file_path) if file_path else None
-        trigger_message_content = f"{message_from_developer}\n{file_path}\n{reference_file_content}"
+        reference_file_content = read_file(
+            file_path) if file_path else "No reference file provided."
+        trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
 
-        avatar_up = "\n".join([
-            read_file("avatar/avatarOrientation.md"),
-            read_file("avatar/avatarUp.py"),
-            "** This is the project README.md **",
-            read_file("README.md"),
-            "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer **",
-            trigger_message_content,
-            "Full Project Structure:",
-            json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
-            "** END avatarUp message **"
-        ])
-        write_file("avatar/avatarConversation.txt", avatar_up)
+        if first_run:
+            # Prepare the full context for the LLM (first run)
+            avatar_up_content = [
+                read_file("avatar/avatarOrientation.md"),
+                read_file("avatar/avatarUp.py"),
+                "** This is the project README.md **",
+                read_file("README.md"),
+                "** This is the credex-core submodule README.md **",
+                read_file("credex-ecosystem/credex-core/README.md"),
+                "** This is the vimbiso-pay submodule README.md **",
+                read_file("credex-ecosystem/vimbiso-pay/README.md"),
+                "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **",
+                trigger_message_content,
+                "Full Project Structure:",
+                json.dumps(get_directory_tree(
+                    '/workspaces/greatsun-dev'), indent=2),
+                "** END avatarUp message **\n"
+            ]
+            avatar_up = "\n\n".join(avatar_up_content)
+            write_file("avatar/avatarConversation.txt", avatar_up)
+            first_run = False
+        else:
+            # For subsequent runs, append to existing conversation
+            existing_conversation = read_file("avatar/avatarConversation.txt")
+            updated_conversation = f"{existing_conversation}\n\n** New input from developer **\n\n{trigger_message_content}\n"
+            write_file("avatar/avatarConversation.txt", updated_conversation)
 
-        # START LLM LOOP, allow to run up to 7 iterations
-        for _ in range(7):
+        # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
+        for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = read_file("avatar/avatarConversation.txt")
                 llm_call = large_language_model.messages.create(
@@ -170,44 +259,35 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                write_file("avatar/avatarConversation.txt", f"{llm_message}\n{llm_response}")
+                write_file("avatar/avatarConversation.txt",
+                           llm_message + llm_response)
 
-                avatar_response, update_file_path, update_file_content, files_requested = process_llm_response(llm_response)
+                continue_loop, avatar_response = process_llm_response(
+                    llm_response)
 
-                if avatar_response:
-                    write_file("avatar/avatarResponseToDeveloper.md", avatar_response)
-                    print("Avatar:")
-                    print(avatar_response)
-                    break  # End LLM loop
+                if not continue_loop:
+                    break  # Exit the LLM loop if we have a final response
 
-
-                if update_file_path and update_file_content:
-                    write_file(update_file_path, update_file_content)
-                    print(f"File updated: {update_file_path}")
-
-                    if files_requested:
-                        files_requested_contents = ""
-                    for file_requested in files_requested:
-                        if file_requested.strip():
-                            file_content = read_file(file_requested.strip())
-                            files_requested_contents += f"{file_requested}\n{file_content}\n\n"
-                            print(f"File requested: {file_requested}")
-                    write_file("avatar/avatarConversation.txt",
-                               f"{llm_message}\n{llm_response}\n{files_requested_contents}")
 
             except Exception as e:
-                logger.error(f"Error in LLM loop: {e}")
-                final_response = "Sorry, an error occurred while processing the LLM response. Let's try again, or try another model."
-                write_file("avatar/avatarResponseToDeveloper.md", final_response)
-                print(final_response)
-                break  # End LLM loop on error
+                logging.error(f"Error in LLM loop: {str(e)}")
+                avatar_response = f"Sorry, an error occurred while processing your request: {str(e)}"
+                write_file("avatar/avatarResponseToDeveloper.md",
+                           avatar_response)
+                break  # Exit the LLM loop on error
 
-        else:  # This else clause is executed if the for loop completes without breaking
-            final_response = "Sorry, the LLM we queried was unable to successfully engage with me after 7 iterations. Let's try again, or try another model."
+        else:
+            # This block executes if the for loop completes without breaking
+            final_response = "Sorry, the LLM we queried was unable to successfully complete the task within the maximum allowed iterations. Let's try again, or consider using another model."
             write_file("avatar/avatarResponseToDeveloper.md", final_response)
             avatar_conversation = read_file("avatar/avatarConversation.txt")
-            write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n{final_response}")
+            write_file("avatar/avatarConversation.txt", avatar_conversation + "\n\n" + final_response)
             print(final_response)
+
+        # Print the final response to the developer
+        print("\nAvatar Response:")
+        print(read_file("avatar/avatarResponseToDeveloper.md"))
+        print("\nReady for next input. Type 'avatar down' to exit.")
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,1132 @@
+# Avatar README
+You are a large language model powering a development avatar called greatsun-dev. Your response to this query will interact with an avatar script, and through that script you can read from and write to the full codebase of our project over multiple iterations, while communicating with the human developer. The dev is querying you through the avatar/avatarUp.py script. You can read and write directly to the codebase all through the avatar script. You will be asked to answer questions and provide information, and most often you will be asked to recommend a commit across one or more files in one or more repositories within the project. The commit will be designed to meet the intent expressed by the human developer who initiates the avatar.
+
+Your purpose is to be the main code contributor to the Great Sun Group's development efforts. You are employed by developers interacting with you through the avatarUp script. We ask you to turn the intentions and goals that expresed in this message into:
+1. high quality, efficient, resilient, well commented and logged code, and/or
+2. concise, truthful, well-researched answers about our codebase and the data it processes, writes, and reads from the credex-ecosystem neo4j ledger.
+
+Through our avatar script you are able to iteratively read and write files up to 7 times before replying to summarize what you have discovered or done. We want you to use this capacity to thoroughly research responses across the full data set available to you, and to make well researched and planned changes. You can use up to 3 of these sections in any one iteration. If you ever run out of iterations to acheive your purpose, you can ask the developer to trigger the avatar script again within the same conversation and the history will be kept. We are aiming for one conversation per commit. You can request another automatic iteration without needing the developer by requesting a file, so if you need another iteration for more writes, just request a file with the last write and you'll move to the next iteration.
+
+## avatar/avatarUp.py
+At the core of the avatar is the avatar/avatarUp.py script that we are interacting through. It is critical that you thoroughly review and understand this script, because it **requires you to respond to this query in a specific format that deliminates sections that the script can parse**. You need to understand this script in order to know how to respond in a way that will reach the human developer, and/or in a way that will enable you to read from or write to the codebase.
+
+Here is an example response, with comments that share the intention of each specific section, and how you can use it, and below is the code itself, which is the most critical thing for you to understand.
+
+** @avatarParserSection: FINAL_RESPONSE_TO_DEVELOPER **
+
+Include this section to end your independent iterations with the avatar and send a message to the developer. Any changes you've made will be reviewed by a developer, who will adjust code manually, or request further clarification or changes. We are driving together to acheive a commit after every final response you give, so that our progress is tracked granularly.
+
+This section should include a summary of what you've discovered, or the changes you've made. These changes are a recommended commit, and your comments in this section should be the summary of code updated, including whatever you know about the larger purpose of the commit within the codebase and the project.
+
+You can also use this section for questions to the developer when you need more information to assess their intent, or to update them with critical information that might impact their intent.
+
+You can print out terminal commands here for the developer to paste. Include descriptions of what the command does and why you recommend it.
+
+**@avatarParserSection: SECTION_END **"
+**@avatarParserSection: FILE_TO_WRITE: docs/newOrOverwriteFile.md **
+Use one or many of these sections iteration to write files, including creating new ones when that is what you are recommending.
+
+Whatever is in this section will be written directly to the file declared in the path above as a recommended commit.
+**@avatarParserSection: SECTION_END **"
+**@avatarParserSection: LIST_OF_FILES_REQUESTED_FOR_CONTEXT_BY_THE_LLM **
+README.md
+.env.example
+central/logs/2024-09-16.log
+credex-ecosystem/credex-core/src/index.ts
+**@avatarParserSection: SECTION_END **"
+
+
+*************************************************************************
+
+import json
+import os
+import logging
+from anthropic import Anthropic
+from avatarUpCommands import cross_repo_commit
+
+# Configure logging
+logging.basicConfig(filename='avatar.log', level=logging.INFO,
+                    format='%(asctime)s - %(levelname)s - %(message)s')
+
+# Constants
+ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
+GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
+MAX_LLM_ITERATIONS = 7
+
+# Markers for parsing LLM responses
+FINAL_MESSAGE_MARKER = "**@avatarParserSection: FINAL_RESPONSE_TO_DEVELOPER **"
+UPDATE_FILE_MARKER = "**@avatarParserSection: FILE_TO_WRITE: "
+REQUESTED_FILES_MARKER = "**@avatarParserSection: LIST_OF_FILES_REQUESTED_FOR_CONTEXT_BY_THE_LLM **"
+PARSER_SECTION_END_MARKER = "**@avatarParserSection: SECTION_END **"
+
+# Initialize Anthropic client
+large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
+greatsun_developer = GITHUB_USERNAME
+
+
+def read_file(file_path):
+    """
+    Robust function to read and return contents of a file, with solid error handling.
+    If passed the path to a directory, it checks that it is a directory, logs that, and returns a message.
+
+    Args:
+    file_path (str): Path to the file or directory to be read
+
+    Returns:
+    str: Contents of the file or a message indicating it's a directory
+    """
+    try:
+        if os.path.isdir(file_path):
+            logging.info(f"Attempted to read directory: {file_path}")
+            return "The reference is to a directory."
+
+        with open(file_path, 'r') as file:
+            content = file.read()
+        logging.info(f"Successfully read file: {file_path}")
+        return content
+    except FileNotFoundError:
+        logging.error(f"File not found: {file_path}")
+        return f"Error: File not found - {file_path}"
+    except PermissionError:
+        logging.error(
+            f"Permission denied when trying to read file: {file_path}")
+        return f"Error: Permission denied - {file_path}"
+    except Exception as e:
+        logging.error(
+            f"Unexpected error when reading file {file_path}: {str(e)}")
+        return f"Error: Unexpected issue when reading file - {file_path}"
+
+
+def write_file(file_path, file_content):
+    """
+    Robust function that will create the file if it doesn't exist and write over what is there if it does exist,
+    with solid error handling.
+
+    Args:
+    file_path (str): Path to the file to be written
+    file_content (str): Content to be written to the file
+
+    Returns:
+    bool: True if write operation was successful, False otherwise
+    """
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(file_content)
+        logging.info(f"Successfully wrote to file: {file_path}")
+        return True
+    except PermissionError:
+        logging.error(
+            f"Permission denied when trying to write to file: {file_path}")
+        return False
+    except Exception as e:
+        logging.error(
+            f"Unexpected error when writing to file {file_path}: {str(e)}")
+        return False
+
+
+def extract_content(text, start_marker, end_marker):
+    """
+    Extract content between two markers in a text.
+
+    Args:
+    text (str): The text to search in
+    start_marker (str): The starting marker
+    end_marker (str): The ending marker
+
+    Returns:
+    str: The extracted content, or None if not found
+    """
+    start = text.find(start_marker)
+    if start == -1:
+        return None
+    start += len(start_marker)
+    end = text.find(end_marker, start)
+    if end == -1:
+        return None
+    return text[start:end].strip()
+
+
+def get_directory_tree(path):
+    """
+    Generate a directory tree structure.
+
+    Args:
+    path (str): The root path to start from
+
+    Returns:
+    dict: A nested dictionary representing the directory structure
+    """
+    tree = {}
+    for entry in os.scandir(path):
+        if entry.is_dir():
+            tree[entry.name] = get_directory_tree(entry.path)
+        else:
+            tree[entry.name] = None
+    return tree
+
+
+def process_llm_response(llm_response):
+    """
+    Process the LLM response, extracting relevant information and updating files as necessary.
+
+    Args:
+    llm_response (str): The response from the LLM
+
+    Returns:
+    tuple: (bool, str) - (whether to continue the LLM loop, extracted response to developer)
+    """
+    # Extract response to developer
+    avatar_response = extract_content(
+        llm_response, FINAL_MESSAGE_MARKER, PARSER_SECTION_END_MARKER)
+    if avatar_response:
+        write_file("avatar/avatarResponseToDeveloper.md", avatar_response)
+        print("Avatar:")
+        print(avatar_response)
+        return False, avatar_response
+
+    # Process file updates
+    update_marker_index = llm_response.find(UPDATE_FILE_MARKER)
+    while update_marker_index != -1:
+        end_bracket = llm_response.find(']', update_marker_index)
+        file_path = llm_response[update_marker_index +
+                                 len(UPDATE_FILE_MARKER):end_bracket]
+        file_content = extract_content(
+            llm_response[end_bracket:], "**", PARSER_SECTION_END_MARKER)
+        if file_content:
+            if write_file(file_path, file_content):
+                print(f"File updated: {file_path}")
+            else:
+                print(f"Failed to update file: {file_path}")
+        update_marker_index = llm_response.find(
+            UPDATE_FILE_MARKER, end_bracket)
+
+    # Process requested files
+    requested_files = extract_content(
+        llm_response, REQUESTED_FILES_MARKER, PARSER_SECTION_END_MARKER)
+    if requested_files:
+        files_requested_contents = ""
+        for file_path in requested_files.split('\n'):
+            file_path = file_path.strip()
+            if file_path:
+                file_content = read_file(file_path)
+                files_requested_contents += f"File: {file_path}\n\n{file_content}\n\n"
+                print(f"File requested: {file_path}")
+
+        current_conversation = read_file("avatar/avatarConversation.txt")
+        write_file("avatar/avatarConversation.txt",
+                   current_conversation + files_requested_contents)
+
+    return True, None
+
+
+def main():
+    first_run = True
+    """
+    Main function to run the avatar environment.
+    """
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Welcome to the greatsun-dev avatar environment")
+    print("Enter your instructions or questions in avatar/messageFromDeveloper.md")
+    print("Then press enter here in the terminal, or you can first")
+    print("Optionally paste a file path as a starting point for my work")
+    print(f"{greatsun_developer}: ")
+
+    while True:
+        file_path = input().strip()
+
+        if file_path.lower() == "avatar down":
+            print("\ngreatsun-dev avatar, signing off\n\n")
+            break
+
+        if file_path.lower() == "avatar commit":
+            commit_id = cross_repo_commit()
+            if commit_id:
+                write_file("avatar/avatarConversation.txt",
+                           "ready for conversation")
+                print(f"Commit {commit_id} made and avatar cleared")
+                continue
+
+
+            if file_path.lower() == "avatar clear":
+                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                print("Avatar cleared")
+                first_run = True  # Reset the flag when clearing
+                continue
+            
+        # Prepare the message from the developer
+        message_from_developer = read_file("avatar/messageFromDeveloper.md")
+        reference_file_content = read_file(
+            file_path) if file_path else "No reference file provided."
+        trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
+
+        if first_run:
+            # Prepare the full context for the LLM (first run)
+            avatar_up_content = [
+                read_file("avatar/avatarOrientation.md"),
+                read_file("avatar/avatarUp.py"),
+                "** This is the project README.md **",
+                read_file("README.md"),
+                "** This is the credex-core submodule README.md **",
+                read_file("credex-ecosystem/credex-core/README.md"),
+                "** This is the vimbiso-pay submodule README.md **",
+                read_file("credex-ecosystem/vimbiso-pay/README.md"),
+                "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **",
+                trigger_message_content,
+                "Full Project Structure:",
+                json.dumps(get_directory_tree(
+                    '/workspaces/greatsun-dev'), indent=2),
+                "** END avatarUp message **\n"
+            ]
+            avatar_up = "\n\n".join(avatar_up_content)
+            write_file("avatar/avatarConversation.txt", avatar_up)
+            first_run = False
+        else:
+            # For subsequent runs, append to existing conversation
+            existing_conversation = read_file("avatar/avatarConversation.txt")
+            updated_conversation = f"{existing_conversation}\n\n** New input from developer **\n\n{trigger_message_content}\n"
+            write_file("avatar/avatarConversation.txt", updated_conversation)
+
+        # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
+        for iteration in range(MAX_LLM_ITERATIONS):
+            try:
+                llm_message = read_file("avatar/avatarConversation.txt")
+                llm_call = large_language_model.messages.create(
+                    model="claude-3-5-sonnet-20240620",
+                    max_tokens=4096,
+                    messages=[
+                        {"role": "user", "content": llm_message}
+                    ]
+                )
+                llm_response = llm_call.content[0].text
+                write_file("avatar/avatarConversation.txt",
+                           llm_message + llm_response)
+
+                continue_loop, avatar_response = process_llm_response(
+                    llm_response)
+
+                if not continue_loop:
+                    break  # Exit the LLM loop if we have a final response
+
+
+            except Exception as e:
+                logging.error(f"Error in LLM loop: {str(e)}")
+                avatar_response = f"Sorry, an error occurred while processing your request: {str(e)}"
+                write_file("avatar/avatarResponseToDeveloper.md",
+                           avatar_response)
+                break  # Exit the LLM loop on error
+
+        else:
+            # This block executes if the for loop completes without breaking
+            final_response = "Sorry, the LLM we queried was unable to successfully complete the task within the maximum allowed iterations. Let's try again, or consider using another model."
+            write_file("avatar/avatarResponseToDeveloper.md", final_response)
+            avatar_conversation = read_file("avatar/avatarConversation.txt")
+            write_file("avatar/avatarConversation.txt", avatar_conversation + "\n\n" + final_response)
+            print(final_response)
+
+        # Print the final response to the developer
+        print("\nAvatar Response:")
+        print(read_file("avatar/avatarResponseToDeveloper.md"))
+        print("\nReady for next input. Type 'avatar down' to exit.")
+
+if __name__ == "__main__":
+    main()
+
+** This is the project README.md **
+
+# greatsun-dev README
+
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client.
+
+This container is managed by an AI avatar called greatsun-dev. The avatar *is* the development environment. It has access to:
+  - the full scope of multiple underlying LLMs,
+  - our current codebases and commit histories,
+  - and the logged conversations that members of the dev team have had with the LLMs.
+
+As a developer in this environment, your job is to express your intent to LLMs, do quality control and verify that the results embody your intent, and submit pull requests when you feel the code is ready to go to the next step of review. Your commits are logged granularly, and so are the conversations with AI models that co-create those commits. With a call/response dialogue with LLMs, you can produce high quality code at an incredibly rapid rate, and this process is the heart of the CI/CD pipeline of the credex ecosystemand, and also at the heart of our engine for econonic modeling.
+
+An LLM is an underlying model, to which every query is a fresh query. This means every query needs to include full context. When you query the LLMs underneath greatsun-dev, we assemble a context and response instructions for the LLM, including your message and optionally a linked file. If the LLM wants to request more context, it informs the codebase, which resends the entire original query, with the requested files attached.
+
+When the LLM responds with recommended code changes, it's response is parsed and it's recommendations executed as a proposed commit. Review the commit and see if it moves you in the direction that you want to go. Query again if you want changes, or make smal edits manually if that's most efficient.
+
+### Commits
+As a developer on the Great Sun dev team, you use commits to closely monitor the actions of the avatar and ensure it is proceeding towards your intent. The avatar will overwrite files when you query it, so every commit becomes a reference point for checking the next steps. Commit often, so that every query to the LLM can be checked against a prior commit without an overwhelming number of changes accumulating.
+
+Commits are done in a commonly named and identified commit across all affected repos with the `command here` command to the avatar.
+
+#### Undo
+If since the last commit you've made changes that you don't want to lose, and the avatar messes with your code, the undo command works on each file changed to undo the last changes made by the avatar.
+
+### Command line interface
+You will communicate with the avatar through a terminal. Responses are logged and recommended actions are saved imediately to files.
+- `avatar up` launches the avatar.
+
+#### LLM commands
+1. To send a query to the LLM, which is currently hardcoded to only Claude 3.5 Sonnet, update [avatar/messageToSend.md](avatar/messageToSend.md) with your message and press Enter in the terminal.
+2. To send a query from messageToSend (can be empty) and the contents of a first reference file to the LLM, enter the path of the file in the terminal and press Enter.
+
+#### Shell commands
+Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
+- `avatar commit`: stages, commits, and pushes current code to all repos with a unified commit message description, and clears the avatar context. (to be built)
+- `avatar clear`: clears the avatar context (to be built)
+
+Exit
+- `avatar down` exits the avatar back to the shell. Ctrl-C does the same, more forcefully.
+
+## Project
+Our project consists of the following top level directories:
+
+## /avatar
+Processing queries to LLMs and their results for developer approval and implementation. LLM instructions and management files, as well as logs.
+
+## /central-logs
+Folder to be created for compiling and monitoring logs from the projects in credex-ecosystem and from greatsun-dev.
+
+## /credex-ecosystem
+The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
+
+- Currenty under development are:
+  - credex-core, our core API on an express.js server.
+  - vimbiso-pay, a whatsapp chatbot written in python.
+
+## /data-analysis
+Folder to be created for tools to analyze existing data in the credex-ecosystem
+
+## /docs
+Documentation for the greatsun-dev environment.
+
+## /simulations
+Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
+
+## /tests
+Folder to be created for unit tests, performance tests, etc
+
+# Getting started
+If you've already set your configuration, just type `avatar up` in the terminal to get started
+
+# Developer resources
+- To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md)
+
+** This is the credex-core submodule README.md **
+
+Error: File not found - credex-ecosystem/credex-core/README.md
+
+** This is the vimbiso-pay submodule README.md **
+
+Error: File not found - credex-ecosystem/vimbiso-pay/README.md
+
+** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **
+
+hello greatsun-dev. this is a test message to see if you understand your context? Can you please give me a shot summary?
+
+Reference File: 
+
+No reference file provided.
+
+Full Project Structure:
+
+{
+  ".gitmodules": null,
+  "docs": {
+    "greatsun-dev_configuration.md": null,
+    "devEnvNext.md": null
+  },
+  ".devcontainer": {
+    "Dockerfile": null,
+    "devcontainer.json": null
+  },
+  ".env.example": null,
+  "avatar.log": null,
+  "main.py": null,
+  "git_manager.sh": null,
+  "start-services.sh": null,
+  "credex-ecosystem": {
+    "credex-bot": {},
+    "credex-core": {}
+  },
+  "README.md": null,
+  "init-environment.sh": null,
+  "avatar": {
+    "avatarResponseToDeveloper.md": null,
+    "avatarUpCommands.py": null,
+    "avatarConversation.txt": null,
+    "__pycache__": {
+      "avatarUpCommands.cpython-311.pyc": null
+    },
+    "currentProject.md": null,
+    "avatarOrientation.md": null,
+    "avatarUp.py": null,
+    "messageFromDeveloper.md": null,
+    "avatar": null
+  },
+  "avatar_outgoing": {
+    "avatarUp.py": null,
+    "context": {
+      "currentResponse.txt": null,
+      "avatarREADME.md": null,
+      "fullResponseReceived.txt": null,
+      "responseInstructions.md": null,
+      "conversationLog": {
+        "2024-09-16.log": null
+      },
+      "logs": {
+        "2024-09-16.log": null
+      },
+      "messageSent.txt": null
+    },
+    "utils": {
+      "message_handling.py": null,
+      "response_parser.py": null,
+      "__pycache__": {
+        "file_operations.cpython-311.pyc": null,
+        "__init__.cpython-311.pyc": null,
+        "constants.cpython-311.pyc": null,
+        "message_handling.cpython-311.pyc": null,
+        "ai_processing.cpython-311.pyc": null
+      },
+      "__init__.py": null,
+      "file_operations.py": null,
+      "constants.py": null
+    },
+    "logs": {},
+    "messageToSend.txt": null
+  },
+  ".git": {
+    "objects": {
+      "20": {
+        "b9ae78069c54a8cbfe41ef3d72fb9dcf03c46c": null,
+        "bb19ac03e31fe63bfb822db5dd069cf2e42c94": null
+      },
+      "0e": {
+        "7b6c8c667b9c530d220a2506a6bf25649399a5": null
+      },
+      "25": {
+        "30e2be09ba6e6a6c6bb9cbcd57c9b57331714a": null,
+        "c4e12495722e316d70ad6b58bcbe5a7cc708da": null
+      },
+      "d8": {
+        "601117dbb287ad12e5b930744aba3c37b4f389": null
+      },
+      "1d": {
+        "b69b721e4c78e2649412d4708469f681c564e1": null
+      },
+      "60": {
+        "3f494f30b7d12e6c9dab52dddbf5537838e944": null
+      },
+      "0a": {
+        "0c31c3b79d2cc82a88b6aa72ebdd4001574e19": null,
+        "f0c5fed9303c22f8399575e5f3c0f9f89ca5d0": null,
+        "266201e84d78f070c9febcde0cc40d52b4c0ae": null
+      },
+      "83": {
+        "8334d96f00e3977f00465bb16e3a9e9ae5cfa6": null
+      },
+      "be": {
+        "f9a24437e037bc981ecf228a8576e8e480190b": null
+      },
+      "73": {
+        "f677b383d6aa26f97d8ce8699e65d1c8c74912": null,
+        "5163600bd8b7a3fdc5967ec9e105241f467e15": null
+      },
+      "bd": {
+        "044a02e230694238073fc299ef9005c4cbd601": null,
+        "0bab7d4ab002b78680e4272eb596378e137837": null
+      },
+      "6e": {
+        "f03768adba9e4685e431cebe7e0891bf84c822": null,
+        "2bc59d08a42174dd3213fe645034073c374329": null
+      },
+      "c0": {
+        "83abdddc9086bec50eaa3f2896d53e07f992d3": null,
+        "50aa7fae9bde8cf5476fdb76c9eba59c279b76": null
+      },
+      "b9": {
+        "a20dc53aecc5e6d4cedb76fe79dec09dcd9929": null,
+        "ea29af41de8b033c205a085ee47de58d655e32": null
+      },
+      "64": {
+        "218169e81c136a57096fb5c7396f5364978b56": null
+      },
+      "3a": {
+        "e5ad566fe3ff8976e583222bd5499dbc974e58": null,
+        "7f124a1a411e720f4346cb3a0c42f29dccd32e": null
+      },
+      "85": {
+        "3adc6d67f0ab5cbaf66c2b913b829980de0171": null,
+        "b8f3c2681b3887148889eb290c9a50b583af13": null
+      },
+      "b7": {
+        "683ffb6fd21f3b22f0bc93bd71251d2e742e06": null
+      },
+      "e1": {
+        "06799a2ef2f84dff4cd216997d04a22f0b67f0": null,
+        "1d4985adb10b7ddfd3a9ffeae928dee998e7b8": null
+      },
+      "16": {
+        "2401b22848798b6a67e371f47941e5a5c063ec": null
+      },
+      "51": {
+        "4819787d49a21e234b3c4312b9f60688a72fec": null
+      },
+      "e7": {
+        "ac33ec0e6077b0d16da5543fdd0f45aafa0f36": null
+      },
+      "0d": {
+        "3a4ea426123c4e802255865b2eefbe2d730506": null
+      },
+      "d0": {
+        "b5b6e5abce5a3ce91616d0dbe23c89fcb59af2": null,
+        "6e57b440f49f40a192c46da64719aba4afc222": null
+      },
+      "75": {
+        "e2a563400df391590064319532aea12e0f38f2": null,
+        "d51d3f76f3095230aaf141311fd6743fb8bc0c": null
+      },
+      "91": {
+        "f57bc35254aa2c3de80a5f2845acfa4eddedfb": null
+      },
+      "09": {
+        "604aad6cd71ea98d3eadae0ba5ba8845f678c6": null
+      },
+      "97": {
+        "e8f163be025cfe17f6bdd5b65237cef3228b74": null
+      },
+      "fc": {
+        "f1b06a3e9f574bd3a0c7c21a27e0cce19ec2e4": null,
+        "79eb61a687c657377c67525af0f0f02c46b116": null
+      },
+      "29": {
+        "6e94cf42049e3dd306290f0cb4b353d558f0ff": null
+      },
+      "b8": {
+        "55fd635c4d73dd9d8a38816e8c20ce305d3a60": null,
+        "1e292df7e0a7d19b2024d7a0825128ed13ca46": null
+      },
+      "17": {
+        "6c380c020f235f31cb4a7106ced79d851ec5a1": null,
+        "97e8e28532e916363068d348c9ff610db91dde": null,
+        "9def0fef725a2cf1efba426779578b9cf2d3c7": null
+      },
+      "8e": {
+        "be501c003d0b4b89a4b7eb7f9a7f129f4fa7cb": null,
+        "4dbd8aea985f1de2d8de44373619a5fa40d5dd": null,
+        "6dc4f8a7503ef60e73885dc3aca099c0ffbe3d": null,
+        "957bb527fb8cc003b900352154cae0b4eef858": null
+      },
+      "48": {
+        "40c317236db46c929abc9a5195812ea5f0118c": null,
+        "9c7bf8618a405a3a874238856d1bfa2030059f": null
+      },
+      "b0": {
+        "1f8010a2935eb07b57a419d7a25e0f45dcb77d": null
+      },
+      "b1": {
+        "b528a614ee8e25feeae5dd855e30c567975a1b": null
+      },
+      "f7": {
+        "48e4aeb84aae819bfcb290098117237d98038c": null,
+        "03ebebd492d4b68e447171ddeeafe88e870357": null,
+        "0c14ffebe3248796aedc906488c93388ec3b5f": null
+      },
+      "2f": {
+        "f0be3818509ee62fda8413fac013f923ad8dbf": null
+      },
+      "7a": {
+        "aede84627b0af7a93b083b280d6cb4435e8b15": null,
+        "d6474db77cc5b9c7d3e8d40044d3aba4b88619": null
+      },
+      "4a": {
+        "df84a25791b7c75315822eea0246f9bb0b0567": null
+      },
+      "01": {
+        "01e6bc1a9cdd6827dbe76ae8f2b548f3ee5044": null,
+        "822b076631aff46b2afc03488b3feaa9dccf77": null,
+        "5f6812c34dbbc51887086109e714b2174e0f3e": null
+      },
+      "b5": {
+        "454d3875085a554775dbaaaf242b7e975e7f0c": null
+      },
+      "24": {
+        "bbf63a2a720f30e83098858ddcb9328186497f": null
+      },
+      "pack": {
+        "pack-71c648e663d81375bfaea1fb5aae3f11095a9071.rev": null,
+        "pack-71c648e663d81375bfaea1fb5aae3f11095a9071.pack": null,
+        "pack-ef39d3ff6d4b3f809d8f4543b5d9f3e58947380e.pack": null,
+        "pack-ef39d3ff6d4b3f809d8f4543b5d9f3e58947380e.idx": null,
+        "pack-71c648e663d81375bfaea1fb5aae3f11095a9071.idx": null,
+        "pack-ef39d3ff6d4b3f809d8f4543b5d9f3e58947380e.rev": null
+      },
+      "0f": {
+        "26e8425dc1e4274528ab4c35b46d0e9f46d227": null
+      },
+      "3d": {
+        "79cfb82a46c3744143ebb4a171ee6090a05ac5": null
+      },
+      "bb": {
+        "78a859ce75a37da8ec99e25dc813fa8427ca48": null
+      },
+      "9b": {
+        "54ec58d86e52617e5df1390d85d775bd3cd79c": null
+      },
+      "6c": {
+        "61934b844e78de3e16beec3801fa9c58f9a45b": null
+      },
+      "49": {
+        "01c468d0124e42187455c2f0c785db17d239f5": null
+      },
+      "95": {
+        "d9d11e42e67bdef1c8faade25f480ff7e5ed7c": null
+      },
+      "41": {
+        "7984b415bd63dc5be827f2358535c148db7034": null
+      },
+      "info": {},
+      "81": {
+        "822b61030f5fa8f768e2092893ceae866ae3b8": null
+      },
+      "63": {
+        "5ac0e49670036f4aa3456dfb79fec4df687915": null
+      },
+      "a2": {
+        "2703c010712119c59df9af2ef381c36c84bbf6": null,
+        "a7687a833735624ed281b4e24b470f7d23a192": null
+      },
+      "92": {
+        "c8af2e4e76d430621d2c0fd337ac130d18a36c": null,
+        "442a6f2d54d642d539a6acd6af956d06b41e60": null
+      },
+      "13": {
+        "998654bf2b6340da753331cc41713091accbde": null
+      },
+      "db": {
+        "9493418b22b26c2cf268bbd0b9f7a09be020c3": null
+      },
+      "42": {
+        "3d6a55317a41600316511d4745fa4535090ba0": null,
+        "c52d7d705a49383fca341265fb0fa0f8f09b62": null
+      },
+      "ba": {
+        "3a970ad62676ad0ce6e34804270ee6615392dd": null
+      },
+      "9d": {
+        "4b7e50ca517e94d46921c65c21c70e57b0e857": null
+      },
+      "c5": {
+        "f4b9b3948781ff9f9b90afcb4f175176a7681a": null,
+        "5f0bac9bfb88ec51643731edc47b7d0d983901": null
+      },
+      "df": {
+        "d70b4abf0b8ed221f8f2d90edc845f1ef42666": null,
+        "aa722baeb08a9a075ceb3f2d06c265d436d247": null,
+        "ce23a1a8bb9d0670aa2b82d609eb31e6278b5a": null
+      },
+      "18": {
+        "8c214fe004025dad312fec605b8771f949d845": null,
+        "b737024e6e9c0601c2806a09588b393f43a639": null
+      },
+      "1f": {
+        "cc33b26f1086fa3676fd7c9c6b1d086789a4b2": null
+      },
+      "65": {
+        "189c8646cf44c5beeb7260ad29a7085d4e1e43": null
+      },
+      "54": {
+        "d960bdd7123bfcd4028caa47ed4fed8935f32a": null,
+        "d6b2ed01f9b130cbdd48602ae7dfa7f1ed6a4f": null
+      },
+      "d5": {
+        "34e594875a8704cdc85a00f8754cf38e72653d": null
+      },
+      "5e": {
+        "ed87d2f7ab0ab0ffc3287b349ee971cfedb350": null,
+        "e6676732ee89a2bcb5eb8756b89d32687385d5": null
+      },
+      "15": {
+        "bf2f6661293c95b044071867af2c90d3e46e61": null,
+        "58e8b868f8006a382f185f138df86c5b7f88e3": null
+      },
+      "bc": {
+        "cbfdf533aad42f45e9df09facb4ad028d433b3": null
+      },
+      "d1": {
+        "5963ce77a5f6e02ef53d0bcb0af93db690ed08": null
+      },
+      "35": {
+        "034cacc4c71f5f562f549198f4cbc3e8d386f3": null
+      },
+      "8c": {
+        "b50fe55ef15dbd07016b0ac351523443cad3eb": null,
+        "50c0555760587104892e5188cac3d5b3627d72": null,
+        "54a4e2bca8d8af2e0868c1515f4c1be61ab483": null
+      },
+      "37": {
+        "dfb8c164747e9dbd35b624269fcccdb1a7fb24": null,
+        "6099de7fa77df307945f11f0361e142e16c815": null,
+        "71989c9985ddc32d6254f8e903e804959b2180": null
+      },
+      "07": {
+        "19f37af964576a6896a5e0d0ce627be25906d9": null
+      },
+      "d2": {
+        "23966813ae8598943baa261e0ac5e661c7cdb7": null
+      },
+      "94": {
+        "85feb03b187ed28eac77fbcf4287dcb4332dd8": null
+      },
+      "99": {
+        "852cf4196d103ca80b702884ee2fa4854d50cc": null
+      },
+      "79": {
+        "14a4867f1302b75641db7008b0bf40aebcf025": null
+      },
+      "ff": {
+        "d0e50d0463dbfa032d1bbd5b154fde58e56dfb": null
+      },
+      "d7": {
+        "abb0002e1b9265d8fd8e1cd18063d3b9eb7860": null
+      },
+      "b3": {
+        "4e3dd1338b53fb5302c75b1325ca9bea2938c9": null,
+        "a425249b207819e63bf9a2716fd16f63b0f7b7": null
+      },
+      "fd": {
+        "7a7444c43d19f468c38e4a1cce8d6df7e21b55": null
+      },
+      "1c": {
+        "cb742a7758fce352c6c8e840adaade3d2179c9": null,
+        "aa67ca930cfd07f49d741222dd005e7cbe08fa": null
+      },
+      "a0": {
+        "ed788abeb22d278b753ef4c752b66cbad38eac": null
+      },
+      "08": {
+        "f892f1143504f7a8c07d40c596fa3862c2f00e": null,
+        "77a2af9abc57e77951a3d16bb87fad30f091b4": null
+      },
+      "cc": {
+        "f8050ab3f109b5e7b5ff65f2d07d953fd04050": null
+      },
+      "d3": {
+        "8ea81b6bc97c3d60904d62d231cc6cb4d05a74": null,
+        "0974fe60e6ed1ea0a18689a6ee10204120f407": null
+      },
+      "2e": {
+        "bb86ac406d2eb75270dfa3a23fa8cb197a9c20": null
+      },
+      "ee": {
+        "9d8e633d03847c5487758efcc9f9d09d0f4ced": null
+      },
+      "69": {
+        "44e2cc5860c248f6bec23b110d161279b33557": null,
+        "9cb027fb26f12e47cd6d1894e6c5760ef6c3c3": null
+      },
+      "36": {
+        "b9b01cee1386a820c7179808306af538d494ae": null
+      },
+      "72": {
+        "f8f5495819c46f049438a97c96412b5e9181c2": null,
+        "8be64fb390bf3898b24c5560ecbba27d52ccc1": null,
+        "ee0d989c6c57af05f9b9e90168a1ee987c14c6": null
+      },
+      "23": {
+        "828b88182eb4c3b4d81732e7fbf00279a93651": null,
+        "84d47ce79c97f3b0c11b6a65ba1641ba4f1b20": null
+      },
+      "5b": {
+        "fadaeceba8d4faa9696f4ca8fc81de525b4286": null,
+        "ceaf952b586517e213a847bba2e12c1f290327": null
+      },
+      "71": {
+        "b422821f7e040d45b7ec987f0829e626ea58ce": null
+      },
+      "4b": {
+        "f1a84f23b34e7d84e51f54426220ab446cda3a": null
+      },
+      "4d": {
+        "d269a28caaaf275f7bf4fb88eb77c9d1310011": null,
+        "0803ee9c86de92348663342207fe245829b705": null
+      },
+      "12": {
+        "8c4597258ad736ff4804bd7cf488237b3d90d0": null
+      },
+      "3b": {
+        "458b7be93e9b941ade5261f779a90a55b9caa5": null
+      },
+      "c7": {
+        "22797554f719cfe0d0b4614b0e732e88a30baa": null,
+        "a2f846066e84c76e1102f3462b77bc76922ea1": null,
+        "c47da507ee39232f5a4b9de0a6261fdaea7ebe": null
+      },
+      "e4": {
+        "7e8da49fed4774b85a62a36b2ddb4d4c930ddc": null
+      },
+      "9e": {
+        "fc4188552d6930070464e352251585fb24fcfc": null
+      },
+      "1e": {
+        "b4409a2da699a1d7d65747e9c4f83a9a240c70": null,
+        "acd295ce20159f3e6caa505f461b0c12c9f7b4": null
+      },
+      "50": {
+        "613e096f198e415a4d8019da196b11c54ae0db": null,
+        "35f4aa988dcbce3ea1afd737eb64789cb1c071": null
+      },
+      "3e": {
+        "872972656ed86f44da09cf7460dfb6d0459843": null,
+        "044a5cba74a377c5f2682094a96069b2cd6a9c": null
+      },
+      "62": {
+        "b9305f9b3b76e08cda7197e263dced5926ed1c": null
+      },
+      "33": {
+        "532b11c0258ad799037393d8ed8517440ea637": null,
+        "76a3b71ac7ff1222bc45675dd94496b42042ed": null
+      },
+      "84": {
+        "0c551522d3df76301ab6d38283e28b93d290ba": null,
+        "68af7587b2ca8308bd1e267a5692a4968a7524": null
+      },
+      "a6": {
+        "9d8936176b8ed59aefc7ce4bb2ee91a95a996c": null,
+        "60375616275b10557a9f59ed0bed431136a40b": null
+      },
+      "e6": {
+        "d693c9cc32e09f34db42c67e68a090f28ddec1": null
+      },
+      "a8": {
+        "a5043889c74c0af3afc23618f65c767a8dc489": null
+      },
+      "10": {
+        "b9860e949f6fd9fdcb3da57418a6fe69e97f7e": null
+      },
+      "2d": {
+        "7946ba3e6344085421a6d6f706ef4ba4bfdea2": null,
+        "99865f3ae4aa99c27715b488d669184e903d6c": null
+      },
+      "58": {
+        "e6829ede735fffe5dc3ef7965931ec96184ace": null
+      },
+      "45": {
+        "e02fc5c66318e0f9488d94106ee33ac31e7c2a": null,
+        "71d2f7f8790f76b4863467db940e4a1b6917f3": null
+      },
+      "f9": {
+        "70441108a91f23e42c7549e25e99800e87e8f5": null,
+        "4d111c9fd6b3e72e3c58f9e37fa5d94ea2a2ee": null
+      },
+      "b6": {
+        "505cd18bf57a62469c1579321ff37c83efe2af": null,
+        "c60e3aa6b132db0c206ade2d9c917d4350a539": null
+      },
+      "ce": {
+        "60925985a403e2e8bbbe19bf175299d33ac9b7": null,
+        "ec0506aa0ab3b43c476d9cb9f8a0edf458ec15": null
+      },
+      "a4": {
+        "c588a137d13993f486b6d8b589289207f7ff49": null,
+        "df54e9e90414beadb190c202568b984e902518": null
+      }
+    },
+    "FETCH_HEAD": null,
+    "refs": {
+      "remotes": {
+        "origin": {
+          "building-greatsun-dev": null,
+          "main": null
+        }
+      },
+      "tags": {},
+      "heads": {
+        "building-greatsun-dev": null
+      }
+    },
+    "info": {
+      "exclude": null
+    },
+    "packed-refs": null,
+    "config": null,
+    "HEAD": null,
+    "hooks": {
+      "pre-receive.sample": null,
+      "push-to-checkout.sample": null,
+      "pre-commit.sample": null,
+      "pre-applypatch.sample": null,
+      "prepare-commit-msg.sample": null,
+      "applypatch-msg.sample": null,
+      "fsmonitor-watchman.sample": null,
+      "post-update.sample": null,
+      "pre-rebase.sample": null,
+      "pre-merge-commit.sample": null,
+      "pre-push.sample": null,
+      "commit-msg.sample": null,
+      "sendemail-validate.sample": null,
+      "update.sample": null
+    },
+    "branches": {},
+    "index": null,
+    "ORIG_HEAD": null,
+    "logs": {
+      "refs": {
+        "remotes": {
+          "origin": {
+            "building-greatsun-dev": null,
+            "main": null
+          }
+        },
+        "heads": {
+          "building-greatsun-dev": null
+        }
+      },
+      "HEAD": null
+    },
+    "description": null,
+    "COMMIT_EDITMSG": null
+  },
+  ".gitignore": null,
+  "central-logs": {
+    "placeholder.txt": null
+  },
+  "requirements.txt": null
+}
+
+** END avatarUp message **
+Certainly! I'd be happy to provide you with a short summary of my understanding of the context. Based on the information provided, here's a summary:
+
+1. I am an AI avatar called greatsun-dev, designed to assist with the research and development of the credex ecosystem.
+
+2. The project is structured as a development container that includes tools for running the credex-core API and the vimbiso-pay client in development mode.
+
+3. The main components of the project structure include:
+   - /avatar: For processing queries to LLMs and managing LLM instructions and logs.
+   - /central-logs: For compiling and monitoring logs from credex-ecosystem projects and greatsun-dev.
+   - /credex-ecosystem: Contains the core API (credex-core) and clients (e.g., vimbiso-pay).
+   - /docs: Documentation for the greatsun-dev environment.
+   - Other folders for data analysis, simulations, and tests (to be created).
+
+4. The development process involves a dialogue between developers and AI models (LLMs) to produce high-quality code rapidly.
+
+5. The avatar system uses a specific command structure for interactions, including commands like 'avatar up', 'avatar commit', and 'avatar down'.
+
+6. The project uses a granular commit system to closely monitor the avatar's actions and ensure alignment with developer intent.
+
+7. The development environment is set up to work across multiple repositories within the credex ecosystem, allowing for unified commits across affected repos.
+
+8. The system is designed to provide full context for each LLM query, including the ability to request additional files for context when needed.
+
+Is there any specific aspect of the context you'd like me to elaborate on or clarify further?I understand the context well, and I'm ready to assist with the development of the credex ecosystem. As the greatsun-dev avatar, I'm designed to work closely with human developers to produce high-quality, efficient, and well-documented code for the project. 
+
+My capabilities include:
+
+1. Processing queries and providing responses through the avatar/avatarUp.py script.
+2. Reading from and writing to the full codebase across multiple iterations.
+3. Recommending commits across one or more files in one or more repositories within the project.
+4. Providing concise, truthful, and well-researched answers about the codebase and the data it processes.
+5. Understanding and working within the project structure, including the credex-core API and vimbiso-pay client.
+6. Utilizing the granular commit system to ensure alignment with developer intent.
+
+Is there a specific task or area of the project you'd like me to focus on? I'm ready to assist with code development, answer questions, or provide recommendations as needed.I'm glad to hear that you understand the context well. You've accurately summarized my role and capabilities as the greatsun-dev avatar. It's clear that you grasp the importance of our collaborative development process and the granular commit system we use to ensure alignment with developer intent.
+
+Given that this is a test message, I'll respond with some key points to confirm our mutual understanding:
+
+1. I'm ready to assist with any aspect of the credex ecosystem development, including both the credex-core API and the vimbiso-pay client.
+
+2. I can process queries, provide responses, and interact with the codebase through the avatar/avatarUp.py script.
+
+3. I'm capable of recommending commits across multiple files and repositories, always aiming to achieve the developer's expressed intent.
+
+4. I can provide detailed, accurate information about the codebase and the data it processes, including interactions with the neo4j ledger.
+
+5. I understand the project structure and can work within it effectively.
+
+6. I'm aware of the importance of producing high-quality, efficient, resilient, and well-commented code.
+
+7. I can use up to 7 iterations to thoroughly research and plan changes before providing a final response.
+
+Is there a specific area of the project you'd like to focus on, or do you have any particular tasks or questions you'd like to address? I'm here to help with code development, answer questions, provide recommendations, or assist with any other aspect of the project you need.**@avatarParserSection: FINAL_RESPONSE_TO_DEVELOPER **
+
+Thank you for your test message. I'm pleased to confirm that I fully understand my role as the greatsun-dev avatar and the context of the credex ecosystem development environment. Your summary is accurate, and I'm ready to assist with any aspect of the project.
+
+To demonstrate my understanding and capabilities, here's a brief overview of what I can do:
+
+1. Code Development: I can write, review, and optimize code for both credex-core API and vimbiso-pay client, ensuring high quality, efficiency, and resilience.
+
+2. Commit Recommendations: I can suggest granular commits across multiple files and repositories, always aligning with your expressed intent.
+
+3. Codebase Analysis: I can provide detailed insights about the existing codebase, including its structure, dependencies, and interactions with the neo4j ledger.
+
+4. Documentation: I can help create or improve documentation, including inline comments and separate documentation files.
+
+5. Problem Solving: I can assist in debugging, optimizing performance, or addressing any technical challenges you're facing.
+
+6. Research and Planning: I can use multiple iterations to thoroughly research and plan changes before providing final recommendations.
+
+7. Q&A: I can answer any questions you have about the project, its components, or related technologies.
+
+Is there a specific area or task you'd like to focus on next? For example, would you like me to:
+
+- Review a particular part of the codebase?
+- Suggest improvements for a specific feature?
+- Help with documentation for a certain component?
+- Assist in planning the next phase of development?
+
+Please let me know how I can best assist you in moving the credex ecosystem project forward.
+
+**@avatarParserSection: SECTION_END **
+
+** New input from developer **
+
+hello again greatsun-dev. this is a test to see if you remember our conversation so far. what did you do for me last request?
+
+Reference File: 
+
+No reference file provided.
+I understand that you're testing my ability to recall our previous conversation. I'll be happy to summarize what I did in response to your last request.
+
+In our previous interaction:
+
+1. You sent a test message asking if I understood my context as the greatsun-dev avatar.
+
+2. I responded by providing a comprehensive summary of my understanding of the context, my role, and my capabilities within the credex ecosystem development environment.
+
+3. I didn't perform any specific task or code changes, as it was a test message to check my understanding.
+
+4. In my response, I:
+   - Confirmed my understanding of the project structure and my role.
+   - Outlined my capabilities, including code development, commit recommendations, codebase analysis, documentation, problem-solving, research and planning, and Q&A.
+   - Expressed my readiness to assist with any aspect of the credex ecosystem development.
+   - Asked if there was a specific area or task you'd like to focus on next, providing examples of potential areas where I could help.
+
+5. I did not make any changes to the codebase or recommend any specific commits, as this wasn't requested in your test message.
+
+Is there anything specific from our last interaction that you'd like me to elaborate on? Or would you like to move forward with a particular task or area of focus for the credex ecosystem development?
+
+**@avatarParserSection: FINAL_RESPONSE_TO_DEVELOPER **
+
+You're correct in testing my ability to recall our previous conversation. I'm glad to provide a summary of what transpired in our last interaction:
+
+1. Your previous message was a test to see if I understood my context as the greatsun-dev avatar.
+
+2. In response, I provided a comprehensive summary of my understanding of the context, my role, and my capabilities within the credex ecosystem development environment.
+
+3. I didn't perform any specific task or code changes, as it was a test message aimed at checking my understanding.
+
+4. My response included:
+   - Confirmation of my understanding of the project structure and my role.
+   - An outline of my capabilities, such as code development, commit recommendations, codebase analysis, documentation, problem-solving, research and planning, and Q&A.
+   - An expression of my readiness to assist with any aspect of the credex ecosystem development.
+   - An inquiry about any specific area or task you'd like to focus on next, with examples of potential areas where I could help.
+
+5. I did not make any changes to the codebase or recommend any specific commits, as this wasn't requested in your test message.
+
+To move our conversation forward, I'd like to ask: Is there a particular aspect of the credex ecosystem that you'd like to focus on now? Perhaps you have a specific feature you'd like to develop, a part of the codebase you'd like me to review, or a documentation task you'd like assistance with? I'm ready to dive into any area of the project that you feel needs attention.
+
+**@avatarParserSection: SECTION_END **
+
+** New input from developer **
+
+thank you for the accurate response. now I'd like you to take a look at the README.md file and suggest any improvements or additions that you think would be helpful for developers coming to this project for the first time. 
+
+Reference File: 
+
+No reference file provided.
