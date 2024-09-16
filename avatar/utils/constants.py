@@ -5,7 +5,7 @@ LOGS_DIRECTORY = "avatar/context/logs"
 RESPONSE_INSTRUCTIONS = "avatar/context/responseInstructions.md"
 AVATAR_README = "avatar/context/avatarREADME.md"
 README = "README.md"
-MESSAGE_TO_SEND = "avatar/messageToSend.md"
+MESSAGE_TO_SEND = "avatar/messageToSend.txt"
 CONTEXT_DIR = "avatar/context"
 CURRENT_RESPONSE_FILE = "avatar/context/currentResponse.txt"
 

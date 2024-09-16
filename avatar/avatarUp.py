@@ -4,7 +4,7 @@ from anthropic import Anthropic
 from utils.file_operations import setup_logger, read_file_content, write_to_file
 from utils.ai_processing import process_ai_response, extract_json_from_response
 from utils.message_handling import get_message_content
-from .constants import LOGS_DIRECTORY, ANTHROPIC_API_KEY, CONTEXT_DIR, CURRENT_RESPONSE_FILE
+from utils.constants import LOGS_DIRECTORY, ANTHROPIC_API_KEY, CONTEXT_DIR, CURRENT_RESPONSE_FILE
 
 # Ensure directories exist
 os.makedirs(LOGS_DIRECTORY, exist_ok=True)
@@ -14,10 +14,8 @@ os.makedirs(os.path.dirname(CURRENT_RESPONSE_FILE), exist_ok=True)
 logger = setup_logger()
 client = Anthropic(api_key=ANTHROPIC_API_KEY)
 
-
 def clear_terminal():
     os.system('cls' if os.name == 'nt' else 'clear')
-
 
 def main():
     clear_terminal()
@@ -64,7 +62,6 @@ def main():
 
         except Exception as e:
             logger.error(f"Error communicating with Anthropic API: {e}")
-
 
 if __name__ == "__main__":
     main()
