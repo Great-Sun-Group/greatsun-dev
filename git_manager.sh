@@ -5,7 +5,7 @@ execute_git_command() {
     local repo=$1
     local command=$2
     echo "Executing in $repo: $command"
-    if [ "$repo" = "credex-dev" ]; then
+    if [ "$repo" = "greatsun-dev" ]; then
         eval "$command"
     else
         (cd "$repo" && eval "$command")
@@ -15,7 +15,7 @@ execute_git_command() {
 # Function to check if a repository has changes
 has_changes() {
     local repo=$1
-    if [ "$repo" = "credex-dev" ]; then
+    if [ "$repo" = "greatsun-dev" ]; then
         git status --porcelain | grep -q .
     else
         (cd "$repo" && git status --porcelain | grep -q .)
@@ -23,7 +23,7 @@ has_changes() {
 }
 
 # Repositories
-repos=("credex-bot" "credex-core" "credex-dev")
+repos=("vimbiso-pay" "credex-core" "greatsun-dev")
 
 # Function to create new branches
 create_branches() {

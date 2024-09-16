@@ -1,6 +1,6 @@
 # greatsun-dev README
 
-Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client (which is currently called credex-bot in the code).
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client.
 
 This container is managed by an AI avatar called greatsun-dev. The avatar *is* the development environment. It has access to:
   - the full scope of multiple underlying LLMs,
@@ -43,14 +43,14 @@ Our project consists of the following top level directories:
 Processing queries to LLMs and their results for developer approval and implementation. LLM instructions and management files, as well as logs.
 
 ## /central-logs
-Folder to be created for compiling and monitoring logs from projects in credex-ecosystem.
+Folder to be created for compiling and monitoring logs from the projects in credex-ecosystem and from greatsun-dev.
 
 ## /credex-ecosystem
 The credex-core API and any clients that need to be tested, developed, or employed in research. These repositories are imported directly into this dev environment, and we make commits together across all impacted repos, including this one.
 
 - Currenty under development are:
   - credex-core, our core API on an express.js server.
-  - vimbiso-pay (credex-bot), a whatsapp chatbot written in python.
+  - vimbiso-pay, a whatsapp chatbot written in python.
 
 ## /data-analysis
 Folder to be created for tools to analyze existing data in the credex-ecosystem

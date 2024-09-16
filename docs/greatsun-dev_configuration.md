@@ -96,19 +96,19 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 ### Starting Services and Managing Git
 
-To start all services (credex-core, credex-bot, and greatsun-dev) and manage Git operations across all repositories, follow these steps:
+To start all services (credex-core, vimbiso-pay, and greatsun-dev) and manage Git operations across all repositories, follow these steps:
 
 1. Start the services:
    ```bash
-   bash /workspaces/credex-dev/start-services.sh
+   bash /workspaces/greatsun-dev/start-services.sh
    ```
    This will start all services and display their logs.
 
-2. For Git management, use `git_manager.sh` to help manage Git operations across all three repositories (credex-bot, credex-core, and credex-dev) simultaneously:
+2. For Git management, use `git_manager.sh` to help manage Git operations across all three repositories (vimbiso-pay, credex-core, and greatsun-dev) simultaneously:
 
    a. Make the script executable (if not already):
       ```bash
-      chmod +x /workspaces/credex-dev/git_manager.sh
+      chmod +x /workspaces/greatsun-dev/git_manager.sh
       ```
 
    b. Run the script:
@@ -145,18 +145,18 @@ Transaction simulation is also available through the `CredexDev` class in `main.
 ## Project Structure
 
 - `credex-core/`: Submodule containing the Credex Core API
-- `credex-bot/`: Submodule containing the Credex Bot
+- `vimbiso-pay/`: Submodule containing the Credex Bot
 - `.devcontainer/`: Configuration files for the development container
 - `tests/`: Automated tests for the development environment
-- `main.py`: Main Python script for credex-dev functionality
-- `requirements.txt`: Python dependencies for credex-dev
+- `main.py`: Main Python script for greatsun-dev functionality
+- `requirements.txt`: Python dependencies for greatsun-dev
 - `init-environment.sh`: Script to set up the submodules and environment
 - `start-services.sh`: Script to start all services
 - `git_manager.sh`: Script to manage Git operations across all repositories
 
 ## Contributing
 
-Please refer to the individual submodule repositories for contribution guidelines specific to credex-core and credex-bot.
+Please refer to the individual submodule repositories for contribution guidelines specific to credex-core and vimbiso-pay.
 
 For changes to the development environment itself, please create a pull request in this repository.
 

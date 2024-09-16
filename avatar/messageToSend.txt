@@ -1,13 +1,57 @@
-This script needs to check for the presence of all these secrets and return errors if not set:
-CLAUDE
-DJANGO_SECRET
-GH_PAT
-JWT_SECRET
-NEO_4J_LEDGER_SPACE_BOLT_URL
-NEO_4J_LEDGER_SPACE_PASS
-NEO_4J_LEDGER_SPACE_USER
-NEO_4J_SEARCH_SPACE_BOLT_URL
-NEO_4J_SEARCH_SPACE_PASS
-NEO_4J_SEARCH_SPACE_USER
-OPEN_EXCHANGE_RATES_API
-WHATSAPP_BOT_API_KEY
+Import necessary modules and functions:
+- Import json for JSON handling
+- Import os for file path operations
+- Import typing for type hinting
+- Import constants and file operation functions from local modules
+
+
+Define the main function process_ai_response with parameters:
+- response_json: Optional dictionary containing the AI response
+- remaining_text: String containing any additional text
+
+Initialize variables:
+- requested_files: List to store requested file names
+- actions_recommended: Boolean flag for recommended actions
+- additional_files_to_update: List to store additional files to update
+
+Check if response_json is not None:
+If it exists, proceed with processing the AI response:
+ a. Log the AI response for debugging purposes
+ b. Read the existing response from the CURRENT_RESPONSE_FILE
+ c. Extract the response text from the JSON and append any remaining text
+ d. Update the response file with the new combined response
+ e. Process file requests:
+
+Loop through potential file request keys (file_requested_1 to file_requested_7)
+Add requested file names to the requested_files list
+
+f. Handle file updates:
+- Extract update_file_path and update_file_contents from the response
+- If both exist, attempt to update the file:
+  - Convert the file path to an absolute path
+  - Write the contents to the file
+  - Set actions_recommended to True
+
+Log any errors that occur during the file update process
+
+g. Process additional files to update:
+
+Extract additional_files_to_update from the response
+Add them to the additional_files_to_update list
+
+h. Set actions_recommended to True if there are any file updates, additional files, or requested files
+If response_json is None:
+
+Log a warning about no valid JSON in the response
+Append the remaining text to the existing response file
+
+
+Return the results:
+
+requested_files: List of requested file names
+actions_recommended: Boolean indicating if actions are recommended
+additional_files_to_update: List of additional files to update
+
+
+
+This function processes an AI response, handling file requests, updates, and additional information. It manages the response file, logs important information, and prepares data for further processing in the calling code.Add to Conversation

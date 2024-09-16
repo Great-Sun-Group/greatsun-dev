@@ -1,54 +1,71 @@
 #!/bin/bash
 
-# Function to add submodule
-add_submodule() {
-  local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git"
-  git submodule add $repo_url
-  if [ $? -ne 0 ]; then
-    echo "Error: Failed to add submodule $1"
-    exit 1
-  fi
+# Function to check if a secret is set
+check_secret() {
+    if [ -z \"${!1}\" ]; then
+        echo \"Error: $1 is not set. Please set it in your environment or .env file.\"
+        exit 1
+    fi
 }
 
 # Check if running in Codespaces
-if [ -n "$CODESPACES" ]; then
-  echo "Running in Codespaces environment"
-  # Use GitHub Secrets
-  if [ -z "$GITHUB_TOKEN" ]; then
-    echo "Error: GITHUB_TOKEN is not set. Please set it in your GitHub Secrets."
-    exit 1
-  fi
+if [ -n \"$CODESPACES\" ]; then
+    echo \"Running in Codespaces environment\"
+    # Use GitHub Secrets
+    if [ -z \"$GITHUB_TOKEN\" ]; then
+        echo \"Error: GITHUB_TOKEN is not set. Please set it in your GitHub Secrets.\"
+        exit 1
+    fi
 else
-  echo "Running in local environment"
-  # Use .env file
-  if [ -f .env ]; then
-    export $(cat .env | xargs)
-  else
-    echo "Error: .env file not found. Please create one."
-    exit 1
-  fi
-
-  if [ -z "$GH_PAT" ]; then
-    echo "Error: GH_PAT is not set in .env file. Please set it to your GitHub Personal Access Token."
-    exit 1
-  fi
+    echo \"Running in local environment\"
+    # Use .env file
+    if [ -f .env ]; then
+        export $(cat .env | xargs)
+    else
+        echo \"Error: .env file not found. Please create one.\"
+        exit 1
+    fi
 fi
 
-# Add submodules
-add_submodule "credex-ecosystem/credex-core"
-add_submodule "credex-ecosystem/credex-bot"
+# Check for required secrets
+check_secret CLAUDE
+check_secret DJANGO_SECRET
+check_secret GH_PAT
+check_secret JWT_SECRET
+check_secret NEO_4J_LEDGER_SPACE_BOLT_URL
+check_secret NEO_4J_LEDGER_SPACE_PASS
+check_secret NEO_4J_LEDGER_SPACE_USER
+check_secret NEO_4J_SEARCH_SPACE_BOLT_URL
+check_secret NEO_4J_SEARCH_SPACE_PASS
+check_secret NEO_4J_SEARCH_SPACE_USER
+check_secret OPEN_EXCHANGE_RATES_API
+check_secret WHATSAPP_BOT_API_KEY
 
-echo "Submodules added successfully!"
+# Function to add submodule
+add_submodule() {
+    local repo_url=\"https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git\"
+    git submodule add $repo_url
+    if [ $? -ne 0 ]; then
+        echo \"Error: Failed to add submodule $1\"
+        exit 1
+    fi
+}
+
+# Add submodules
+add_submodule \"credex-ecosystem/credex-core\"
+add_submodule \"credex-ecosystem/vimbiso-pay\"
+
+echo \"Submodules added successfully!\"
 
 # Activate virtual environment
 source /home/vscode/venv/bin/activate
 
 # Install dependencies and set up the environment
 cd /workspaces/greatsun-dev/credex-ecosystem/credex-core && npm install
-cd /workspaces/greatsun-dev/credex-ecosystem/credex-bot && pip install -r requirements.txt
+cd /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay && pip install -r requirements.txt
 
-# Install dependencies for credex-dev
+# Install dependencies for greatsun-dev
 cd /workspaces/greatsun-dev
 pip install -r requirements.txt
 
-echo "Environment setup complete!"
+echo \"Environment setup complete!\"
