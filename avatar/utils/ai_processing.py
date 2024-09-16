@@ -40,18 +40,31 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
             actions_recommended = True
 
         # Handle file updates
-        update_file_path = response_json.get("update_file_path")
-        update_file_contents = response_json.get("update_file_contents")
+        update_file_paths = []
+        update_file_contents = []
 
-        if update_file_path and update_file_contents:
-            try:
-                abs_file_path = os.path.abspath(update_file_path.strip('"{}'))
-                logger.info(f"Attempting to update file: {abs_file_path}")
-                write_to_file(abs_file_path, update_file_contents)
-                actions_recommended = True
-            except Exception as e:
-                logger.error(
-                    f"Failed to update file {abs_file_path}: {str(e)}")
+        for key, value in response_json.items():
+            if key == "update_file_path":
+                if isinstance(value, list):
+                    update_file_paths.extend(value)
+                else:
+                    update_file_paths.append(value)
+            elif key == "update_file_contents":
+                if isinstance(value, list):
+                    update_file_contents.extend(value)
+                else:
+                    update_file_contents.append(value)
+
+        if update_file_paths and update_file_contents:
+            for path, content in zip(update_file_paths, update_file_contents):
+                try:
+                    abs_file_path = os.path.abspath(path.strip('"{}'))
+                    logger.info(f"Attempting to update file: {abs_file_path}")
+                    write_to_file(abs_file_path, content)
+                    actions_recommended = True
+                except Exception as e:
+                    logger.error(
+                        f"Failed to update file {abs_file_path}: {str(e)}")
         else:
             logger.info("No file update information provided in the response.")
 
@@ -77,7 +90,6 @@ def process_ai_response(response_json: Optional[Dict[str, Any]], remaining_text:
 
     logger.debug("Exiting process_ai_response")
     return requested_files, actions_recommended, additional_files_to_update
-
 
 def extract_json_from_response(response: str) -> Tuple[Optional[Dict[str, Any]], str]:
     try:
