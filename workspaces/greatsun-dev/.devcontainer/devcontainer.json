@@ -1,0 +1,12 @@
+{
+    "name": "greatsun-dev",
+    "dockerFile": "Dockerfile",
+    "settings": {
+        "terminal.integrated.shell.linux": "/bin/bash"
+    },
+    "extensions": [
+        "ms-python.python"
+    ],
+    "postCreateCommand": "chmod +x /workspaces/greatsun-dev/avatar && echo 'alias avatar up=\"/workspaces/greatsun-dev/avatarUp.py\"' >> ~/.bashrc",
+    "remoteUser": "vscode"
+}
