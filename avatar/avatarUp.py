@@ -1,9 +1,3 @@
-from utils import read_file, write_file, get_directory_tree
-from responseParser import parse_llm_response
-from avatarUpCommands import cross_repo_commit
-from anthropic import Anthropic
-import os
-import json
 import sys
 import logging
 
@@ -27,7 +21,12 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
-# Now import the rest of the modules
+from utils import read_file, write_file, get_directory_tree
+from responseParser import parse_llm_response
+from avatarUpCommands import cross_repo_commit
+from anthropic import Anthropic
+import os
+import json
 
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
