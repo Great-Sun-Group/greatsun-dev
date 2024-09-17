@@ -81,18 +81,16 @@ def parse_llm_response(llm_response):
                             logger.error(error_msg)
                             processed_response.append(error_msg)
                     break  # Exit the inner loop after processing a command
-
         else:
             processed_response.append(line)
 
         i += 1
 
+    processed_response = '\n'.join(processed_response)
+    write_file("avatar/avatarConversation.txt",
+               conversation + "\n\n" + processed_response)
 
-        processed_response = '\n'.join(processed_response)
-        write_file("avatar/avatarConversation.txt",
-                conversation + "\n\n" + processed_response)
+    logger.info(f"File operation performed: {file_operation_performed}")
+    logger.debug(f"Processed response:\n{processed_response}")
 
-        logger.info(f"File operation performed: {file_operation_performed}")
-        logger.debug(f"Processed response:\n{processed_response}")
-
-        return processed_response, file_operation_performed
+    return processed_response, file_operation_performed
