@@ -1,1 +1,1 @@
-install anthropic in the devcontainer
+review this, I think it needs to be updated:     "postStartCommand": "echo '#!/bin/bash\npython /workspaces/greatsun-dev/avatar/avatar $1' > /workspaces/greatsun-dev/avatar/avatar && chmod +x /workspaces/greatsun-dev/avatar/avatar",
