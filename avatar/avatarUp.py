@@ -1,3 +1,61 @@
+"""
+## avatar/avatarUp.py
+At the core of the avatar are the avatar/avatarUp.py and avatar/responseParser.py scripts that we are interacting through.
+This script allows you to perform file operations within the project environment.
+It is critical that you thoroughly review and understand these scripts, because to iterate with the script
+**you must respond to this query in a format that the script can parse, with your requests at the end of your response.**
+You need to understand this script in order to know how to respond in a way that will enable you to iterate operations and summarize your findings and actions in messages to the developer.
+
+## Your response
+The script will extract the patterns described below from your response. Using these patterns/commands will enable you to interact with the codebase. When you are finished your analysis and updates, respond to this message without any of the patterns, and the script will exit the loop and wait for developer input.
+
+### Usage for iterations
+If the script detects one of these patterns, it will carry out the requested action, append the results to this conversation thread, and return it to you. Requesting an action is the means to keep the script iterating. To finish your analysis and updates, provide a response without any of the operation patterns. This will signal the script to exit the loop and wait for developer input.
+
+Note: If an operation fails (e.g., file not found), an error message will be returned. You should handle these errors appropriately in your subsequent responses.
+
+Example of a complete response:
+Based on my analysis of the current project structure, I suggest we read the contents of the main configuration file.
+
+read_file/workspaces/greatsun-dev/config.json
+
+***
+and here are examples of the other functions you can access
+***
+
+write_file/path/here.py
+[Content starts on the next line]
+import json
+import os
+
+(Rest of the file contents here)
+[Content ends before the next operation or end of message]
+
+list_directory/path/here/
+
+delete_file/path/here.py
+
+
+rename_file/old/path/here.py
+rename_file/new/path/here.py
+
+move_file/current/path/here.py
+move_file/new/path/here.py
+
+
+***************************************************************
+
+!!! IMPORTANT IMPORTANT IMPORTANT !!!
+
+BELOW ARE THE SCRIPTS THAT WILL PROCESS YOUR RESPONSE.
+
+The response formats described in English above are executed with this script. You must fully understand this script so that you can use the avatar to extend your capacity to act. Use the abilities offered by the avatar to implement the developer's intent.
+
+!!! IMPORTANT IMPORTANT IMPORTANT !!!
+
+***************************************************************
+"""
+
 import sys
 import logging
 
@@ -31,7 +89,7 @@ import json
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
 GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
-MAX_LLM_ITERATIONS = 42
+MAX_LLM_ITERATIONS = 7
 MODEL_NAME = "claude-3-5-sonnet-20240620"
 
 # Initialize Anthropic client
@@ -61,6 +119,9 @@ def main():
         file_path = input().strip()
 
         if file_path.lower() == "avatar down":
+            write_file("avatar/avatarConversation.txt",
+                       "ready for conversation")
+            logger.info("Avatar conversation cleared")
             logger.info("Avatar environment shutting down")
             print("\ngreatsun-dev avatar, signing off\n\n")
             break
