@@ -58,6 +58,12 @@ The response formats described in English above are executed with this script. Y
 
 import sys
 import logging
+import os
+import json
+from utils import read_file, write_file, get_directory_tree
+from responseParser import parse_llm_response
+from avatarUpCommands import cross_repo_commit
+from anthropic import Anthropic
 
 # Configure logging
 logging.basicConfig(
@@ -78,13 +84,6 @@ except IOError as e:
     print(f"Unable to write to log file: {str(e)}")
     print("Please check file permissions and try again.")
     sys.exit(1)
-
-from utils import read_file, write_file, get_directory_tree
-from responseParser import parse_llm_response
-from avatarUpCommands import cross_repo_commit
-from anthropic import Anthropic
-import os
-import json
 
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
@@ -148,7 +147,7 @@ def main():
             first_run = True  # Reset the flag when clearing
             continue
 
-        # Prepare the message from the developer
+# Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
         reference_file_content = read_file(
             file_path) if file_path else "No reference file provided."
@@ -215,7 +214,7 @@ def main():
                 print("\nProcessed response:")
                 print(processed_response)
 
-                # Update conversation with processed response
+# Update conversation with processed response
                 updated_conversation = f"{llm_message}\n\n{processed_response}"
                 write_file("avatar/avatarConversation.txt",
                            updated_conversation)
