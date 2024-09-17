@@ -1,1 +1,1 @@
-summarize /workspaces/greatsun-dev/git_manager.sh and /workspaces/greatsun-dev/start-services.sh and /workspaces/greatsun-dev/start-services.sh for me, and let me know if combining them would be advisable
+could we combine init-environment.sh into greatsun-dev-manager.sh?

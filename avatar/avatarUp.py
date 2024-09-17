@@ -1,4 +1,5 @@
-from utils import read_file, write_file, get_directory_tree, process_llm_response
+from utils import read_file, write_file, get_directory_tree
+from responseParser import parse_llm_response
 from avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
 import os
@@ -93,12 +94,14 @@ def main():
             file_path) if file_path else "No reference file provided."
         trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
 
-
         if first_run:
             # Prepare the full context for the LLM (first run)
             avatar_up_content = [
                 read_file("avatar/avatarOrientation.md"),
+                "** This is avatar/avatarUp.py **",
                 read_file("avatar/avatarUp.py"),
+                "** This is avatar/responseParser.py **",
+                read_file("avatar/responseParser.py"),
                 "** This is the project README.md **",
                 read_file("README.md"),
                 "** This is the credex-core submodule README.md **",
@@ -146,7 +149,7 @@ def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                processed_response, file_operation_performed = process_llm_response(
+                processed_response, file_operation_performed = parse_llm_response(
                     llm_response)
 
                 print("\nProcessed response:")
@@ -172,7 +175,8 @@ def main():
                     "File operation performed, continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(
+                    f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -182,7 +186,8 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             avatar_conversation = read_file("avatar/avatarConversation.txt")
-            write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
+            write_file("avatar/avatarConversation.txt",
+                       f"{avatar_conversation}\n\n{final_response}")
             print(final_response)
 
         # Notify the developer

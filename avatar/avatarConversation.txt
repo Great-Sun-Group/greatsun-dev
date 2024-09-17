@@ -10,29 +10,47 @@ We ask you to turn the intentions and goals that are expresed in this message in
 Through our avatar script you are able to iteratively query (either read or write) up to 42 times. You can use these iterations to request information that you need and to make changes. When a commit is ready, summarize what you have discovered or the changes you have made. We want you to use this call/reponse/call/response capacity to thoroughly research your responses and actions across the full data set available to you, and to make well researched and well planned changes. Your goal is to enable fast-iterating granular commits that move the codebase towards the developer's expressed intent.
 
 ## avatar/avatarUp.py
-At the core of the avatar is the avatar/avatarUp.py script that we are interacting through. It is critical that you thoroughly review and understand this script, because to iterate with the script **you must respond to this query in a format that the script can parse, with your requests at the end of your response.** You need to understand this script in order to know how to respond in a way that will enable you to iterate through read and write operations and summarize your findings and actions in messages to the developer.
+At the core of the avatar is the avatar/avatarUp.py script that we are interacting through. This script allows you to perform various file operations within the project environment. It is critical that you thoroughly review and understand this script, because to iterate with the script **you must respond to this query in a format that the script can parse, with your requests at the end of your response.** You need to understand this script in order to know how to respond in a way that will enable you to iterate through read and write operations and summarize your findings and actions in messages to the developer.
 
 ## Your response
-The script will extract the patterns described below from your response. Using these patterns will enable you to request and write files. You can do one operation per message. The action you request will be executed and the result returned to you. When you are finished your analysis and updates, respond to this message without either of the read or write patterns, and the script will exit the loop and wait for developer input.
+The script will extract the patterns described below from your response. Using these patterns/commands will enable you to interact with the codebase. When you are finished your analysis and updates, respond to this message without any of the patterns, and the script will exit the loop and wait for developer input.
 
-## Your response action templates
-These are the patterns to include in your response to take action to move the project forward:
-  - If the response ends with a file path (not starting with '<'), it's treated as a read request.
-  - If the response ends with a file path followed by content on the next line, it's treated as a write request.
-
-### Pattern to request a file. At the end of your response:
+### read a file
 read_file/path/here.js
 
-### Pattern to write a file. At the end of your response:
+### write a file
 write_file/path/here.py
+[Content starts on the next line]
 import json
 import os
 
-and insert the rest of the
-file contents to update here
+(Rest of the file contents here)
+[Content ends before the next operation or end of message]
+
+### list a directory
+list_directory/path/here/
+
+### delete a file
+delete_file/path/here.py
+
+### rename a file
+rename_file/old/path/here.py
+rename_file/new/path/here.py
+
+### move a file
+move_file/current/path/here.py
+move_file/new/path/here.py
 
 ### Usage for iterations
-If the script detects one of these patterns, it will carry out the requested action, append the results to this conversation thread, and return it to you. Requesting an action is the means to keep the script iterating. If neither of the above patterns are detected, the script will await developer input.
+If the script detects one of these patterns, it will carry out the requested action, append the results to this conversation thread, and return it to you. Requesting an action is the means to keep the script iterating. To finish your analysis and updates, provide a response without any of the operation patterns. This will signal the script to exit the loop and wait for developer input.
+
+Note: If an operation fails (e.g., file not found), an error message will be returned. You should handle these errors appropriately in your subsequent responses.
+
+Example of a complete response:
+Based on my analysis of the current project structure, I suggest we read the contents of the main configuration file.
+
+read_file/workspaces/greatsun-dev/config.json
+
 
 ***************************************************************
 
@@ -46,7 +64,8 @@ The response formats described in English above are executed with this script. Y
 
 ***************************************************************
 
-from utils import read_file, write_file, get_directory_tree, process_llm_response
+from utils import read_file, write_file, get_directory_tree
+from responseParser import parse_llm_response
 from avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
 import os
@@ -141,7 +160,6 @@ def main():
             file_path) if file_path else "No reference file provided."
         trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
 
-
         if first_run:
             # Prepare the full context for the LLM (first run)
             avatar_up_content = [
@@ -194,7 +212,7 @@ def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                processed_response, file_operation_performed = process_llm_response(
+                processed_response, file_operation_performed = parse_llm_response(
                     llm_response)
 
                 print("\nProcessed response:")
@@ -220,7 +238,8 @@ def main():
                     "File operation performed, continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(
+                    f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -230,7 +249,8 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             avatar_conversation = read_file("avatar/avatarConversation.txt")
-            write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
+            write_file("avatar/avatarConversation.txt",
+                       f"{avatar_conversation}\n\n{final_response}")
             print(final_response)
 
         # Notify the developer
@@ -340,7 +360,7 @@ Set up the greatsun-dev environment for testing and deploying credex-core and cr
 
 ** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **
 
-summarize /workspaces/greatsun-dev/git_manager.sh and /workspaces/greatsun-dev/start-services.sh and /workspaces/greatsun-dev/start-services.sh for me, and let me know if combining them would be advisable
+could we combine init-environment.sh into greatsun-dev-manager.sh?
 
 Reference File: 
 
@@ -359,6 +379,7 @@ Full Project Structure:
   "main.py": null,
   "README.md": null,
   "avatar": {
+    "responseParser.py": null,
     "avatarUpCommands.py": null,
     "avatarConversation.txt": null,
     "utils.py": null,
@@ -374,212 +395,3 @@ Full Project Structure:
 }
 
 ** END avatarUp message **
-
-
-To provide a summary of the requested files and offer advice on combining them, I'll need to read their contents first. Let me start by reading each file.
-
-Content of /workspaces/greatsun-dev/git_manager.sh:
-#!/bin/bash
-
-# Function to execute git commands in a repository
-execute_git_command() {
-    local repo=$1
-    local command=$2
-    echo "Executing in $repo: $command"
-    if [ "$repo" = "greatsun-dev" ]; then
-        eval "$command"
-    else
-        (cd "$repo" && eval "$command")
-    fi
-}
-
-# Function to check if a repository has changes
-has_changes() {
-    local repo=$1
-    if [ "$repo" = "greatsun-dev" ]; then
-        git status --porcelain | grep -q .
-    else
-        (cd "$repo" && git status --porcelain | grep -q .)
-    fi
-}
-
-# Repositories
-repos=("vimbiso-pay" "credex-core" "greatsun-dev")
-
-# Function to create new branches
-create_branches() {
-    local new_branch=$1
-    if [ -z "$new_branch" ]; then
-        read -p "Enter new branch name: " new_branch
-    fi
-    for repo in "${repos[@]}"; do
-        execute_git_command "$repo" "git fetch --all"
-        execute_git_command "$repo" "git checkout -b $new_branch origin/$new_branch || git checkout -b $new_branch"
-    done
-}
-
-# Function to checkout branches
-checkout_branches() {
-    read -p "Enter branch name to checkout: " checkout_branch
-    for repo in "${repos[@]}"; do
-        execute_git_command "$repo" "git checkout $checkout_branch"
-    done
-}
-
-# Function to push changes
-push_changes() {
-    read -p "Enter commit message: " commit_message
-    uuid=$(uuidgen)
-    for repo in "${repos[@]}"; do
-        if has_changes "$repo"; then
-            execute_git_command "$repo" "git add ."
-            execute_git_command "$repo" "git commit -m \"$commit_message [$uuid]\""
-            execute_git_command "$repo" "git push origin $(git rev-parse --abbrev-ref HEAD)"
-        else
-            echo "No changes in $repo"
-        fi
-    done
-}
-
-# Check if script is run on startup
-if [ "$1" = "startup" ]; then
-    echo "Running on startup. Creating a new branch."
-    create_branches "feature-$(date +%Y%m%d-%H%M%S)"
-else
-    # Main menu
-    while true; do
-        echo "1. Create new branches"
-        echo "2. Checkout branches"
-        echo "3. Push changes"
-        echo "4. Exit"
-        read -p "Choose an option: " choice
-        case $choice in
-            1) create_branches ;;
-            2) checkout_branches ;;
-            3) push_changes ;;
-            4) exit 0 ;;
-            *) echo "Invalid option" ;;
-        esac
-    done
-fi
-
-
-Content of /workspaces/greatsun-dev/start-services.sh:
-#!/bin/bash
-
-# Function to start a service
-start_service() {
-    local service_name=$1
-    local start_command=$2
-    local log_file="/workspaces/greatsun-dev/${service_name}.log"
-
-    echo "Starting ${service_name}..."
-    if [ -d "/workspaces/greatsun-dev/${service_name}" ]; then
-        cd "/workspaces/greatsun-dev/${service_name}"
-        eval "${start_command} > ${log_file} 2>&1 &"
-    else
-        echo "Warning: ${service_name} directory not found. Skipping."
-    fi
-}
-
-echo "Starting greatsun-dev..."
-cd /workspaces/greatsun-dev
-python main.py > /workspaces/greatsun-dev/greatsun-dev.log 2>&1 &
-
-echo "Starting credex-core..."
-cd /workspaces/greatsun-dev/credex-core
-start_service "credex-core" "npm run dev"
-
-echo "Starting vimbiso-pay..."
-cd /workspaces/greatsun-dev/vimbiso-pay
-source venv/bin/activate
-start_service "vimbiso-pay" "python app/manage.py runserver 0.0.0.0:8000"
-deactivate
-
-cd /workspaces/greatsun-dev
-
-# Wait for services to start
-timeout=60
-start_time=$(date +%s)
-while true; do
-    if grep -q "Starting development server" "/workspaces/greatsun-dev/credex-core.log" && \
-       grep -q "Starting development server at http://0.0.0.0:8000/" "/workspaces/greatsun-dev/vimbiso-pay.log" && \
-       grep -q "vimbiso-pay is running" "/workspaces/greatsun-dev/greatsun-dev.log"; then
-        echo "All services started successfully!"
-        break
-    fi
-
-    current_time=$(date +%s)
-    if [ $((current_time - start_time)) -ge $timeout ]; then
-        echo "Timeout: One or more services failed to start within ${timeout} seconds."
-        echo "credex-core log:"
-        tail -n 20 /workspaces/greatsun-dev/credex-core.log
-        echo "vimbiso-pay log:"
-        tail -n 20 /workspaces/greatsun-dev/vimbiso-pay.log
-        echo "greatsun-dev log:"
-        tail -n 20 /workspaces/greatsun-dev/greatsun-dev.log
-        exit 1
-    fi
-
-    sleep 1
-done
-
-# Keep the script running and tail the log files
-tail -f /workspaces/greatsun-dev/central-logs/credex-core.log /workspaces/greatsun-dev/central-logs/vimbiso-pay.log /workspaces/greatsun-dev/central-logs/greatsun-dev.log
-
-
-Content of /workspaces/greatsun-dev/docker-compose.yml:
-File not found: /workspaces/greatsun-dev/docker-compose.yml
-
-
-Based on the content of the files I've read, here's a summary of each script and advice on combining them:
-
-1. git_manager.sh:
-This script manages Git operations across multiple repositories (vimbiso-pay, credex-core, and greatsun-dev). It provides functions to:
-- Create new branches
-- Checkout branches
-- Push changes with a unified commit message
-- Handle startup operations
-
-The script uses a menu-driven interface for interactive use and can also be run with a "startup" parameter to create a new branch automatically.
-
-2. start-services.sh:
-This script is responsible for starting various services in the greatsun-dev environment. It:
-- Starts the greatsun-dev main Python script
-- Starts the credex-core service (npm run dev)
-- Starts the vimbiso-pay service (Django development server)
-- Monitors the startup process and logs
-- Tails the log files for ongoing monitoring
-
-3. docker-compose.yml:
-This file was not found in the specified location.
-
-Advice on combining the scripts:
-
-1. Combining git_manager.sh and start-services.sh could be beneficial for several reasons:
-- It would provide a single entry point for managing both Git operations and service startup.
-- It could ensure that the correct branches are checked out before starting services.
-- It would simplify the overall workflow for developers.
-
-2. Here's a proposed structure for combining the scripts:
-- Create a new script called `greatsun-dev-manager.sh`
-- Include all functions from both scripts
-- Create a main menu that offers options for:
-a. Git operations (create branches, checkout, push changes)
-b. Start services
-c. Stop services (new function to be added)
-d. View logs
-e. Exit
-
-3. Improvements and additions:
-- Add error handling and validation for user inputs
-- Implement a configuration file to store repository paths and service commands
-- Add a function to stop running services gracefully
-- Implement logging for the manager script itself
-
-4. Regarding docker-compose.yml:
-- If containerization is planned for this project, creating a docker-compose.yml file would be beneficial.
-- It could define services for greatsun-dev, credex-core, and vimbiso-pay, making it easier to manage the entire stack.
-- The start-services.sh logic could potentially be replaced by docker-compose up, simplifying service management.
-
-In conclusion, combining the scripts would create a more cohesive and user-friendly management tool for the greatsun-dev environment. It would streamline operations and potentially reduce errors by providing a single interface for both Git and service management.
