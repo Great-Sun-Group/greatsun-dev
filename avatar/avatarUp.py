@@ -100,7 +100,7 @@ def main():
     print("Welcome to the greatsun-dev avatar environment")
     print("Enter your instructions or questions in avatar/messageFromDeveloper.md")
     print("Then press enter here in the terminal, or you can first")
-    print("optionally paste a file path as a starting point for my work")
+    print("optionally paste a file path as a starting point for my work.")
     print(f"{greatsun_developer}: ")
 
 
