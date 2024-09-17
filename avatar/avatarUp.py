@@ -1,63 +1,11 @@
-"""
-## avatar/avatarUp.py
-At the core of the avatar are the avatar/avatarUp.py and avatar/responseParser.py scripts that we are interacting through.
-This script allows you to perform file operations within the project environment.
-It is critical that you thoroughly review and understand these scripts, because to iterate with the script
-**you must respond to this query in a format that the script can parse, with your requests at the end of your response.**
-You need to understand this script in order to know how to respond in a way that will enable you to iterate operations and summarize your findings and actions in messages to the developer.
-
-## Your response
-The script will extract the patterns described below from your response. Using these patterns/commands will enable you to interact with the codebase. When you are finished your analysis and updates, respond to this message without any of the patterns, and the script will exit the loop and wait for developer input.
-
-### Usage for iterations
-If the script detects one of these patterns, it will carry out the requested action, append the results to this conversation thread, and return it to you. Requesting an action is the means to keep the script iterating. To finish your analysis and updates, provide a response without any of the operation patterns. This will signal the script to exit the loop and wait for developer input.
-
-Note: If an operation fails (e.g., file not found), an error message will be returned. You should handle these errors appropriately in your subsequent responses.
-
-Example of a complete response:
-Based on my analysis of the current project structure, I suggest we read the contents of the main configuration file.
-
-read_file/workspaces/greatsun-dev/config.json
-
-***
-and here are examples of the other functions you can access
-***
-
-write_file/path/here.py
-[Content starts on the next line]
-import json
-import os
-
-(Rest of the file contents here)
-[Content ends before the next operation or end of message]
-
-list_directory/path/here/
-
-delete_file/path/here.py
-
-
-rename_file/old/path/here.py
-rename_file/new/path/here.py
-
-move_file/current/path/here.py
-move_file/new/path/here.py
-
-
-***************************************************************
-
-!!! IMPORTANT IMPORTANT IMPORTANT !!!
-
-BELOW ARE THE SCRIPTS THAT WILL PROCESS YOUR RESPONSE.
-
-The response formats described in English above are executed with this script. You must fully understand this script so that you can use the avatar to extend your capacity to act. Use the abilities offered by the avatar to implement the developer's intent.
-
-!!! IMPORTANT IMPORTANT IMPORTANT !!!
-
-***************************************************************
-"""
-
 import sys
 import logging
+import os
+import json
+from utils import read_file, write_file, get_directory_tree
+from responseParser import parse_llm_response
+from avatarUpCommands import cross_repo_commit
+from anthropic import Anthropic
 
 # Configure logging
 logging.basicConfig(
@@ -78,13 +26,6 @@ except IOError as e:
     print(f"Unable to write to log file: {str(e)}")
     print("Please check file permissions and try again.")
     sys.exit(1)
-
-from utils import read_file, write_file, get_directory_tree
-from responseParser import parse_llm_response
-from avatarUpCommands import cross_repo_commit
-from anthropic import Anthropic
-import os
-import json
 
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
@@ -148,7 +89,7 @@ def main():
             first_run = True  # Reset the flag when clearing
             continue
 
-        # Prepare the message from the developer
+# Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
         reference_file_content = read_file(
             file_path) if file_path else "No reference file provided."
@@ -215,7 +156,7 @@ def main():
                 print("\nProcessed response:")
                 print(processed_response)
 
-                # Update conversation with processed response
+# Update conversation with processed response
                 updated_conversation = f"{llm_message}\n\n{processed_response}"
                 write_file("avatar/avatarConversation.txt",
                            updated_conversation)
