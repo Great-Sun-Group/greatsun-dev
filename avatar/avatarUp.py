@@ -3,6 +3,7 @@ import os
 import logging
 from anthropic import Anthropic
 from avatarUpCommands import cross_repo_commit
+from utils import read_file, write_file, get_directory_tree
 
 # Configure logging
 logging.basicConfig(filename='avatar.log', level=logging.INFO,
@@ -16,79 +17,6 @@ MAX_LLM_ITERATIONS = 42
 # Initialize Anthropic client
 large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
 greatsun_developer = GITHUB_USERNAME
-
-
-def read_file(file_path):
-    """
-    Robust function to read and return contents of a file, with solid error handling.
-    If passed the path to a directory, it checks that it is a directory, logs that, and returns a message.
-
-    Args:
-    file_path (str): Path to the file or directory to be read
-
-    Returns:
-    str: Contents of the file or a message indicating it's a directory
-    """
-    try:
-        if os.path.isdir(file_path):
-            logging.info(f"Attempted to read directory: {file_path}")
-            return f"The provided path is a directory: {file_path}"
-
-        with open(file_path, 'r') as file:
-            content = file.read()
-        logging.info(f"Successfully read file: {file_path}")
-        return content
-    except FileNotFoundError:
-        logging.error(f"File not found: {file_path}")
-        return f"File not found: {file_path}"
-    except Exception as e:
-        logging.error(f"Error reading file {file_path}: {str(e)}")
-        return f"Error reading file: {str(e)}"
-
-
-def write_file(file_path, file_content):
-    """
-    Robust function that will create the file if it doesn't exist and write over what is there if it does exist,
-    with solid error handling.
-
-    Args:
-    file_path (str): Path to the file to be written
-    file_content (str): Content to be written to the file
-
-    Returns:
-    bool: True if write operation was successful, False otherwise
-    """
-    try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as file:
-            file.write(file_content)
-        logging.info(f"Successfully wrote to file: {file_path}")
-        return True
-    except Exception as e:
-        logging.error(f"Error writing to file {file_path}: {str(e)}")
-        return False
-
-
-def get_directory_tree(path):
-    """
-    Recursively get the directory structure as a dictionary.
-
-    Args:
-    path (str): Path to the directory
-
-    Returns:
-    dict: Directory structure
-    """
-    tree = {}
-    try:
-        for entry in os.scandir(path):
-            if entry.is_dir():
-                tree[entry.name] = get_directory_tree(entry.path)
-            else:
-                tree[entry.name] = None
-    except Exception as e:
-        logging.error(f"Error getting directory tree for {path}: {str(e)}")
-    return tree
 
 
 def main():
@@ -116,15 +44,15 @@ def main():
             commit_id = cross_repo_commit()
             if commit_id:
                 write_file("avatar/avatarConversation.txt",
-                           "ready for conversation")
+                           "__")
                 print(f"Commit {commit_id} made and avatar cleared")
                 logging.info(f"Commit made with ID: {commit_id}")
                 continue
 
         if file_path.lower() == "avatar clear":
             write_file("avatar/avatarConversation.txt",
-                       "ready for conversation")
-            print("Avatar cleared")
+                       "__")
+            print("avatarConversation cleared")
             logging.info("Avatar conversation cleared")
             first_run = True  # Reset the flag when clearing
             continue
