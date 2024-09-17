@@ -1,1 +1,1 @@
-could we combine init-environment.sh into greatsun-dev-manager.sh?
+install anthropic in the devcontainer

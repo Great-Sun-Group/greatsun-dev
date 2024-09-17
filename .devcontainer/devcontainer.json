@@ -1,23 +1,18 @@
 {
     "name": "greatsun-dev",
     "build": {
-      "dockerfile": "Dockerfile",
-      "args": {
-        "VARIANT": "3.11-bullseye"
-      }
+        "dockerfile": "Dockerfile"
     },
-    "features": {
-      },
     "customizations": {
-      "vscode": {
-        "extensions": [
-        ],
-        "settings": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-azuretools.vscode-docker"
+            ]
         }
-      }
     },
-    "postCreateCommand": "echo 'export PATH=$PATH:/workspaces/greatsun-dev/avatar' >> ~/.bashrc",
+    "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
     "postStartCommand": "echo '#!/bin/bash\npython /workspaces/greatsun-dev/avatar/avatarUp.py $1' > /workspaces/greatsun-dev/avatar/avatar && chmod +x /workspaces/greatsun-dev/avatar/avatar",
     "postAttachCommand": "source ~/.bashrc",
     "remoteUser": "vscode"
-  }
+}
