@@ -30,31 +30,46 @@ async def read_file(file_path):
         logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
         return f"Error reading file: {str(e)}"
 
-async def write_file(file_path, file_content):
+async def write_file(file_path, file_content, max_attempts=10, delay=0.1):
     """
     Async function that will create the file if it doesn't exist and write over what is there if it does exist,
-    with solid error handling.
+    with solid error handling and a confirmation step to ensure the file is readable after writing.
 
     Args:
     file_path (str): Path to the file to be written
     file_content (str): Content to be written to the file
+    max_attempts (int): Maximum number of attempts to confirm file readability
+    delay (float): Delay in seconds between confirmation attempts
 
     Returns:
-    bool: True if write operation was successful, False otherwise
+    bool: True if write operation was successful and file is readable, False otherwise
     """
     try:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
         async with aiofiles.open(file_path, 'w') as file:
             await file.write(file_content)
-        logging.info(f"Successfully wrote to file: {file_path}")
-        return True
+        
+        # Confirmation step
+        for attempt in range(max_attempts):
+            try:
+                async with aiofiles.open(file_path, 'r') as file:
+                    await file.read(1)  # Try to read at least one byte
+                logging.info(f"Successfully wrote to file and confirmed readability: {file_path}")
+                return True
+            except FileNotFoundError:
+                if attempt < max_attempts - 1:
+                    await asyncio.sleep(delay)
+                else:
+                    logging.error(f"File {file_path} not readable after {max_attempts} attempts")
+                    return False
     except Exception as e:
         logging.error(f"Error writing to file {file_path}: {str(e)}")
         return False
 
-def get_directory_tree(path):
+async def get_directory_tree(path):
     """
     Recursively get the directory structure as a dictionary, excluding irrelevant files and folders.
+    This function is asynchronous to avoid blocking the event loop during I/O operations.
 
     Args:
     path (str): Path to the directory
@@ -71,7 +86,7 @@ def get_directory_tree(path):
     try:
         for entry in os.scandir(path):
             if entry.is_dir() and entry.name not in excluded_dirs:
-                subtree = get_directory_tree(entry.path)
+                subtree = await get_directory_tree(entry.path)
                 if subtree:  # Only add non-empty directories
                     tree[entry.name] = subtree
             elif entry.is_file():
@@ -80,6 +95,9 @@ def get_directory_tree(path):
                     # Include only relevant file types
                     if entry.name.endswith(('.py', '.ts', '.js', '.json', '.yml', '.yaml', '.md', '.txt')):
                         tree[entry.name] = None
+            
+            # Yield control to the event loop periodically
+            await asyncio.sleep(0)
     except Exception as e:
         logging.error(f"Error getting directory tree for {path}: {str(e)}")
 

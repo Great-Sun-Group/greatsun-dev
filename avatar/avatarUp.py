@@ -103,7 +103,7 @@ async def main():
                 "** This is the current project **",
                 await read_file("avatar/currentProject.md"),
                 "** This is the full project structure **",
-                json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
+                json.dumps(await get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                 "** INITIAL DEVELOPER INSTRUCTIONS **",
                 trigger_message_content
             ]
@@ -121,7 +121,8 @@ async def main():
                 logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
-                llm_call = large_language_model.messages.create(
+                llm_call = await asyncio.to_thread(
+                    large_language_model.messages.create,
                     model=MODEL_NAME,
                     max_tokens=4096,
                     temperature=0,
@@ -130,19 +131,19 @@ async def main():
                         {"role": "user", "content": llm_message}
                     ]
                 )
-                llm_response = await llm_call.content[0].text
+                llm_response = llm_call.content[0].text
                 conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
+                conversation_thread, developer_input_required = await parse_llm_response(conversation_thread, llm_response)
                 print(conversation_thread)
 
-                # Ff developer input is required, save conversation thread and pause loop
+                # If developer input is required, save conversation thread and pause loop
                 if developer_input_required:
                     await write_file("avatar/avatarConversation.txt", conversation_thread)
                     logger.info("Waiting for developer response")
-                    input(greatsun_developer)
+                    input(f"{greatsun_developer}: ")
                     break
 
                 # Else continue to the next iteration of the loop
@@ -159,8 +160,7 @@ async def main():
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
-            avatar_conversation = await read_file("avatar/avatarConversation.txt")
-            await write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
+            await write_file("avatar/avatarConversation.txt", f"{conversation_thread}\n\n{final_response}")
             print(final_response)
 
         # Notify the developer
