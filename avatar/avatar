@@ -1,2 +1,2 @@
 #!/bin/bash
-python /workspaces/greatsun-dev/avatar/avatar $1
+python /workspaces/greatsun-dev/avatar/avatarUp.py "$@"

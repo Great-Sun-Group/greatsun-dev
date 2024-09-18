@@ -27,6 +27,9 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
 def main():
     # Constants
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
@@ -48,7 +51,7 @@ def main():
     # Clear the context
     write_file("avatar/avatarConversation.txt", "ready for conversation")
 
-    os.system('cls' if os.name == 'nt' else 'clear')
+    clear_screen()
     print("Welcome to the greatsun-dev avatar environment.")
     print("The text in avatar/messageFromDeveloper.md will be appended to")
     print("your message below and sent to greatsun-dev")
@@ -80,6 +83,7 @@ def main():
             if terminal_input.lower() == "avatar clear":
                 write_file("avatar/avatarConversation.txt", "ready for conversation")
                 logger.info("Avatar conversation cleared")
+                clear_screen()
                 print("Conversation cleared")
                 first_run = True
                 continue
