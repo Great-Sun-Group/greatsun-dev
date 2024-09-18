@@ -1,4 +1,9 @@
+import re
+import os
+import logging
 from utils import FileOperationQueue, perform_file_operation
+
+logger = logging.getLogger(__name__)
 
 def parse_llm_response(conversation_thread, llm_response):
     file_op_queue = FileOperationQueue()
@@ -42,7 +47,7 @@ def parse_llm_response(conversation_thread, llm_response):
             elif operation == 'delete':
                 path = os.path.abspath(match.group(1))
                 file_op_queue.add_operation('delete', path)
-            elif operation == 'rename' or operation == 'move':
+            elif operation in ['rename', 'move']:
                 current_path, new_path = match.groups()
                 current_path = os.path.abspath(current_path)
                 new_path = os.path.abspath(new_path)
@@ -55,7 +60,7 @@ def parse_llm_response(conversation_thread, llm_response):
                 file_op_queue.add_operation('create_directory', path)
             elif operation == 'request_developer_action':
                 developer_input_required = True
-    
+
     # Process all queued operations
     results = file_op_queue.process_queue()
 
@@ -71,7 +76,7 @@ def parse_llm_response(conversation_thread, llm_response):
         elif op.operation in ['rename', 'move']:
             processed_response.append(f"File {op.operation}d from {op.args[0]} to {op.args[1]}")
         elif op.operation == 'list_directory':
-            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(result)}")
+            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(result) if isinstance(result, list) else str(result)}")
         elif op.operation == 'create_directory':
             processed_response.append(f"Directory created: {op.args[0]}")
         

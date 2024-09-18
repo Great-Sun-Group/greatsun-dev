@@ -4,6 +4,8 @@ import time
 
 logger = logging.getLogger(__name__)
 
+from collections import deque
+
 class FileOperation:
     def __init__(self, operation, *args):
         self.operation = operation
@@ -32,58 +34,37 @@ class FileOperationQueue:
                 time.sleep(0.1)  # Small delay to allow file system to update
             else:
                 self.queue.append(op)
-
-                path = match.group(1)
-                read_op = file_op_queue.add_operation('read', path)
-                # Add dependency: read operation depends on write operation to the same file
-                for op in file_op_queue.queue:
-                    if op.operation == 'write' and op.args[0] == path:
-                        file_op_queue.add_dependency(read_op, op)
-
-    # Process all queued operations
-    file_op_queue.process_queue()
-
-def read_file(file_path, max_attempts=5, delay=0.1):
-    logging.info(f"Attempting to read file: {file_path}")
-    for attempt in range(max_attempts):
-        try:
-            if os.path.isdir(file_path):
-                logging.info(f"Attempted to read directory: {file_path}")
-                return f"The provided path is a directory: {file_path}"
-
-            with open(file_path, 'r') as file:
-                content = file.read()
-            logging.info(f"Successfully read file: {file_path}")
-            return content
-        except FileNotFoundError:
-            if attempt < max_attempts - 1:
-                time.sleep(delay)
-            else:
-                logging.error(f"File not found after {max_attempts} attempts: {file_path}")
-                return f"File not found: {file_path}"
-        except Exception as e:
-            logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
-            return f"Error reading file: {str(e)}"
-
-def write_file(file_path, file_content, max_attempts=5, delay=0.1):
-    for attempt in range(max_attempts):
-        try:
-            os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            with open(file_path, 'w') as file:
-                file.write(file_content)
-            
-            # Confirmation step
-            with open(file_path, 'r') as file:
-                file.read(1)  # Try to read at least one byte
-            logging.info(f"Successfully wrote to file and confirmed readability: {file_path}")
-            return True
-        except Exception as e:
-            if attempt < max_attempts - 1:
-                time.sleep(delay)
-            else:
-                logging.error(f"Error writing to file {file_path}: {str(e)}")
-                return False
-
+        return self.results
+    
+def read_file(file_path):
+    """
+    Function to read and return contents of a file, with solid error handling.
+    """
+    try:
+        with open(file_path, 'r') as file:
+            content = file.read()
+        return content
+    except FileNotFoundError:
+        logging.error(f"File not found: {file_path}")
+        return f"File not found: {file_path}"
+    except Exception as e:
+        logging.error(f"Error reading file {file_path}: {str(e)}")
+        return f"Error reading file: {str(e)}"
+    
+def write_file(file_path, file_content):
+    """
+    Function that will create the file if it doesn't exist and write over what is there if it does exist,
+    with solid error handling.
+    """
+    try:
+        os.makedirs(os.path.dirname(file_path), exist_ok=True)
+        with open(file_path, 'w') as file:
+            file.write(file_content)
+        return True
+    except Exception as e:
+        logging.error(f"Error writing to file {file_path}: {str(e)}")
+        return False
+    
 def get_directory_tree(path):
     """
     Recursively get the directory structure as a dictionary, excluding irrelevant files and folders.
