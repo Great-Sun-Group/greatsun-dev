@@ -122,7 +122,7 @@ def main():
             write_file("avatar/avatarConversation.txt", updated_conversation)
             logger.info("Appended new input to existing conversation")
 
-# START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
+        # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = read_file("avatar/avatarConversation.txt")
@@ -144,7 +144,7 @@ def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                response_to_developer, file_operation_performed = parse_llm_response(llm_response)
+                response_to_developer, file_operation_performed, developer_input_required = parse_llm_response(llm_response)
 
                 print("\nResponse to developer:")
                 print(response_to_developer)
@@ -152,6 +152,13 @@ def main():
                 # Update conversation with response to developer
                 updated_conversation = f"{llm_message}\n\n{response_to_developer}"
                 write_file("avatar/avatarConversation.txt", updated_conversation)
+
+                # Check if developer input is required
+                if developer_input_required:
+                    print("\navatar requires your input. messageFromDeveloper.md will be \nappended to this message.")
+                    logger.info("Waiting for developer input")
+                    input("Press Enter after providing input...")
+                    break
 
                 # Check if no file operations were performed
                 if not file_operation_performed:
@@ -181,7 +188,6 @@ def main():
         print("\ngreatsun-dev is waiting for your next response")
         print("enter it in the messageFromDeveloper.md file and press enter here")
         print("or 'avatar down' to exit, 'avatar clear' to start a new conversation")
-
 
 if __name__ == "__main__":
     try:
