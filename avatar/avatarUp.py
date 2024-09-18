@@ -2,9 +2,9 @@ import sys
 import logging
 import os
 import json
-from avatar.utils.file_operations import read_file, write_file, get_directory_tree
-from avatar.utils.responseParser import parse_llm_response
-from avatar.utils.avatarUpCommands import cross_repo_commit
+from utils.file_operations import read_file, write_file, get_directory_tree
+from utils.responseParser import parse_llm_response
+from utils.avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
 
 # Configure logging
@@ -98,7 +98,7 @@ def main():
 
             # Prepare the message from the developer
             append_to_terminal_input = read_file(
-                "avatar/appendToTerminalInput.md")
+                "avatar/context/appendToTerminalInput.md")
             trigger_message_content = f"{terminal_input}\n\n{
                 append_to_terminal_input}"
 
@@ -106,7 +106,7 @@ def main():
                 # Prepare the full context for the LLM (first run)
                 avatar_up_content = [
                     read_file("avatar/context/avatarOrientation.md"),
-                    read_file("avatar/responseInstructions.txt"),
+                    read_file("avatar/context/responseInstructions.txt"),
                     "** This is the project README.md **",
                     read_file("README.md"),
                     "** This is the credex-core submodule README.md **",
@@ -126,8 +126,7 @@ def main():
                 logger.info("First run context prepared")
             else:
                 # Add new terminal message to conversation
-                conversation_thread = f"{
-                    conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
+                conversation_thread = f"{conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):

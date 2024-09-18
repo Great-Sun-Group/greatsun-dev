@@ -1,7 +1,7 @@
 import re
 import os
 import logging
-from avatar.utils.file_operations import FileOperationQueue, perform_file_operation
+from utils.file_operations import FileOperationQueue
 
 logger = logging.getLogger(__name__)
 
