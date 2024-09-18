@@ -106,7 +106,8 @@ def main():
                 read_file("avatar/currentProject.md"),
                 "** This is the full project structure **",
                 json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
-                "** INITIAL DEVELOPER INSTRUCTIONS **"
+                "** INITIAL DEVELOPER INSTRUCTIONS **",
+                trigger_message_content
             ]
             conversation_thread = "\n\n".join(avatar_up_content)
             first_run = False
