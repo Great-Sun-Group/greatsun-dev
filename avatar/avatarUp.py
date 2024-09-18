@@ -55,7 +55,7 @@ def main():
     print("welcome to the greatsun-dev avatar environment.")
     print("the text in avatar/messageFromDeveloper.md will be appended to")
     print("your message below and sent to greatsun-dev")
-    print(f"{greatsun_developer}: ")
+    input(greatsun_developer)
 
     while True:
         file_path = input().strip()
@@ -111,21 +111,19 @@ def main():
                 trigger_message_content,
                 "** END avatarUp message **\n"
             ]
-            avatar_up = "\n\n".join(avatar_up_content)
-            write_file("avatar/avatarConversation.txt", avatar_up)
+            conversation_thread = "\n\n".join(avatar_up_content)
             first_run = False
             logger.info("First run context prepared")
         else:
             # For subsequent runs, append to existing conversation
             existing_conversation = read_file("avatar/avatarConversation.txt")
-            updated_conversation = f"{existing_conversation}\n\n** New input from developer **\n\n{trigger_message_content}\n"
-            write_file("avatar/avatarConversation.txt", updated_conversation)
+            conversation_thread = f"{existing_conversation}\n\n** New input from developer **\n\n{trigger_message_content}\n"
             logger.info("Appended new input to existing conversation")
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
-                llm_message = read_file("avatar/avatarConversation.txt")
+                llm_message = conversation_thread
                 logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
@@ -140,35 +138,23 @@ def main():
                 )
                 llm_response = llm_call.content[0].text
                 print("Received response from LLM:")
-                print(llm_response)
+                conversation_thread = conversation_thread, "\n\n", llm_response
+                write_file("avatar/avatarConversation.txt", conversation_thread)
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                response_to_developer, file_operation_performed, developer_input_required = parse_llm_response(llm_response)
+                conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
 
-                print("\nResponse to developer:")
-                print(response_to_developer)
-
-                # Update conversation with response to developer
-                updated_conversation = f"{llm_message}\n\n{response_to_developer}"
-                write_file("avatar/avatarConversation.txt", updated_conversation)
-
-                # Check if developer input is required
+                # Check if developer input is required or no file operations were performed
                 if developer_input_required:
-                    print("\nDeveloper input required. Please provide input in messageFromDeveloper.md and press Enter.")
-                    logger.info("Waiting for developer input")
-                    input("Press Enter after providing input...")
-                    break
-
-                # Check if no file operations were performed
-                if not file_operation_performed:
-                    print("No file operations performed, exiting LLM loop")
-                    logger.info("No file operations performed, exiting LLM loop")
+                    write_file("avatar/avatarConversation.txt", conversation_thread)
+                    logger.info("Waiting for developer response")
+                    input(greatsun_developer)
                     break
 
                 # If file operations were performed, continue to the next iteration
-                print("File operation performed, continuing to next iteration")
-                logger.info("File operation performed, continuing to next iteration")
+                print("Continuing to next iteration")
+                logger.info("Continuing to next iteration")
 
             except Exception as e:
                 logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")

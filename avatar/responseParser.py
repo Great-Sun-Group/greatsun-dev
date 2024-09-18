@@ -6,8 +6,7 @@ from utils import read_file, write_file
 
 logger = logging.getLogger(__name__)
 
-def parse_llm_response(llm_response):
-    conversation = read_file("avatar/avatarConversation.txt")
+def parse_llm_response(conversation_thread, llm_response):
     file_operation_performed = False
     developer_input_required = False
     processed_response = []
@@ -89,10 +88,12 @@ def parse_llm_response(llm_response):
                 logger.error(error_msg)
                 processed_response.append(error_msg)
 
-    # Write action results to conversation
+    # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    print(processed_response)
-    write_file("avatar/avatarConversation.txt", conversation + "\n\n" + processed_response)
+    conversation_thread = conversation_thread + "\n\n" + processed_response
+
+    if developer_input_required or not file_operation_performed:
+        developer_input_required = True
 
     # Prepare response to developer
     response_to_developer = llm_response
@@ -102,10 +103,12 @@ def parse_llm_response(llm_response):
         path, content = match.groups()
         if content:
             response_to_developer = response_to_developer.replace(content, f"[Content written to {path}]")
+            print("\nAvatar:")
+            print(response_to_developer)
 
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.info(f"Developer input required: {developer_input_required}")
     logger.debug(f"Processed response:\n{processed_response}")
     logger.debug(f"Response to developer:\n{response_to_developer}")
 
-    return response_to_developer, file_operation_performed, developer_input_required
+    return conversation_thread, developer_input_required
