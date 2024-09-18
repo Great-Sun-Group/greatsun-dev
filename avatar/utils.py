@@ -29,9 +29,6 @@ def read_file(file_path):
         return f"Error reading file: {str(e)}"
 
 
-import os
-import logging
-
 def write_file(file_path, file_content, base_path=None):
     """
     Robust function that will create the file if it doesn't exist and write over what is there if it does exist,
@@ -65,3 +62,37 @@ def write_file(file_path, file_content, base_path=None):
     except Exception as e:
         logging.error(f"Error writing to file {relative_path}: {str(e)}")
         return False
+
+
+def get_directory_tree(path):
+    """
+    Recursively get the directory structure as a dictionary, excluding irrelevant files and folders.
+
+    Args:
+    path (str): Path to the directory
+
+    Returns:
+    dict: Directory structure
+    """
+    tree = {}
+    excluded_dirs = {'node_modules', '__pycache__',
+                     '.git', '.vscode', 'venv', 'env', 'build', 'dist'}
+    excluded_files = {'.DS_Store', 'Thumbs.db',
+                      '*.pyc', '*.pyo', '*.pyd', '*.log'}
+
+    try:
+        for entry in os.scandir(path):
+            if entry.is_dir() and entry.name not in excluded_dirs:
+                subtree = get_directory_tree(entry.path)
+                if subtree:  # Only add non-empty directories
+                    tree[entry.name] = subtree
+            elif entry.is_file():
+                # Check if the file should be included
+                if not any(entry.name.endswith(ext) for ext in excluded_files):
+                    # Include only relevant file types
+                    if entry.name.endswith(('.py', '.ts', '.js', '.json', '.yml', '.yaml', '.md', '.txt')):
+                        tree[entry.name] = None
+    except Exception as e:
+        logging.error(f"Error getting directory tree for {path}: {str(e)}")
+
+    return tree
