@@ -2,7 +2,9 @@ Use the following tags to interact with the code base. When you use any of these
 
 <file_operations>
   <read path="[file_path]" />
-  <write path="[file_path]">[file_contents]</write>
+  <write path="[file_path]">
+    [file_contents]
+  </write>
   <append path="[file_path]">[content_to_append]</append>
   <delete path="[file_path]" />
   <rename current_path="[old_path]" new_path="[new_path]" />

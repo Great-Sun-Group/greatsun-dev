@@ -96,7 +96,7 @@ def main():
             # Prepare the full context for the LLM (first run)
             avatar_up_content = [
                 read_file("avatar/avatarOrientation.md"),
-                read_file("avatar/responseInstructions.py"),
+                read_file("avatar/responseInstructions.txt"),
                 """
                 "** This is the avatar/avatarUp.py script that will process the interactive loop you can use **",
                 read_file("avatar/avatarUp.py"),
