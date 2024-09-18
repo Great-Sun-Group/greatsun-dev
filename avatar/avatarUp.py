@@ -28,25 +28,22 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
-# Constants
-ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
-DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
-MAX_LLM_ITERATIONS = 7
-MODEL_NAME = "claude-3-5-sonnet-20240620"
-SYSTEM_PROMPT = read_file("responseInstructions.txt")
-
-# Initialize Anthropic client
-try:
-    large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
-    greatsun_developer = DEVELOPER_GITHUB_USERNAME
-except Exception as e:
-    logger.error(f"Failed to initialize Anthropic client: {str(e)}")
-    raise
-
 async def main():
-    """
-    Main function to run the avatar environment.
-    """
+    # Constants
+    ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
+    DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
+    MAX_LLM_ITERATIONS = 7
+    MODEL_NAME = "claude-3-5-sonnet-20240620"
+    SYSTEM_PROMPT = await read_file("responseInstructions.txt")
+
+    # Initialize Anthropic client
+    try:
+        large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
+        greatsun_developer = DEVELOPER_GITHUB_USERNAME
+    except Exception as e:
+        logger.error(f"Failed to initialize Anthropic client: {str(e)}")
+        raise
+
     first_run = True
     logger.info("Starting avatar environment")
     # Clear the context
@@ -133,7 +130,7 @@ async def main():
                         {"role": "user", "content": llm_message}
                     ]
                 )
-                llm_response = llm_call.content[0].text
+                llm_response = await llm_call.content[0].text
                 conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
