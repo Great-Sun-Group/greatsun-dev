@@ -10,3 +10,5 @@ Use the following tags to interact with the code base. When you use any of these
 <move current_path="[source_path]" new_path="[destination_path]" />
 <list_directory path="[directory_path]" />
 <create_directory path="[new_directory_path]" />
+
+NEVER WRITE TO A FILE WITHOUT FIRST READING IT, AND KEEP ALL EXISTING FUNCTIONALITY UNLESS YOU HAVE GOOD REASON TO CHANGE IT
