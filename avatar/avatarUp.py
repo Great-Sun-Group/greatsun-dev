@@ -91,7 +91,7 @@ def main():
             first_run = True  # Reset the flag when clearing
             continue
 
-# Prepare the message from the developer
+        # Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
         reference_file_content = read_file(
             file_path) if file_path else "No reference file provided."
@@ -143,7 +143,7 @@ def main():
                     model="claude-3-opus-20240229",
                     max_tokens=4096,
                     temperature=0,
-                    system="When you need to read a file, use the exact format 'read file: [filepath]'. For example: read file: path/to/file.txt in your response. When you need to write a file, use the exact format 'write file: [filepath] \n ******* file contents *******'. For example: write file: path/to/file.html \n ******* <html><body>content here</body></html> \n *******",
+                    system="reply only in xml and nothing else, with this required tag: <response_to_developer> and these optional tags: <read_file_path>, <write_file_path>, <write_file_contents>, <list_directory_path>, <delete_file_path>, <rename__or_move_file_current_path>, <rename__or_move_file_new_path>.",
                     messages=[
                         {"role": "user", "content": llm_message}
                     ]
