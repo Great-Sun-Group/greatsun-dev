@@ -34,7 +34,8 @@ def parse_llm_response(llm_response):
             try:
                 if operation == 'read':
                     path = match.group(1)
-                    content = read_file(path)
+                    absolute_path = os.path.abspath(path)
+                    content = read_file(absolute_path)
                     processed_response.append(f"Content of {path}:\n{content}")
                     file_operation_performed = True
 
