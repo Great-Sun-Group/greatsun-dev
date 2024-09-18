@@ -1,11 +1,10 @@
+import xml.etree.ElementTree as ET
+import os
 import shutil
 import logging
 from utils import read_file, write_file
-import os
-import re
 
 logger = logging.getLogger(__name__)
-
 
 def parse_llm_response(llm_response):
     conversation = read_file("avatar/avatarConversation.txt")
@@ -15,95 +14,77 @@ def parse_llm_response(llm_response):
     logger.info("Starting to process LLM response")
     logger.debug(f"Raw LLM response:\n{llm_response}")
 
-    # Define regex patterns for each command
-    command_patterns = {
-        'read_file': r'read_file/(.+)',
-        'write_file': r'write_file/(.+)',
-        'list_directory': r'list_directory/(.+)',
-        'delete_file': r'delete_file/(.+)',
-        'rename_file': r'rename_file/(.+)\nrename_file/(.+)',
-        'move_file': r'move_file/(.+)\nmove_file/(.+)'
-    }
+    try:
+        root = ET.fromstring(llm_response)
+    except ET.ParseError as e:
+        logger.error(f"Failed to parse XML: {str(e)}")
+        return f"Error: Invalid XML format - {str(e)}", False
 
-    lines = llm_response.split('\n')
-    i = 0
-    while i < len(lines):
-        line = lines[i].strip()
-        logger.debug(f"Processing line: {line}")
+    # Process file operations
+    for operation in root.find('file_operations'):
+        try:
+            if operation.tag == 'read':
+                path = operation.get('path')
+                content = read_file(path)
+                processed_response.append(f"Content of {path}:\n{content}")
+                file_operation_performed = True
 
-        command_executed = False
-        for cmd, pattern in command_patterns.items():
-            match = re.match(pattern, line)
-            if match:
-                try:
-                    if cmd == 'read_file':
-                        file_path = match.group(1)
-                        content = read_file(file_path)
-                        processed_response.append(
-                            f"Content of {file_path}:\n{content}")
-                        file_operation_performed = True
-                        command_executed = True
+            elif operation.tag == 'write':
+                path = operation.get('path')
+                content = operation.text
+                write_file(path, content)
+                processed_response.append(f"File written: {path}")
+                file_operation_performed = True
 
-                    elif cmd == 'write_file':
-                        file_path = match.group(1)
-                        # Strip two versions of "/workspaces/greatsun-dev/" prefix if present
-                        file_path = file_path.replace("/workspaces/greatsun-dev/", "", 1)
-                        file_path = file_path.replace("workspaces/greatsun-dev/", "", 1)
-                        content = '\n'.join(lines[i+1:])
-                        end_index = content.find(
-                            '[Content ends before the next operation or end of message]')
-                        if end_index != -1:
-                            content = content[:end_index].strip()
-                        write_file(file_path, content)
-                        processed_response.append(f"File written: {file_path}")
-                        file_operation_performed = True
-                        command_executed = True
-                        i += content.count('\n') + 1  # Skip content lines
+            elif operation.tag == 'append':
+                path = operation.get('path')
+                content = operation.text
+                with open(path, 'a') as f:
+                    f.write(content)
+                processed_response.append(f"Content appended to: {path}")
+                file_operation_performed = True
 
-                    elif cmd == 'list_directory':
-                        dir_path = match.group(1)
-                        dir_contents = os.listdir(dir_path)
-                        processed_response.append(
-                            f"Contents of {dir_path}:\n{', '.join(dir_contents)}")
-                        file_operation_performed = True
-                        command_executed = True
+            elif operation.tag == 'delete':
+                path = operation.get('path')
+                os.remove(path)
+                processed_response.append(f"File deleted: {path}")
+                file_operation_performed = True
 
-                    elif cmd == 'delete_file':
-                        file_path = match.group(1)
-                        os.remove(file_path)
-                        processed_response.append(f"File deleted: {file_path}")
-                        file_operation_performed = True
-                        command_executed = True
+            elif operation.tag == 'rename':
+                current_path = operation.get('current_path')
+                new_path = operation.get('new_path')
+                os.rename(current_path, new_path)
+                processed_response.append(f"File renamed from {current_path} to {new_path}")
+                file_operation_performed = True
 
-                    elif cmd == 'rename_file':
-                        old_path, new_path = match.group(1), match.group(2)
-                        os.rename(old_path, new_path)
-                        processed_response.append(
-                            f"File renamed from {old_path} to {new_path}")
-                        file_operation_performed = True
-                        command_executed = True
-                        i += 1  # Skip the next line as it's part of the rename command
+            elif operation.tag == 'move':
+                current_path = operation.get('current_path')
+                new_path = operation.get('new_path')
+                shutil.move(current_path, new_path)
+                processed_response.append(f"File moved from {current_path} to {new_path}")
+                file_operation_performed = True
 
-                    elif cmd == 'move_file':
-                        src_path, dest_path = match.group(1), match.group(2)
-                        shutil.move(src_path, dest_path)
-                        processed_response.append(
-                            f"File moved from {src_path} to {dest_path}")
-                        file_operation_performed = True
-                        command_executed = True
-                        i += 1  # Skip the next line as it's part of the move command
+            elif operation.tag == 'list_directory':
+                path = operation.get('path')
+                dir_contents = os.listdir(path)
+                processed_response.append(f"Contents of {path}:\n{', '.join(dir_contents)}")
+                file_operation_performed = True
 
-                except Exception as e:
-                    error_msg = f"Error performing {cmd}: {str(e)}"
-                    logger.error(error_msg)
-                    processed_response.append(error_msg)
+            elif operation.tag == 'create_directory':
+                path = operation.get('path')
+                os.makedirs(path, exist_ok=True)
+                processed_response.append(f"Directory created: {path}")
+                file_operation_performed = True
 
-                break  # Exit the inner loop after processing a command
+        except Exception as e:
+            error_msg = f"Error performing {operation.tag}: {str(e)}"
+            logger.error(error_msg)
+            processed_response.append(error_msg)
 
-        if not command_executed:
-            processed_response.append(line)
-
-        i += 1
+    # Process message to developer
+    message_elem = root.find('message_to_developer')
+    if message_elem is not None and message_elem.text:
+        processed_response.append(f"Message to developer: {message_elem.text}")
 
     processed_response = '\n'.join(processed_response)
     write_file("avatar/avatarConversation.txt", conversation + "\n\n" + processed_response)

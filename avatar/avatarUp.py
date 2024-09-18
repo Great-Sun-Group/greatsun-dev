@@ -44,7 +44,6 @@ except Exception as e:
     logger.error(f"Failed to initialize Anthropic client: {str(e)}")
     raise
 
-
 def main():
     """
     Main function to run the avatar environment.
@@ -62,8 +61,7 @@ def main():
         file_path = input().strip()
 
         if file_path.lower() == "avatar down":
-            write_file("avatar/avatarConversation.txt",
-                       "ready for conversation")
+            write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             logger.info("Avatar environment shutting down")
             print("\ngreatsun-dev avatar, signing off\n\n")
@@ -73,8 +71,7 @@ def main():
             try:
                 commit_id = cross_repo_commit()
                 if commit_id:
-                    write_file("avatar/avatarConversation.txt",
-                               "ready for conversation")
+                    write_file("avatar/avatarConversation.txt", "ready for conversation")
                     logger.info(f"Commit {commit_id} made and avatar cleared")
                     print(f"Commit {commit_id} made and avatar cleared")
                     continue
@@ -84,17 +81,15 @@ def main():
                 continue
 
         if file_path.lower() == "avatar clear":
-            write_file("avatar/avatarConversation.txt",
-                       "ready for conversation")
+            write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             print("Conversation cleared")
             first_run = True  # Reset the flag when clearing
             continue
 
-        # Prepare the message from the developer
+# Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
-        reference_file_content = read_file(
-            file_path) if file_path else "No reference file provided."
+        reference_file_content = read_file(file_path) if file_path else "No reference file provided."
         trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
 
         if first_run:
@@ -116,8 +111,7 @@ def main():
                 "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **",
                 trigger_message_content,
                 "Full Project Structure:",
-                json.dumps(get_directory_tree(
-                    '/workspaces/greatsun-dev'), indent=2),
+                json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                 "** END avatarUp message **\n"
             ]
             avatar_up = "\n\n".join(avatar_up_content)
@@ -135,8 +129,7 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = read_file("avatar/avatarConversation.txt")
-                logger.info(
-                    f"Sending message to LLM (iteration {iteration + 1})")
+                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
@@ -154,34 +147,29 @@ def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                processed_response, file_operation_performed = parse_llm_response(
-                    llm_response)
+                processed_response, file_operation_performed = parse_llm_response(llm_response)
 
                 print("\nProcessed response:")
                 print(processed_response)
 
-# Update conversation with processed response
+                # Update conversation with processed response
                 updated_conversation = f"{llm_message}\n\n{processed_response}"
-                write_file("avatar/avatarConversation.txt",
-                           updated_conversation)
+                write_file("avatar/avatarConversation.txt", updated_conversation)
 
-                # Check if no file operations were performed
+# Check if no file operations were performed
                 if not file_operation_performed:
                     print("No file operations performed, exiting LLM loop")
-                    logger.info(
-                        "No file operations performed, exiting LLM loop")
+                    logger.info("No file operations performed, exiting LLM loop")
                     print("\nAI response ready. Here's the final response:")
                     print(processed_response)
                     break
 
                 # If file operations were performed, continue to the next iteration
                 print("File operation performed, continuing to next iteration")
-                logger.info(
-                    "File operation performed, continuing to next iteration")
+                logger.info("File operation performed, continuing to next iteration")
 
             except Exception as e:
-                logger.error(
-                    f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -191,8 +179,7 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             avatar_conversation = read_file("avatar/avatarConversation.txt")
-            write_file("avatar/avatarConversation.txt",
-                       f"{avatar_conversation}\n\n{final_response}")
+            write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
             print(final_response)
 
         # Notify the developer
