@@ -12,7 +12,13 @@
         }
     },
     "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
-    "postStartCommand": "echo '#!/bin/bash\npython /workspaces/greatsun-dev/avatar/avatar $1' > /workspaces/greatsun-dev/avatar/avatar && chmod +x /workspaces/greatsun-dev/avatar/avatar",
-    "postAttachCommand": "source ~/.bashrc",
+    "postStartCommand": [
+        "mkdir -p /usr/local/bin/avatar",
+        "mv /workspaces/greatsun-dev/avatar/avatarUp.py /usr/local/bin/avatar/avatar",
+        "chmod +x /usr/local/bin/avatar/avatar"
+    ],
+    "remoteEnv": {
+        "PATH": "/usr/local/bin/avatar:${PATH}"
+    },
     "remoteUser": "vscode"
 }
