@@ -1,4 +1,3 @@
-[Content starts on the next line]
 # Core dependencies
 anthropic==0.3.2
 pytest==7.3.1
