@@ -1,14 +1,15 @@
 {
-  "name": "greatsun-dev",
-  "image": "mcr.microsoft.com/devcontainers/python:3",
-  "customizations": {
-    "vscode": {
-      "extensions": [
-        "ms-python.python",
-        "ms-azuretools.vscode-docker"
-      ]
-    }
-  },
-  "postCreateCommand": "pip install -r requirements.txt && chmod +x /workspaces/greatsun-dev/avatar/avatar && sudo ln -sf /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar",
-  "remoteUser": "vscode"
+    "name": "greatsun-dev",
+    "image": "mcr.microsoft.com/devcontainers/python:3",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-python.vscode-pylance",
+                "ms-azuretools.vscode-docker"
+            ]
+        }
+    },
+    "postCreateCommand": "pip install -r requirements.txt && chmod +x /workspaces/greatsun-dev/avatar/avatar && sudo ln -sf /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar",
+    "remoteUser": "vscode"
 }
