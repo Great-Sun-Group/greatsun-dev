@@ -10,6 +10,6 @@
             ]
         }
     },
-    "postCreateCommand": "pip install -r requirements.txt && chmod +x /workspaces/greatsun-dev/avatar/avatar && sudo ln -sf /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar",
+    "postCreateCommand": "pip install -r requirements.txt && chmod +x /workspaces/greatsun-dev/avatar/avatar && sudo ln -sf /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar && chmod +x /workspaces/greatsun-dev/greatsun-dev-manager.sh && /workspaces/greatsun-dev/greatsun-dev-manager.sh startup",
     "remoteUser": "vscode"
 }

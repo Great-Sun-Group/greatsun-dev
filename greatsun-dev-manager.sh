@@ -3,6 +3,8 @@
 # greatsun-dev-manager.sh
 # This script combines Git management, service control, and environment initialization for the greatsun-dev environment
 
+set -e
+
 # Configuration
 CONFIG_FILE="/workspaces/greatsun-dev/greatsun-dev-config.json"
 
@@ -69,26 +71,27 @@ initialize_environment() {
     # Function to add submodule
     add_submodule() {
         local repo_url="https://${GH_PAT:-$GITHUB_TOKEN}@github.com/Great-Sun-Group/$1.git"
-        git submodule add $repo_url
-        if [ $? -ne 0 ]; then
-            echo "Error: Failed to add submodule $1"
-            return 1
-        fi
+        git submodule add $repo_url || true
+        git submodule update --init --recursive
     }
 
     # Add submodules
-    add_submodule "credex-ecosystem/credex-core" || return 1
-    add_submodule "credex-ecosystem/vimbiso-pay" || return 1
+    add_submodule "credex-ecosystem/credex-core"
+    add_submodule "credex-ecosystem/vimbiso-pay"
 
     echo "Submodules added successfully!"
 
-    # Activate virtual environment
+    # Create and activate virtual environment
+    python3 -m venv /home/vscode/venv
     source /home/vscode/venv/bin/activate
 
     # Install dependencies and set up the environment
-    (cd "$CREDEX_CORE_DIR" && npm install) || return 1
-    (cd "$VIMBISO_PAY_DIR" && pip install -r requirements.txt) || return 1
-    (cd "$GREATSUN_DEV_DIR" && pip install -r requirements.txt) || return 1
+    (cd "$CREDEX_CORE_DIR" && npm install)
+    (cd "$VIMBISO_PAY_DIR" && pip install -r requirements.txt)
+    (cd "$GREATSUN_DEV_DIR" && pip install -r requirements.txt)
+
+    # Create central-logs directory
+    mkdir -p "$GREATSUN_DEV_DIR/central-logs"
 
     echo "Environment initialization complete!"
     return 0
@@ -281,8 +284,8 @@ if [ "$1" = "startup" ]; then
     echo "Running on startup. Initializing environment, creating a new branch, and starting services."
     load_config
     initialize_environment || exit 1
-    create_branches "feature-$(date +%Y%m%d-%H%M%S)"
-    start_all_services
+    create_branches "feature-$(date +%Y%m%d-%H%M%S)" || true
+    start_all_services || true
 else
     load_config
     main_menu
