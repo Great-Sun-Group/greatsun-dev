@@ -155,7 +155,7 @@ def main():
 
                 # Check if developer input is required
                 if developer_input_required:
-                    print("\navatar requires your input. messageFromDeveloper.md will be \nappended to this message.")
+                    print("\nDeveloper input required. Please provide input in messageFromDeveloper.md and press Enter.")
                     logger.info("Waiting for developer input")
                     input("Press Enter after providing input...")
                     break
@@ -188,6 +188,7 @@ def main():
         print("\ngreatsun-dev is waiting for your next response")
         print("enter it in the messageFromDeveloper.md file and press enter here")
         print("or 'avatar down' to exit, 'avatar clear' to start a new conversation")
+
 
 if __name__ == "__main__":
     try:

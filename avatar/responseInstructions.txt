@@ -1,4 +1,4 @@
-Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you. When you send a message without any of the tags, the conversation will wait for developer input.
+Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you.
 
 <read path="[file_path]" />
 <write path="[file_path]">
@@ -10,6 +10,6 @@ Use the following tags to interact with the code base. When you use any of these
 <move current_path="[source_path]" new_path="[destination_path]" />
 <list_directory path="[directory_path]" />
 <create_directory path="[new_directory_path]" />
-<developer_action>[things like terminal commands, running files, etc]</developer_action>
 
-NEVER WRITE TO A FILE WITHOUT FIRST READING IT, AND KEEP ALL EXISTING FUNCTIONALITY UNLESS YOU HAVE GOOD REASON TO CHANGE IT
+When you send a message without any of the tags above, or when you send a message with the tag below, the conversation will wait for developer input. You can use this to request terminal commands and ask questions.
+<request_developer_action=true>

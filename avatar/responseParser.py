@@ -25,7 +25,7 @@ def parse_llm_response(llm_response):
         'move': r'<move current_path="([^"]+)" new_path="([^"]+)" />',
         'list_directory': r'<list_directory path="([^"]+)" />',
         'create_directory': r'<create_directory path="([^"]+)" />',
-        'developer_action': r'<developer_action>([\s\S]*?)</developer_action>'
+        'request_developer_action': r'<request_developer_action=true>'
     }
 
     for operation, pattern in patterns.items():
@@ -34,8 +34,7 @@ def parse_llm_response(llm_response):
             try:
                 if operation == 'read':
                     path = match.group(1)
-                    absolute_path = os.path.abspath(path)
-                    content = read_file(absolute_path)
+                    content = read_file(path)
                     processed_response.append(f"Content of {path}:\n{content}")
                     file_operation_performed = True
 
@@ -82,9 +81,8 @@ def parse_llm_response(llm_response):
                     processed_response.append(f"Directory created: {path}")
                     file_operation_performed = True
 
-                elif operation == 'developer_action':
-                    action_content = match.group(1)
-                    processed_response.append(f"Developer action required: {action_content}")
+                elif operation == 'request_developer_action':
+                    processed_response.append("Developer action required")
                     developer_input_required = True
 
             except Exception as e:
