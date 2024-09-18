@@ -1,24 +1,24 @@
 {
-    "name": "greatsun-dev",
-    "build": {
-        "dockerfile": "Dockerfile"
+"name": "greatsun-dev",
+"build": {
+    "dockerfile": "Dockerfile"
     },
-    "customizations": {
-        "vscode": {
-            "extensions": [
-                "ms-python.python",
-                "ms-azuretools.vscode-docker"
+"customizations": {
+    "vscode": {
+        "extensions": [
+            "ms-python.python",
+            "ms-azuretools.vscode-docker"
             ]
         }
     },
     "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
     "postStartCommand": [
-        "mkdir -p /usr/local/bin/avatar",
-        "mv /workspaces/greatsun-dev/avatar/avatarUp.py /usr/local/bin/avatar/avatar",
-        "chmod +x /usr/local/bin/avatar/avatar"
+    "mkdir -p /workspaces/greatsun-dev/.vscode/bin",
+    "mv /workspaces/greatsun-dev/avatar/avatarUp.py /workspaces/greatsun-dev/.vscode/bin/avatar",
+    "chmod +x /workspaces/greatsun-dev/.vscode/bin/avatar"
     ],
     "remoteEnv": {
-        "PATH": "/usr/local/bin/avatar:${PATH}"
+    "PATH": "/workspaces/greatsun-dev/.vscode/bin:${PATH}"
     },
     "remoteUser": "vscode"
 }
