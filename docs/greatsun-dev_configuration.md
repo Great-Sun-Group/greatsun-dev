@@ -15,6 +15,17 @@ Here's what you need to get set up in greatsun-dev:
 
 The following secrets are required. These should be set in the your personal Codespace secrets or in a `.env` file in the root directory when running locally. See below for detailed instructions.
 
+- GH_USERNAME
+  Your GitHub username.
+
+- GH_PAT
+  - To get this secret from GitHub:
+    1. Log in to your GitHub account.
+    2. Go to Settings > Developer settings > Personal access tokens.
+    3. Click "Generate new token" and select the necessary scopes (repo, workflow, read:org should be sufficient).
+    4. Copy the generated token and use it as the value for GH_PAT.
+This will technically give the avatar that you connect with access to all your github repos. Don't import any into this development container. Instead we'll make this environment duplicable to work on other projects and provide them with their own avatar.
+
 - CLAUDE
   Get this secret from Anthropic or your admin.
   - From Anthropic:
@@ -26,16 +37,9 @@ The following secrets are required. These should be set in the your personal Cod
 - DJANGO_SECRET
   - create your own unique random string
 
-- GH_PAT
-  - To get this secret from GitHub:
-    1. Log in to your GitHub account.
-    2. Go to Settings > Developer settings > Personal access tokens.
-    3. Click "Generate new token" and select the necessary scopes (repo, workflow, read:org should be sufficient).
-    4. Copy the generated token and use it as the value for GH_PAT.
-This will technically give the avatar that you connect with access to all your github repos. Don't import any into this development container. Instead we'll make this environment duplicable to work on other projects and provide them with their own avatar.
-
 - JWT_SECRET
   - create your own unique random string
+  
 - NEO_4J_LEDGER_SPACE_BOLT_URL
 - NEO_4J_LEDGER_SPACE_PASS
 - NEO_4J_LEDGER_SPACE_USER

@@ -30,6 +30,7 @@ fi
 # Check for required secrets
 check_secret CLAUDE
 check_secret DJANGO_SECRET
+check_secret GH_USERNAME
 check_secret GH_PAT
 check_secret JWT_SECRET
 check_secret NEO_4J_LEDGER_SPACE_BOLT_URL
