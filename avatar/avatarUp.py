@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import sys
 import logging
 import os
@@ -8,6 +6,7 @@ from utils import read_file, write_file, get_directory_tree
 from responseParser import parse_llm_response
 from avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
+import asyncio
 
 # Configure logging
 logging.basicConfig(
@@ -175,7 +174,7 @@ async def main():
 
 if __name__ == "__main__":
     try:
-        main()
+        asyncio.run(main())
     except Exception as e:
         logger.critical(f"Critical error in main execution: {str(e)}")
         print("A critical error occurred in the main execution:")
