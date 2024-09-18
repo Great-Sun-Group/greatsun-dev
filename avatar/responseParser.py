@@ -31,7 +31,6 @@ def parse_llm_response(llm_response):
         line = lines[i].strip()
         logger.debug(f"Processing line: {line}")
 
-
         command_executed = False
         for cmd, pattern in command_patterns.items():
             match = re.match(pattern, line)
@@ -47,6 +46,9 @@ def parse_llm_response(llm_response):
 
                     elif cmd == 'write_file':
                         file_path = match.group(1)
+                        # Strip two versions of "/workspaces/greatsun-dev/" prefix if present
+                        file_path = file_path.replace("/workspaces/greatsun-dev/", "", 1)
+                        file_path = file_path.replace("workspaces/greatsun-dev/", "", 1)
                         content = '\n'.join(lines[i+1:])
                         end_index = content.find(
                             '[Content ends before the next operation or end of message]')

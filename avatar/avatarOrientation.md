@@ -28,9 +28,7 @@ Use the following command patterns for file operations:
 
 2. Write to a file:
    write_file/path/to/file.ext
-   [Content starts on the next line]
    File content goes here...
-   [Content ends before the next operation or end of message]
 
 3. List directory contents:
    list_directory/path/to/directory/
