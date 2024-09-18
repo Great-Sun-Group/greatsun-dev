@@ -1,12 +1,7 @@
-import re
-import os
-import logging
-import aiofiles
-from utils import read_file, write_file
+from utils import FileOperationQueue, perform_file_operation
 
-logger = logging.getLogger(__name__)
-
-async def parse_llm_response(conversation_thread, llm_response):
+def parse_llm_response(conversation_thread, llm_response):
+    file_op_queue = FileOperationQueue()
     file_operation_performed = False
     developer_input_required = False
     processed_response = []
@@ -29,93 +24,87 @@ async def parse_llm_response(conversation_thread, llm_response):
     for operation, pattern in patterns.items():
         matches = re.finditer(pattern, llm_response, re.DOTALL)
         for match in matches:
-            try:
-                if operation == 'read':
-                    path = os.path.abspath(match.group(1))
-                    content = await read_file(path)
-                    processed_response.append(f"Content of {path}:\n{content}")
-                    file_operation_performed = True
+            if operation == 'read':
+                path = os.path.abspath(match.group(1))
+                read_op = file_op_queue.add_operation('read', path)
+                # Add dependency: read operation depends on write operation to the same file
+                for op in file_op_queue.queue:
+                    if op.operation in ['write', 'append'] and op.args[0] == path:
+                        file_op_queue.add_dependency(read_op, op)
+            elif operation == 'write':
+                path, content = match.groups()
+                path = os.path.abspath(path)
+                file_op_queue.add_operation('write', path, content)
+            elif operation == 'append':
+                path, content = match.groups()
+                path = os.path.abspath(path)
+                file_op_queue.add_operation('append', path, content)
+            elif operation == 'delete':
+                path = os.path.abspath(match.group(1))
+                file_op_queue.add_operation('delete', path)
+            elif operation == 'rename' or operation == 'move':
+                current_path, new_path = match.groups()
+                current_path = os.path.abspath(current_path)
+                new_path = os.path.abspath(new_path)
+                file_op_queue.add_operation(operation, current_path, new_path)
+            elif operation == 'list_directory':
+                path = os.path.abspath(match.group(1))
+                file_op_queue.add_operation('list_directory', path)
+            elif operation == 'create_directory':
+                path = os.path.abspath(match.group(1))
+                file_op_queue.add_operation('create_directory', path)
+            elif operation == 'request_developer_action':
+                developer_input_required = True
+    
+    # Process all queued operations
+    results = file_op_queue.process_queue()
 
-                elif operation == 'write':
-                    path, content = match.groups()
-                    path = os.path.abspath(path)
-                    await write_file(path, content)
-                    processed_response.append(f"File written: {path}")
-                    file_operation_performed = True
-
-                elif operation == 'append':
-                    path, content = match.groups()
-                    path = os.path.abspath(path)
-                    async with aiofiles.open(path, 'a') as f:
-                        await f.write(content)
-                    processed_response.append(f"Content appended to: {path}")
-                    file_operation_performed = True
-
-                elif operation == 'delete':
-                    path = os.path.abspath(match.group(1))
-                    await aiofiles.os.remove(path)
-                    processed_response.append(f"File deleted: {path}")
-                    file_operation_performed = True
-
-                elif operation == 'rename':
-                    current_path, new_path = match.groups()
-                    current_path = os.path.abspath(current_path)
-                    new_path = os.path.abspath(new_path)
-                    await aiofiles.os.rename(current_path, new_path)
-                    processed_response.append(f"File renamed from {current_path} to {new_path}")
-                    file_operation_performed = True
-
-                elif operation == 'move':
-                    current_path, new_path = match.groups()
-                    current_path = os.path.abspath(current_path)
-                    new_path = os.path.abspath(new_path)
-                    await aiofiles.os.rename(current_path, new_path)  # Using rename for move operation
-                    processed_response.append(f"File moved from {current_path} to {new_path}")
-                    file_operation_performed = True
-
-                elif operation == 'list_directory':
-                    path = os.path.abspath(match.group(1))
-                    dir_contents = await aiofiles.os.listdir(path)
-                    processed_response.append(f"Contents of {path}:\n{', '.join(dir_contents)}")
-                    file_operation_performed = True
-
-                elif operation == 'create_directory':
-                    path = os.path.abspath(match.group(1))
-                    await aiofiles.os.makedirs(path, exist_ok=True)
-                    processed_response.append(f"Directory created: {path}")
-                    file_operation_performed = True
-
-                elif operation == 'request_developer_action':
-                    processed_response.append("Developer action required")
-                    developer_input_required = True
-
-            except Exception as e:
-                error_msg = f"Error performing {operation}: {str(e)}"
-                logger.error(error_msg)
-                processed_response.append(error_msg)
+    for op, result in results.items():
+        if op.operation == 'read':
+            processed_response.append(f"Content of {op.args[0]}:\n{result}")
+        elif op.operation == 'write':
+            processed_response.append(f"File written: {op.args[0]}")
+        elif op.operation == 'append':
+            processed_response.append(f"Content appended to: {op.args[0]}")
+        elif op.operation == 'delete':
+            processed_response.append(f"File deleted: {op.args[0]}")
+        elif op.operation in ['rename', 'move']:
+            processed_response.append(f"File {op.operation}d from {op.args[0]} to {op.args[1]}")
+        elif op.operation == 'list_directory':
+            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(result)}")
+        elif op.operation == 'create_directory':
+            processed_response.append(f"Directory created: {op.args[0]}")
+        
+        if result is not False:
+            file_operation_performed = True
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    conversation_thread = conversation_thread + "\n\n" + processed_response
+    conversation_thread = f"{conversation_thread}\n\n*** OPERATION RESULTS ***\n\n{processed_response}"
 
-    if developer_input_required or not file_operation_performed:
-        developer_input_required = True
+    # Check if developer input is required
+    if developer_input_required:
+        return conversation_thread, True
 
-    # Prepare response to developer
+    # Check if any file operation was performed
+    if not file_operation_performed:
+        # If no file operation was performed and no developer action was requested,
+        # we assume the AI's response is complete and requires developer input
+        return conversation_thread, True
+
+    # Prepare response to developer (for logging purposes)
     response_to_developer = llm_response
 
-    # Remove file contents of written files from the response
+    # Remove file contents of written files from the response (for logging purposes)
     for match in re.finditer(patterns['write'], llm_response, re.DOTALL):
         path, content = match.groups()
         if content:
             response_to_developer = response_to_developer.replace(content, f"[Content written to {path}]")
-    
-    print("\nAvatar:")
-    print(response_to_developer)
 
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.info(f"Developer input required: {developer_input_required}")
     logger.debug(f"Processed response:\n{processed_response}")
     logger.debug(f"Response to developer:\n{response_to_developer}")
 
-    return conversation_thread, developer_input_required
+    # Return the updated conversation thread and False to indicate no developer input is required
+    return conversation_thread, False

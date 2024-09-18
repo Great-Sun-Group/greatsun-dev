@@ -1,75 +1,92 @@
 import os
 import logging
-import aiofiles
+import time
 
-async def read_file(file_path):
-    """
-    Async function to read and return contents of a file, with solid error handling.
-    If passed the path to a directory, it checks that it is a directory, logs that, and returns a message.
+logger = logging.getLogger(__name__)
 
-    Args:
-    file_path (str): Path to the file or directory to be read
+class FileOperation:
+    def __init__(self, operation, *args):
+        self.operation = operation
+        self.args = args
+        self.dependencies = set()
 
-    Returns:
-    str: Contents of the file or a message indicating it's a directory
-    """
+class FileOperationQueue:
+    def __init__(self):
+        self.queue = deque()
+        self.results = {}
+
+    def add_operation(self, operation, *args):
+        op = FileOperation(operation, *args)
+        self.queue.append(op)
+        return op
+
+    def add_dependency(self, operation, dependency):
+        operation.dependencies.add(dependency)
+
+    def process_queue(self):
+        while self.queue:
+            op = self.queue.popleft()
+            if all(dep in self.results for dep in op.dependencies):
+                result = perform_file_operation(op.operation, *op.args)
+                self.results[op] = result
+                time.sleep(0.1)  # Small delay to allow file system to update
+            else:
+                self.queue.append(op)
+
+                path = match.group(1)
+                read_op = file_op_queue.add_operation('read', path)
+                # Add dependency: read operation depends on write operation to the same file
+                for op in file_op_queue.queue:
+                    if op.operation == 'write' and op.args[0] == path:
+                        file_op_queue.add_dependency(read_op, op)
+
+    # Process all queued operations
+    file_op_queue.process_queue()
+
+def read_file(file_path, max_attempts=5, delay=0.1):
     logging.info(f"Attempting to read file: {file_path}")
-    try:
-        if os.path.isdir(file_path):
-            logging.info(f"Attempted to read directory: {file_path}")
-            return f"The provided path is a directory: {file_path}"
+    for attempt in range(max_attempts):
+        try:
+            if os.path.isdir(file_path):
+                logging.info(f"Attempted to read directory: {file_path}")
+                return f"The provided path is a directory: {file_path}"
 
-        async with aiofiles.open(file_path, 'r') as file:
-            content = await file.read()
-        logging.info(f"Successfully read file: {file_path}")
-        return content
-    except FileNotFoundError:
-        logging.error(f"File not found: {file_path}")
-        return f"File not found: {file_path}"
-    except Exception as e:
-        logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
-        return f"Error reading file: {str(e)}"
+            with open(file_path, 'r') as file:
+                content = file.read()
+            logging.info(f"Successfully read file: {file_path}")
+            return content
+        except FileNotFoundError:
+            if attempt < max_attempts - 1:
+                time.sleep(delay)
+            else:
+                logging.error(f"File not found after {max_attempts} attempts: {file_path}")
+                return f"File not found: {file_path}"
+        except Exception as e:
+            logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
+            return f"Error reading file: {str(e)}"
 
-async def write_file(file_path, file_content, max_attempts=10, delay=0.1):
-    """
-    Async function that will create the file if it doesn't exist and write over what is there if it does exist,
-    with solid error handling and a confirmation step to ensure the file is readable after writing.
+def write_file(file_path, file_content, max_attempts=5, delay=0.1):
+    for attempt in range(max_attempts):
+        try:
+            os.makedirs(os.path.dirname(file_path), exist_ok=True)
+            with open(file_path, 'w') as file:
+                file.write(file_content)
+            
+            # Confirmation step
+            with open(file_path, 'r') as file:
+                file.read(1)  # Try to read at least one byte
+            logging.info(f"Successfully wrote to file and confirmed readability: {file_path}")
+            return True
+        except Exception as e:
+            if attempt < max_attempts - 1:
+                time.sleep(delay)
+            else:
+                logging.error(f"Error writing to file {file_path}: {str(e)}")
+                return False
 
-    Args:
-    file_path (str): Path to the file to be written
-    file_content (str): Content to be written to the file
-    max_attempts (int): Maximum number of attempts to confirm file readability
-    delay (float): Delay in seconds between confirmation attempts
-
-    Returns:
-    bool: True if write operation was successful and file is readable, False otherwise
-    """
-    try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        async with aiofiles.open(file_path, 'w') as file:
-            await file.write(file_content)
-        
-        # Confirmation step
-        for attempt in range(max_attempts):
-            try:
-                async with aiofiles.open(file_path, 'r') as file:
-                    await file.read(1)  # Try to read at least one byte
-                logging.info(f"Successfully wrote to file and confirmed readability: {file_path}")
-                return True
-            except FileNotFoundError:
-                if attempt < max_attempts - 1:
-                    await asyncio.sleep(delay)
-                else:
-                    logging.error(f"File {file_path} not readable after {max_attempts} attempts")
-                    return False
-    except Exception as e:
-        logging.error(f"Error writing to file {file_path}: {str(e)}")
-        return False
-
-async def get_directory_tree(path):
+def get_directory_tree(path):
     """
     Recursively get the directory structure as a dictionary, excluding irrelevant files and folders.
-    This function is asynchronous to avoid blocking the event loop during I/O operations.
 
     Args:
     path (str): Path to the directory
@@ -86,7 +103,7 @@ async def get_directory_tree(path):
     try:
         for entry in os.scandir(path):
             if entry.is_dir() and entry.name not in excluded_dirs:
-                subtree = await get_directory_tree(entry.path)
+                subtree = get_directory_tree(entry.path)
                 if subtree:  # Only add non-empty directories
                     tree[entry.name] = subtree
             elif entry.is_file():
@@ -95,10 +112,54 @@ async def get_directory_tree(path):
                     # Include only relevant file types
                     if entry.name.endswith(('.py', '.ts', '.js', '.json', '.yml', '.yaml', '.md', '.txt')):
                         tree[entry.name] = None
-            
-            # Yield control to the event loop periodically
-            await asyncio.sleep(0)
     except Exception as e:
         logging.error(f"Error getting directory tree for {path}: {str(e)}")
 
     return tree
+
+def perform_file_operation(operation, *args):
+    """
+    Function to perform various file operations with error handling and retries.
+
+    Args:
+    operation (str): The type of operation to perform ('read', 'write', 'append', 'delete', 'rename', 'move', 'list_directory', 'create_directory')
+    *args: Arguments specific to each operation
+
+    Returns:
+    Various: Depends on the operation performed
+    """
+    max_attempts = 3
+    delay = 0.1
+
+    for attempt in range(max_attempts):
+        try:
+            if operation == 'read':
+                return read_file(args[0])
+            elif operation == 'write':
+                return write_file(args[0], args[1])
+            elif operation == 'append':
+                with open(args[0], 'a') as f:
+                    f.write(args[1])
+                return True
+            elif operation == 'delete':
+                os.remove(args[0])
+                return True
+            elif operation in ['rename', 'move']:
+                os.rename(args[0], args[1])
+                return True
+            elif operation == 'list_directory':
+                return os.listdir(args[0])
+            elif operation == 'create_directory':
+                os.makedirs(args[0], exist_ok=True)
+                return True
+            else:
+                raise ValueError(f"Unknown operation: {operation}")
+        except Exception as e:
+            if attempt < max_attempts - 1:
+                time.sleep(delay)
+                delay *= 2  # Exponential backoff
+            else:
+                logging.error(f"Error performing {operation}: {str(e)}")
+                return False
+
+    return False  # This line should never be reached, but it's here for completeness

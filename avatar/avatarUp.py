@@ -6,7 +6,6 @@ from utils import read_file, write_file, get_directory_tree
 from responseParser import parse_llm_response
 from avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
-import asyncio
 
 # Configure logging
 logging.basicConfig(
@@ -28,13 +27,13 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
-async def main():
+def main():
     # Constants
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
     DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
     MAX_LLM_ITERATIONS = 7
     MODEL_NAME = "claude-3-5-sonnet-20240620"
-    SYSTEM_PROMPT = await read_file("responseInstructions.txt")
+    SYSTEM_PROMPT = read_file("responseInstructions.txt")
 
     # Initialize Anthropic client
     try:
@@ -47,72 +46,72 @@ async def main():
     first_run = True
     logger.info("Starting avatar environment")
     # Clear the context
-    await write_file("avatar/avatarConversation.txt", "ready for conversation")
+    write_file("avatar/avatarConversation.txt", "ready for conversation")
 
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("welcome to the greatsun-dev avatar environment.")
-    print("the text in avatar/messageFromDeveloper.md will be appended to")
+    print("Welcome to the greatsun-dev avatar environment.")
+    print("The text in avatar/messageFromDeveloper.md will be appended to")
     print("your message below and sent to greatsun-dev")
-    input(f"{greatsun_developer}: ")
-
+    
     while True:
-        terminal_input = input().strip()
+        if first_run or developer_input_required:
+            terminal_input = input(f"{greatsun_developer}: ").strip()
 
-        if terminal_input.lower() == "avatar down":
-            await write_file("avatar/avatarConversation.txt", "ready for conversation")
-            logger.info("Avatar conversation cleared")
-            logger.info("Avatar environment shutting down")
-            print("\ngreatsun-dev avatar, signing off\n\n")
-            break
+            if terminal_input.lower() == "avatar down":
+                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                logger.info("Avatar conversation cleared")
+                logger.info("Avatar environment shutting down")
+                print("\ngreatsun-dev avatar, signing off\n\n")
+                break
 
-        if terminal_input.lower() == "avatar commit":
-            try:
-                commit_id = cross_repo_commit()
-                if commit_id:
-                    await write_file("avatar/avatarConversation.txt", "ready for conversation")
-                    logger.info(f"Commit {commit_id} made and avatar cleared")
-                    print(f"Commit {commit_id} made and avatar cleared")
+            if terminal_input.lower() == "avatar commit":
+                try:
+                    commit_id = cross_repo_commit()
+                    if commit_id:
+                        write_file("avatar/avatarConversation.txt", "ready for conversation")
+                        logger.info(f"Commit {commit_id} made and avatar cleared")
+                        print(f"Commit {commit_id} made and avatar cleared")
+                        continue
+                except Exception as e:
+                    logger.error(f"Failed to perform cross-repo commit: {str(e)}")
+                    print("Failed to perform commit. Check logs for details.")
                     continue
-            except Exception as e:
-                logger.error(f"Failed to perform cross-repo commit: {str(e)}")
-                print("Failed to perform commit. Check logs for details.")
+
+            if terminal_input.lower() == "avatar clear":
+                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                logger.info("Avatar conversation cleared")
+                print("Conversation cleared")
+                first_run = True
                 continue
 
-        if terminal_input.lower() == "avatar clear":
-            await write_file("avatar/avatarConversation.txt", "ready for conversation")
-            logger.info("Avatar conversation cleared")
-            print("Conversation cleared")
-            first_run = True  # Reset the flag when clearing
-            continue
+            # Prepare the message from the developer
+            append_to_terminal_input = read_file("avatar/appendToTerminalInput.md")
+            trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
 
-        # Prepare the message from the developer
-        append_to_terminal_input = await read_file("avatar/appendToTerminalInput.md")
-        trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
-
-        if first_run:
-            # Prepare the full context for the LLM (first run)
-            avatar_up_content = [
-                await read_file("avatar/avatarOrientation.md"),
-                await read_file("avatar/responseInstructions.txt"),
-                "** This is the project README.md **",
-                await read_file("README.md"),
-                "** This is the credex-core submodule README.md **",
-                await read_file("credex-ecosystem/credex-core/README.md"),
-                "** This is the vimbiso-pay submodule README.md **",
-                await read_file("credex-ecosystem/vimbiso-pay/README.md"),
-                "** This is the current project **",
-                await read_file("avatar/currentProject.md"),
-                "** This is the full project structure **",
-                json.dumps(await get_directory_tree('/workspaces/greatsun-dev'), indent=2),
-                "** INITIAL DEVELOPER INSTRUCTIONS **",
-                trigger_message_content
-            ]
-            conversation_thread = "\n\n".join(avatar_up_content)
-            first_run = False
-            logger.info("First run context prepared")
-        else:
-            # add new terminal message to conversatin
-            conversation_thread = f"{conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
+            if first_run:
+                # Prepare the full context for the LLM (first run)
+                avatar_up_content = [
+                    read_file("avatar/avatarOrientation.md"),
+                    read_file("avatar/responseInstructions.txt"),
+                    "** This is the project README.md **",
+                    read_file("README.md"),
+                    "** This is the credex-core submodule README.md **",
+                    read_file("credex-ecosystem/credex-core/README.md"),
+                    "** This is the vimbiso-pay submodule README.md **",
+                    read_file("credex-ecosystem/vimbiso-pay/README.md"),
+                    "** This is the current project **",
+                    read_file("avatar/currentProject.md"),
+                    "** This is the full project structure **",
+                    json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
+                    "** INITIAL DEVELOPER INSTRUCTIONS **",
+                    trigger_message_content
+                ]
+                conversation_thread = "\n\n".join(avatar_up_content)
+                first_run = False
+                logger.info("First run context prepared")
+            else:
+                # Add new terminal message to conversation
+                conversation_thread = f"{conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
@@ -121,8 +120,7 @@ async def main():
                 logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
-                llm_call = await asyncio.to_thread(
-                    large_language_model.messages.create,
+                llm_call = large_language_model.messages.create(
                     model=MODEL_NAME,
                     max_tokens=4096,
                     temperature=0,
@@ -136,14 +134,14 @@ async def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                conversation_thread, developer_input_required = await parse_llm_response(conversation_thread, llm_response)
+                conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
                 print(conversation_thread)
 
-                # If developer input is required, save conversation thread and pause loop
+                # If developer input is required, save conversation thread and break the loop
                 if developer_input_required:
-                    await write_file("avatar/avatarConversation.txt", conversation_thread)
-                    logger.info("Waiting for developer response")
-                    input(f"{greatsun_developer}: ")
+                    write_file("avatar/avatarConversation.txt", conversation_thread)
+                    logger.info("Developer input required. Waiting for response.")
+                    print("\nDeveloper input required. Please provide your next instruction.")
                     break
 
                 # Else continue to the next iteration of the loop
@@ -155,23 +153,28 @@ async def main():
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
+                developer_input_required = True
                 break
         else:
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
-            await write_file("avatar/avatarConversation.txt", f"{conversation_thread}\n\n{final_response}")
+            write_file("avatar/avatarConversation.txt", f"{conversation_thread}\n\n{final_response}")
             print(final_response)
+            developer_input_required = True
+
+        if not developer_input_required:
+            # If no developer input is required, continue the loop
+            continue
 
         # Notify the developer
         print("\ngreatsun-dev is waiting for your next response")
-        print("enter it in the messageFromDeveloper.md file and press enter here")
-        print("or 'avatar down' to exit, 'avatar clear' to start a new conversation")
-
+        print("Enter your response below, or use one of the following commands:")
+        print("'avatar down' to exit, 'avatar clear' to start a new conversation, 'avatar commit' to commit changes")
 
 if __name__ == "__main__":
     try:
-        asyncio.run(main())
+        main()
     except Exception as e:
         logger.critical(f"Critical error in main execution: {str(e)}")
         print("A critical error occurred in the main execution:")
