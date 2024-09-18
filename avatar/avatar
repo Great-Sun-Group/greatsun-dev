@@ -1,2 +1,15 @@
-#!/bin/bash
-python3 /workspaces/greatsun-dev/avatar/avatarUp.py "$@"
+#!/usr/bin/env python3
+import sys
+import os
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Add the script directory to the Python path
+sys.path.insert(0, script_dir)
+
+# Import and run the main function from avatarUp.py
+from avatarUp import main
+
+if __name__ == "__main__":
+    main()

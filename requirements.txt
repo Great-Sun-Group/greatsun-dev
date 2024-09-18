@@ -1,1 +1,42 @@
-anthropic
+# Core dependencies
+flask==2.1.0
+requests==2.26.0
+python-dotenv==0.19.2
+
+# WhatsApp chatbot dependencies
+twilio==7.8.0
+
+# Database
+sqlalchemy==1.4.31
+
+# API interaction
+aiohttp==3.8.1
+
+# Utility
+pyyaml==6.0
+python-dateutil==2.8.2
+
+# Development and testing
+pytest==7.1.2
+black==22.3.0
+flake8==4.0.1
+
+# Logging
+loguru==0.6.0
+
+# For potential async operations
+asyncio==3.4.3
+
+# For environment management
+pipenv==2022.4.8
+
+# For potential data analysis
+pandas==1.4.2
+numpy==1.22.3
+
+# For potential machine learning tasks
+scikit-learn==1.0.2
+
+# For potential visualization
+matplotlib==3.5.1
+seaborn==0.11.2
