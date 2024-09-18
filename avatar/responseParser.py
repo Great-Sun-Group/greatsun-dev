@@ -17,17 +17,16 @@ def parse_llm_response(llm_response):
 
     # Define regex patterns for each operation
     patterns = {
-        'read': r'<read path="([^"]+)" />',
-        'write': r'<write path="([^"]+)">\s*([\s\S]*?)\s*</write>',
-        'append': r'<append path="([^"]+)">([\s\S]*?)</append>',
-        'delete': r'<delete path="([^"]+)" />',
-        'rename': r'<rename current_path="([^"]+)" new_path="([^"]+)" />',
-        'move': r'<move current_path="([^"]+)" new_path="([^"]+)" />',
-        'list_directory': r'<list_directory path="([^"]+)" />',
-        'create_directory': r'<create_directory path="([^"]+)" />',
+        'read': r'<read path=(?:")?([^">]+)(?:")? />',
+        'write': r'<write path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</write>',
+        'append': r'<append path=(?:")?([^">]+)(?:")?>([\s\S]*?)</append>',
+        'delete': r'<delete path=(?:")?([^">]+)(?:")? />',
+        'rename': r'<rename current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
+        'move': r'<move current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
+        'list_directory': r'<list_directory path=(?:")?([^">]+)(?:")? />',
+        'create_directory': r'<create_directory path=(?:")?([^">]+)(?:")? />',
         'request_developer_action': r'<request_developer_action=true>'
     }
-
     for operation, pattern in patterns.items():
         matches = re.finditer(pattern, llm_response, re.DOTALL)
         for match in matches:
@@ -92,6 +91,7 @@ def parse_llm_response(llm_response):
 
     # Write action results to conversation
     processed_response = '\n'.join(processed_response)
+    print(processed_response)
     write_file("avatar/avatarConversation.txt", conversation + "\n\n" + processed_response)
 
     # Prepare response to developer
