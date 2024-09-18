@@ -1,14 +1,12 @@
 Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you. When you send a message without any of the tags, the conversation will wait for developer input.
 
-<file_operations>
-  <read path="[file_path]" />
-  <write path="[file_path]">
-    [file_contents]
-  </write>
-  <append path="[file_path]">[content_to_append]</append>
-  <delete path="[file_path]" />
-  <rename current_path="[old_path]" new_path="[new_path]" />
-  <move current_path="[source_path]" new_path="[destination_path]" />
-  <list_directory path="[directory_path]" />
-  <create_directory path="[new_directory_path]" />
-</file_operations>
+<read path="[file_path]" />
+<write path="[file_path]">
+  [file_contents]
+</write>
+<append path="[file_path]">[content_to_append]</append>
+<delete path="[file_path]" />
+<rename current_path="[old_path]" new_path="[new_path]" />
+<move current_path="[source_path]" new_path="[destination_path]" />
+<list_directory path="[directory_path]" />
+<create_directory path="[new_directory_path]" />
