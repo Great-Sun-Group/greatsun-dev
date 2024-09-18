@@ -1,1 +1,0 @@
-we need the avatarUp.py script updated so that when enter is pressed the contents of avatar/messageFromDeveloper.md is appended to the message in the terminal and that combined content is sent to the LLM. we can remove the addition of a reference file. after the message is sent, clear the contents of messageFromDeveloper.md

@@ -58,16 +58,16 @@ def main():
     input(greatsun_developer)
 
     while True:
-        file_path = input().strip()
+        terminal_input = input().strip()
 
-        if file_path.lower() == "avatar down":
+        if terminal_input.lower() == "avatar down":
             write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             logger.info("Avatar environment shutting down")
             print("\ngreatsun-dev avatar, signing off\n\n")
             break
 
-        if file_path.lower() == "avatar commit":
+        if terminal_input.lower() == "avatar commit":
             try:
                 commit_id = cross_repo_commit()
                 if commit_id:
@@ -80,7 +80,7 @@ def main():
                 print("Failed to perform commit. Check logs for details.")
                 continue
 
-        if file_path.lower() == "avatar clear":
+        if terminal_input.lower() == "avatar clear":
             write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             print("Conversation cleared")
@@ -88,9 +88,8 @@ def main():
             continue
 
         # Prepare the message from the developer
-        message_from_developer = read_file("avatar/messageFromDeveloper.md")
-        reference_file_content = read_file(file_path) if file_path else "No reference file provided."
-        trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
+        append_to_terminal_input = read_file("avatar/appendToTerminalInput.md")
+        trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
 
         if first_run:
             # Prepare the full context for the LLM (first run)
@@ -107,9 +106,7 @@ def main():
                 read_file("avatar/currentProject.md"),
                 "** This is the full project structure **",
                 json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
-                "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **",
-                trigger_message_content,
-                "** END avatarUp message **\n"
+                "** INITIAL DEVELOPER INSTRUCTIONS **"
             ]
             conversation_thread = "\n\n".join(avatar_up_content)
             first_run = False
@@ -117,7 +114,7 @@ def main():
         else:
             # For subsequent runs, append to existing conversation
             existing_conversation = read_file("avatar/avatarConversation.txt")
-            conversation_thread = f"{existing_conversation}\n\n** New input from developer **\n\n{trigger_message_content}\n"
+            conversation_thread = f"{existing_conversation}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
             logger.info("Appended new input to existing conversation")
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
@@ -137,14 +134,13 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                print("Received response from LLM:")
-                conversation_thread = conversation_thread, "\n\n", llm_response
+                conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 write_file("avatar/avatarConversation.txt", conversation_thread)
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
                 conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
-
+                print(conversation_thread)
                 # Check if developer input is required or no file operations were performed
                 if developer_input_required:
                     write_file("avatar/avatarConversation.txt", conversation_thread)
