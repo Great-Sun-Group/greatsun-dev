@@ -2,9 +2,9 @@ import sys
 import logging
 import os
 import json
-from utils import read_file, write_file, get_directory_tree
-from responseParser import parse_llm_response
-from avatarUpCommands import cross_repo_commit
+from avatar.utils.file_operations import read_file, write_file, get_directory_tree
+from avatar.utils.responseParser import parse_llm_response
+from avatar.utils.avatarUpCommands import cross_repo_commit
 from anthropic import Anthropic
 
 # Configure logging
@@ -27,8 +27,10 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
+
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
+
 
 def main():
     # Constants
@@ -49,19 +51,21 @@ def main():
     first_run = True
     logger.info("Starting avatar environment")
     # Clear the context
-    write_file("avatar/avatarConversation.txt", "ready for conversation")
+    write_file("avatar/context/avatarConversation.txt",
+               "ready for conversation")
 
     clear_screen()
     print("Welcome to the greatsun-dev avatar environment.")
-    print("The text in avatar/messageFromDeveloper.md will be appended to")
+    print("The text in avatar/context/messageFromDeveloper.md will be appended to")
     print("your message below and sent to greatsun-dev")
-    
+
     while True:
         if first_run or developer_input_required:
             terminal_input = input(f"{greatsun_developer}: ").strip()
 
             if terminal_input.lower() == "avatar down":
-                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                write_file("avatar/context/avatarConversation.txt",
+                           "ready for conversation")
                 logger.info("Avatar conversation cleared")
                 logger.info("Avatar environment shutting down")
                 print("\ngreatsun-dev avatar, signing off\n\n")
@@ -71,17 +75,21 @@ def main():
                 try:
                     commit_id = cross_repo_commit()
                     if commit_id:
-                        write_file("avatar/avatarConversation.txt", "ready for conversation")
-                        logger.info(f"Commit {commit_id} made and avatar cleared")
+                        write_file("avatar/context/avatarConversation.txt",
+                                   "ready for conversation")
+                        logger.info(
+                            f"Commit {commit_id} made and avatar cleared")
                         print(f"Commit {commit_id} made and avatar cleared")
                         continue
                 except Exception as e:
-                    logger.error(f"Failed to perform cross-repo commit: {str(e)}")
+                    logger.error(
+                        f"Failed to perform cross-repo commit: {str(e)}")
                     print("Failed to perform commit. Check logs for details.")
                     continue
 
             if terminal_input.lower() == "avatar clear":
-                write_file("avatar/avatarConversation.txt", "ready for conversation")
+                write_file("avatar/context/avatarConversation.txt",
+                           "ready for conversation")
                 logger.info("Avatar conversation cleared")
                 clear_screen()
                 print("Conversation cleared")
@@ -89,13 +97,15 @@ def main():
                 continue
 
             # Prepare the message from the developer
-            append_to_terminal_input = read_file("avatar/appendToTerminalInput.md")
-            trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
+            append_to_terminal_input = read_file(
+                "avatar/appendToTerminalInput.md")
+            trigger_message_content = f"{terminal_input}\n\n{
+                append_to_terminal_input}"
 
             if first_run:
                 # Prepare the full context for the LLM (first run)
                 avatar_up_content = [
-                    read_file("avatar/avatarOrientation.md"),
+                    read_file("avatar/context/avatarOrientation.md"),
                     read_file("avatar/responseInstructions.txt"),
                     "** This is the project README.md **",
                     read_file("README.md"),
@@ -104,9 +114,10 @@ def main():
                     "** This is the vimbiso-pay submodule README.md **",
                     read_file("credex-ecosystem/vimbiso-pay/README.md"),
                     "** This is the current project **",
-                    read_file("avatar/currentProject.md"),
+                    read_file("avatar/context/currentProject.md"),
                     "** This is the full project structure **",
-                    json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
+                    json.dumps(get_directory_tree(
+                        '/workspaces/greatsun-dev'), indent=2),
                     "** INITIAL DEVELOPER INSTRUCTIONS **",
                     trigger_message_content
                 ]
@@ -115,13 +126,15 @@ def main():
                 logger.info("First run context prepared")
             else:
                 # Add new terminal message to conversation
-                conversation_thread = f"{conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
+                conversation_thread = f"{
+                    conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
+                logger.info(
+                    f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
@@ -134,18 +147,23 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
+                conversation_thread = f"{
+                    conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
+                conversation_thread, developer_input_required = parse_llm_response(
+                    conversation_thread, llm_response)
                 print(conversation_thread)
 
                 # If developer input is required, save conversation thread and break the loop
                 if developer_input_required:
-                    write_file("avatar/avatarConversation.txt", conversation_thread)
-                    logger.info("Developer input required. Waiting for response.")
-                    print("\nDeveloper input required. Please provide your next instruction.")
+                    write_file("avatar/context/avatarConversation.txt",
+                               conversation_thread)
+                    logger.info(
+                        "Developer input required. Waiting for response.")
+                    print(
+                        "\nDeveloper input required. Please provide your next instruction.")
                     break
 
                 # Else continue to the next iteration of the loop
@@ -153,7 +171,8 @@ def main():
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {
+                             iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -163,7 +182,8 @@ def main():
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
-            write_file("avatar/avatarConversation.txt", f"{conversation_thread}\n\n{final_response}")
+            write_file("avatar/context/avatarConversation.txt",
+                       f"{conversation_thread}\n\n{final_response}")
             print(final_response)
             developer_input_required = True
 
@@ -175,6 +195,7 @@ def main():
         print("\ngreatsun-dev is waiting for your next response")
         print("Enter your response below, or use one of the following commands:")
         print("'avatar down' to exit, 'avatar clear' to start a new conversation, 'avatar commit' to commit changes")
+
 
 if __name__ == "__main__":
     try:
