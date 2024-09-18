@@ -87,7 +87,7 @@ def main():
             first_run = True  # Reset the flag when clearing
             continue
 
-# Prepare the message from the developer
+        # Prepare the message from the developer
         message_from_developer = read_file("avatar/messageFromDeveloper.md")
         reference_file_content = read_file(file_path) if file_path else "No reference file provided."
         trigger_message_content = f"{message_from_developer}\n\nReference File: {file_path}\n\n{reference_file_content}"
@@ -97,10 +97,12 @@ def main():
             avatar_up_content = [
                 read_file("avatar/avatarOrientation.md"),
                 read_file("avatar/responseInstructions.py"),
+                """
                 "** This is the avatar/avatarUp.py script that will process the interactive loop you can use **",
                 read_file("avatar/avatarUp.py"),
                 "** This is avatar/responseParser.py that will parse your responses **",
                 read_file("avatar/responseParser.py"),
+                """
                 "** This is the project README.md **",
                 read_file("README.md"),
                 "** This is the credex-core submodule README.md **",
@@ -126,7 +128,7 @@ def main():
             write_file("avatar/avatarConversation.txt", updated_conversation)
             logger.info("Appended new input to existing conversation")
 
-        # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
+# START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = read_file("avatar/avatarConversation.txt")
@@ -148,21 +150,19 @@ def main():
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                processed_response, file_operation_performed = parse_llm_response(llm_response)
+                response_to_developer, file_operation_performed = parse_llm_response(llm_response)
 
-                print("\nProcessed response:")
-                print(processed_response)
+                print("\nResponse to developer:")
+                print(response_to_developer)
 
-                # Update conversation with processed response
-                updated_conversation = f"{llm_message}\n\n{processed_response}"
+                # Update conversation with response to developer
+                updated_conversation = f"{llm_message}\n\n{response_to_developer}"
                 write_file("avatar/avatarConversation.txt", updated_conversation)
 
-# Check if no file operations were performed
+                # Check if no file operations were performed
                 if not file_operation_performed:
                     print("No file operations performed, exiting LLM loop")
                     logger.info("No file operations performed, exiting LLM loop")
-                    print("\nAI response ready. Here's the final response:")
-                    print(processed_response)
                     break
 
                 # If file operations were performed, continue to the next iteration
@@ -185,7 +185,7 @@ def main():
 
         # Notify the developer
         print("\ngreatsun-dev is waiting for your next response")
-        print("Enter it in the messageFromDeveloper.md file and press enter here")
+        print("enter it in the messageFromDeveloper.md file and press enter here")
         print("or 'avatar down' to exit, 'avatar clear' to start a new conversation")
 
 

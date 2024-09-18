@@ -1,6 +1,5 @@
-Reply ONLY in XML format.
+Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you. When you send a message without any of the tags, the conversation will wait for developer input.
 
-Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and sent back to you.
 <file_operations>
   <read path="[file_path]" />
   <write path="[file_path]">[file_contents]</write>
@@ -11,8 +10,3 @@ Use the following tags to interact with the code base. When you use any of these
   <list_directory path="[directory_path]" />
   <create_directory path="[new_directory_path]" />
 </file_operations>
-
-Use the followng tag to share your thought processes, provide updates, request additional information, or summarize completed tasks.
-<message_to_developer>
-  [Your message to the developer]
-</message_to_developer>

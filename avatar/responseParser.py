@@ -86,10 +86,21 @@ def parse_llm_response(llm_response):
     if message_elem is not None and message_elem.text:
         processed_response.append(f"Message to developer: {message_elem.text}")
 
+    # Prepare response to developer
+    response_to_developer = llm_response
+
+    # Remove file contents of written files from the response
+    for operation in root.find('file_operations'):
+        if operation.tag == 'write':
+            path = operation.get('path')
+            content = operation.text
+            response_to_developer = response_to_developer.replace(content, f"[Content written to {path}]")
+
     processed_response = '\n'.join(processed_response)
     write_file("avatar/avatarConversation.txt", conversation + "\n\n" + processed_response)
 
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.debug(f"Processed response:\n{processed_response}")
+    logger.debug(f"Response to developer:\n{response_to_developer}")
 
-    return processed_response, file_operation_performed
+    return response_to_developer, file_operation_performed
