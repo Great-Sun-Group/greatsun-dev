@@ -14,7 +14,7 @@
 "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
 "postStartCommand": [
 "chmod +x /workspaces/greatsun-dev/avatar/avatarUp.py",
-"ln -s /workspaces/greatsun-dev/avatar/avatarUp.py /usr/local/bin/avatar"
+"ln -s /workspaces/greatsun-dev/avatar/avatarUp.py avatar"
 ],
 "remoteUser": "vscode"
 }
