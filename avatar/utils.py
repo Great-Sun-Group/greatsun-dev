@@ -12,6 +12,7 @@ def read_file(file_path):
     Returns:
     str: Contents of the file or a message indicating it's a directory
     """
+    logging.info(f"Attempting to read file: {file_path}")
     try:
         if os.path.isdir(file_path):
             logging.info(f"Attempted to read directory: {file_path}")
@@ -22,11 +23,11 @@ def read_file(file_path):
         logging.info(f"Successfully read file: {file_path}")
         return content
     except FileNotFoundError:
-        logging.error(f"File not found: {file_path}")
-        return f"File not found: {file_path}"
+           logging.error(f"File not found: {file_path}")
+           return f"File not found: {file_path}"
     except Exception as e:
-        logging.error(f"Error reading file {file_path}: {str(e)}")
-        return f"Error reading file: {str(e)}"
+           logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
+           return f"Error reading file: {str(e)}"
 
 
 def write_file(file_path, file_content):
