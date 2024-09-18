@@ -96,9 +96,10 @@ def main():
             # Prepare the full context for the LLM (first run)
             avatar_up_content = [
                 read_file("avatar/avatarOrientation.md"),
-                "** This is avatar/avatarUp.py **",
+                read_file("avatar/responseInstructions.py"),
+                "** This is the avatar/avatarUp.py script that will process the interactive loop you can use **",
                 read_file("avatar/avatarUp.py"),
-                "** This is avatar/responseParser.py **",
+                "** This is avatar/responseParser.py that will parse your responses **",
                 read_file("avatar/responseParser.py"),
                 "** This is the project README.md **",
                 read_file("README.md"),
@@ -108,10 +109,10 @@ def main():
                 read_file("credex-ecosystem/vimbiso-pay/README.md"),
                 "** This is the current project **",
                 read_file("avatar/currentProject.md"),
+                "** This is the full project structure **",
+                json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                 "** IMPORTANT IMPORTANT IMPORTANT: Current Instructions from Developer: the purpose of this conversation **",
                 trigger_message_content,
-                "Full Project Structure:",
-                json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                 "** END avatarUp message **\n"
             ]
             avatar_up = "\n\n".join(avatar_up_content)
