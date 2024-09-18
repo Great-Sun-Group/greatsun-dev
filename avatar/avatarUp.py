@@ -97,12 +97,6 @@ def main():
             avatar_up_content = [
                 read_file("avatar/avatarOrientation.md"),
                 read_file("avatar/responseInstructions.txt"),
-                """
-                "** This is the avatar/avatarUp.py script that will process the interactive loop you can use **",
-                read_file("avatar/avatarUp.py"),
-                "** This is avatar/responseParser.py that will parse your responses **",
-                read_file("avatar/responseParser.py"),
-                """
                 "** This is the project README.md **",
                 read_file("README.md"),
                 "** This is the credex-core submodule README.md **",
