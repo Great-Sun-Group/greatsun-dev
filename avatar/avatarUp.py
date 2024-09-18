@@ -44,14 +44,14 @@ except Exception as e:
     logger.error(f"Failed to initialize Anthropic client: {str(e)}")
     raise
 
-def main():
+async def main():
     """
     Main function to run the avatar environment.
     """
     first_run = True
     logger.info("Starting avatar environment")
     # Clear the context
-    write_file("avatar/avatarConversation.txt", "ready for conversation")
+    await write_file("avatar/avatarConversation.txt", "ready for conversation")
 
     os.system('cls' if os.name == 'nt' else 'clear')
     print("welcome to the greatsun-dev avatar environment.")
@@ -63,7 +63,7 @@ def main():
         terminal_input = input().strip()
 
         if terminal_input.lower() == "avatar down":
-            write_file("avatar/avatarConversation.txt", "ready for conversation")
+            await write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             logger.info("Avatar environment shutting down")
             print("\ngreatsun-dev avatar, signing off\n\n")
@@ -73,7 +73,7 @@ def main():
             try:
                 commit_id = cross_repo_commit()
                 if commit_id:
-                    write_file("avatar/avatarConversation.txt", "ready for conversation")
+                    await write_file("avatar/avatarConversation.txt", "ready for conversation")
                     logger.info(f"Commit {commit_id} made and avatar cleared")
                     print(f"Commit {commit_id} made and avatar cleared")
                     continue
@@ -83,29 +83,29 @@ def main():
                 continue
 
         if terminal_input.lower() == "avatar clear":
-            write_file("avatar/avatarConversation.txt", "ready for conversation")
+            await write_file("avatar/avatarConversation.txt", "ready for conversation")
             logger.info("Avatar conversation cleared")
             print("Conversation cleared")
             first_run = True  # Reset the flag when clearing
             continue
 
         # Prepare the message from the developer
-        append_to_terminal_input = read_file("avatar/appendToTerminalInput.md")
+        append_to_terminal_input = await read_file("avatar/appendToTerminalInput.md")
         trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
 
         if first_run:
             # Prepare the full context for the LLM (first run)
             avatar_up_content = [
-                read_file("avatar/avatarOrientation.md"),
-                read_file("avatar/responseInstructions.txt"),
+                await read_file("avatar/avatarOrientation.md"),
+                await read_file("avatar/responseInstructions.txt"),
                 "** This is the project README.md **",
-                read_file("README.md"),
+                await read_file("README.md"),
                 "** This is the credex-core submodule README.md **",
-                read_file("credex-ecosystem/credex-core/README.md"),
+                await read_file("credex-ecosystem/credex-core/README.md"),
                 "** This is the vimbiso-pay submodule README.md **",
-                read_file("credex-ecosystem/vimbiso-pay/README.md"),
+                await read_file("credex-ecosystem/vimbiso-pay/README.md"),
                 "** This is the current project **",
-                read_file("avatar/currentProject.md"),
+                await read_file("avatar/currentProject.md"),
                 "** This is the full project structure **",
                 json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                 "** INITIAL DEVELOPER INSTRUCTIONS **",
@@ -144,7 +144,7 @@ def main():
 
                 # Ff developer input is required, save conversation thread and pause loop
                 if developer_input_required:
-                    write_file("avatar/avatarConversation.txt", conversation_thread)
+                    await write_file("avatar/avatarConversation.txt", conversation_thread)
                     logger.info("Waiting for developer response")
                     input(greatsun_developer)
                     break
@@ -163,8 +163,8 @@ def main():
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
-            avatar_conversation = read_file("avatar/avatarConversation.txt")
-            write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
+            avatar_conversation = await read_file("avatar/avatarConversation.txt")
+            await write_file("avatar/avatarConversation.txt", f"{avatar_conversation}\n\n{final_response}")
             print(final_response)
 
         # Notify the developer

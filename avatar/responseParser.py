@@ -6,7 +6,7 @@ from utils import read_file, write_file
 
 logger = logging.getLogger(__name__)
 
-def parse_llm_response(conversation_thread, llm_response):
+async def parse_llm_response(conversation_thread, llm_response):
     file_operation_performed = False
     developer_input_required = False
     processed_response = []
@@ -32,13 +32,13 @@ def parse_llm_response(conversation_thread, llm_response):
             try:
                 if operation == 'read':
                     path = match.group(1)
-                    content = read_file(path)
+                    content = await read_file(path)
                     processed_response.append(f"Content of {path}:\n{content}")
                     file_operation_performed = True
 
                 elif operation == 'write':
                     path, content = match.groups()
-                    write_file(path, content)
+                    await write_file(path, content)
                     processed_response.append(f"File written: {path}")
                     file_operation_performed = True
 

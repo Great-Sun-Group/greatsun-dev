@@ -1,9 +1,10 @@
 import os
 import logging
+import aiofiles
 
-def read_file(file_path):
+async def read_file(file_path):
     """
-    Robust function to read and return contents of a file, with solid error handling.
+    Async function to read and return contents of a file, with solid error handling.
     If passed the path to a directory, it checks that it is a directory, logs that, and returns a message.
 
     Args:
@@ -18,21 +19,20 @@ def read_file(file_path):
             logging.info(f"Attempted to read directory: {file_path}")
             return f"The provided path is a directory: {file_path}"
 
-        with open(file_path, 'r') as file:
-            content = file.read()
+        async with aiofiles.open(file_path, 'r') as file:
+            content = await file.read()
         logging.info(f"Successfully read file: {file_path}")
         return content
     except FileNotFoundError:
-           logging.error(f"File not found: {file_path}")
-           return f"File not found: {file_path}"
+        logging.error(f"File not found: {file_path}")
+        return f"File not found: {file_path}"
     except Exception as e:
-           logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
-           return f"Error reading file: {str(e)}"
+        logging.error(f"Error reading file {file_path}: {str(e)}", exc_info=True)
+        return f"Error reading file: {str(e)}"
 
-
-def write_file(file_path, file_content):
+async def write_file(file_path, file_content):
     """
-    Robust function that will create the file if it doesn't exist and write over what is there if it does exist,
+    Async function that will create the file if it doesn't exist and write over what is there if it does exist,
     with solid error handling.
 
     Args:
@@ -44,14 +44,13 @@ def write_file(file_path, file_content):
     """
     try:
         os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as file:
-            file.write(file_content)
+        async with aiofiles.open(file_path, 'w') as file:
+            await file.write(file_content)
         logging.info(f"Successfully wrote to file: {file_path}")
         return True
     except Exception as e:
         logging.error(f"Error writing to file {file_path}: {str(e)}")
         return False
-
 
 def get_directory_tree(path):
     """
