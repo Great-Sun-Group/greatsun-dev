@@ -55,7 +55,7 @@ def main():
     print("welcome to the greatsun-dev avatar environment.")
     print("the text in avatar/messageFromDeveloper.md will be appended to")
     print("your message below and sent to greatsun-dev")
-    input(greatsun_developer)
+    input(f"{greatsun_developer}: ")
 
     while True:
         terminal_input = input().strip()
