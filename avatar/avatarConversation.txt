@@ -1240,3 +1240,117 @@ if __name__ == "__main__":
 File written: /workspaces/greatsun-dev/avatar/avatar
 File written: /workspaces/greatsun-dev/.devcontainer/devcontainer.json
 File written: /workspaces/greatsun-dev/avatar/avatarUp.py
+
+*** DEVELOPER INSTRUCTIONS ***
+
+that errored in a newly built codespaces: @ryanlukewatson ➜ /workspaces/greatsun-dev (recovered) $ avatar upbash: avatar: command not found  does it have something to do with the path not being set?
+
+__
+
+
+*** LLM RESPONSE ***
+
+I apologize for the oversight. You're correct that the issue is likely related to the path not being set correctly. Let's fix this by modifying the `.devcontainer/devcontainer.json` file to ensure the `avatar` command is available system-wide.
+
+Let's update the `.devcontainer/devcontainer.json` file:
+
+<read path=".devcontainer/devcontainer.json" />
+
+Now, let's modify it to add the avatar script to the system PATH:
+
+<write path=".devcontainer/devcontainer.json">
+{
+  "name": "greatsun-dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
+  "postStartCommand": [
+    "chmod +x /workspaces/greatsun-dev/avatar/avatar",
+    "chmod +x /workspaces/greatsun-dev/avatar/avatarUp.py",
+    "sudo ln -s /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar"
+  ],
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "username": "vscode",
+      "upgradePackages": "true"
+    }
+  },
+  "containerEnv": {
+    "PATH": "${containerEnv:PATH}:/workspaces/greatsun-dev/avatar"
+  }
+}
+</write>
+
+These changes do the following:
+
+1. We've added `sudo` to the `ln` command in the `postStartCommand` to ensure we have the necessary permissions to create the symlink in `/usr/local/bin`.
+2. We've added a `containerEnv` section that appends the `/workspaces/greatsun-dev/avatar` directory to the system PATH.
+
+Now, let's also update the `avatar/avatar` script to ensure it's using the correct Python interpreter:
+
+<write path="avatar/avatar">
+#!/usr/bin/env python3
+import sys
+import os
+
+# Get the directory of the current script
+script_dir = os.path.dirname(os.path.abspath(__file__))
+
+# Add the script directory to the Python path
+sys.path.insert(0, script_dir)
+
+# Import and run the main function from avatarUp.py
+from avatarUp import main
+
+if __name__ == "__main__":
+    main()
+</write>
+
+These changes should resolve the "command not found" error and ensure that the `avatar` command is available system-wide in your Codespace.
+
+<request_developer_action=true>
+To apply these changes:
+
+1. Commit these changes to your repository.
+2. Rebuild your Codespace completely (you may need to delete and recreate it).
+3. Once the new Codespace is up, try running `avatar up` again.
+
+Please let me know if this resolves the issue or if you encounter any other problems.
+
+*** OPERATION RESULTS ***
+
+Content of /workspaces/greatsun-dev/.devcontainer/devcontainer.json:
+{
+  "name": "greatsun-dev",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-azuretools.vscode-docker"
+      ]
+    }
+  },
+  "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
+  "postStartCommand": [
+    "chmod +x /workspaces/greatsun-dev/avatar/avatar",
+    "chmod +x /workspaces/greatsun-dev/avatar/avatarUp.py",
+    "ln -s /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar"
+  ],
+  "remoteUser": "vscode"
+}
+File written: /workspaces/greatsun-dev/.devcontainer/devcontainer.json
+File written: /workspaces/greatsun-dev/avatar/avatar

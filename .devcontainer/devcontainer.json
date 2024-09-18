@@ -15,7 +15,17 @@
   "postStartCommand": [
     "chmod +x /workspaces/greatsun-dev/avatar/avatar",
     "chmod +x /workspaces/greatsun-dev/avatar/avatarUp.py",
-    "ln -s /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar"
+    "sudo ln -s /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar"
   ],
-  "remoteUser": "vscode"
+  "remoteUser": "vscode",
+  "features": {
+    "ghcr.io/devcontainers/features/common-utils:2": {
+      "installZsh": "true",
+      "username": "vscode",
+      "upgradePackages": "true"
+    }
+  },
+  "containerEnv": {
+    "PATH": "${containerEnv:PATH}:/workspaces/greatsun-dev/avatar"
+  }
 }
