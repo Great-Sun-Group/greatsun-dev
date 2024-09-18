@@ -50,6 +50,8 @@ def main():
     """
     first_run = True
     logger.info("Starting avatar environment")
+    # Clear the context
+    write_file("avatar/avatarConversation.txt", "ready for conversation")
 
     os.system('cls' if os.name == 'nt' else 'clear')
     print("welcome to the greatsun-dev avatar environment.")
@@ -113,10 +115,8 @@ def main():
             first_run = False
             logger.info("First run context prepared")
         else:
-            # For subsequent runs, append to existing conversation
-            existing_conversation = read_file("avatar/avatarConversation.txt")
-            conversation_thread = f"{existing_conversation}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
-            logger.info("Appended new input to existing conversation")
+            # add new terminal message to conversatin
+            conversation_thread = f"{conversation_thread}\n\n*** DEVELOPER INSTRUCTIONS ***\n\n{trigger_message_content}\n"
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
@@ -136,20 +136,20 @@ def main():
                 )
                 llm_response = llm_call.content[0].text
                 conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
-                write_file("avatar/avatarConversation.txt", conversation_thread)
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
                 conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
                 print(conversation_thread)
-                # Check if developer input is required or no file operations were performed
+
+                # Ff developer input is required, save conversation thread and pause loop
                 if developer_input_required:
                     write_file("avatar/avatarConversation.txt", conversation_thread)
                     logger.info("Waiting for developer response")
                     input(greatsun_developer)
                     break
 
-                # If file operations were performed, continue to the next iteration
+                # Else continue to the next iteration of the loop
                 print("Continuing to next iteration")
                 logger.info("Continuing to next iteration")
 
