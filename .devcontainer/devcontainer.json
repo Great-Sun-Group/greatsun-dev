@@ -1,8 +1,6 @@
 {
   "name": "greatsun-dev",
-  "build": {
-    "dockerfile": "Dockerfile"
-  },
+  "image": "mcr.microsoft.com/devcontainers/python:3",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -11,11 +9,6 @@
       ]
     }
   },
-  "postCreateCommand": "pip install -r /workspaces/greatsun-dev/requirements.txt",
-  "postStartCommand": [
-    "chmod +x /workspaces/greatsun-dev/avatar/avatar",
-    "chmod +x /workspaces/greatsun-dev/avatar/avatarUp.py",
-    "sudo ln -sf /workspaces/greatsun-dev/avatar/avatar /usr/local/bin/avatar"
-  ],
+  "postCreateCommand": "pip install -r requirements.txt",
   "remoteUser": "vscode"
 }
