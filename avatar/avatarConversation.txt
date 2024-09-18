@@ -113,14 +113,14 @@ except IOError as e:
 
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
-GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
+DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
 MAX_LLM_ITERATIONS = 7
 MODEL_NAME = "claude-3-5-sonnet-20240620"
 
 # Initialize Anthropic client
 try:
     large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
-    greatsun_developer = GITHUB_USERNAME
+    greatsun_developer = DEVELOPER_GITHUB_USERNAME
 except Exception as e:
     logger.error(f"Failed to initialize Anthropic client: {str(e)}")
     raise
@@ -712,7 +712,7 @@ To set up this project in GitHub Codespaces:
    ```
 3. Set up the required environment variables in your Codespaces environment:
    - CLAUDE: Your Anthropic API key
-   - GITHUB_USERNAME: Your GitHub username
+   - DEVELOPER_GITHUB_USERNAME: Your GitHub username
 4. Run `avatar up` in the terminal to start the avatar environment.
 
 If you encounter any issues, please check the following:
@@ -854,7 +854,7 @@ Next steps:
 
 1. Make sure you've set the required environment variables in your Codespaces environment:
 - CLAUDE: Your Anthropic API key
-- GITHUB_USERNAME: Your GitHub username
+- DEVELOPER_GITHUB_USERNAME: Your GitHub username
 
 2. Try running the avatar again using the command `avatar up` in the terminal.
 

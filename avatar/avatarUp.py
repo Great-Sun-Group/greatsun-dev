@@ -31,14 +31,15 @@ except IOError as e:
 
 # Constants
 ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
-GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
+DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
 MAX_LLM_ITERATIONS = 7
 MODEL_NAME = "claude-3-5-sonnet-20240620"
+SYSTEM_PROMPT = read_file("responseInstructions.txt")
 
 # Initialize Anthropic client
 try:
     large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
-    greatsun_developer = GITHUB_USERNAME
+    greatsun_developer = DEVELOPER_GITHUB_USERNAME
 except Exception as e:
     logger.error(f"Failed to initialize Anthropic client: {str(e)}")
     raise
@@ -52,10 +53,9 @@ def main():
     logger.info("Starting avatar environment")
 
     os.system('cls' if os.name == 'nt' else 'clear')
-    print("Welcome to the greatsun-dev avatar environment")
-    print("Enter your instructions or questions in avatar/messageFromDeveloper.md")
-    print("Then press enter here in the terminal, or you can first")
-    print("optionally paste a file path as a starting point for my work")
+    print("welcome to the greatsun-dev avatar environment.")
+    print("the text in avatar/messageFromDeveloper.md will be appended to")
+    print("your message below and sent to greatsun-dev")
     print(f"{greatsun_developer}: ")
 
     while True:
@@ -140,10 +140,10 @@ def main():
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
-                    model="claude-3-opus-20240229",
+                    model=MODEL_NAME,
                     max_tokens=4096,
                     temperature=0,
-                    system="reply only in xml and nothing else, with this required tag: <response_to_developer> and these optional tags: <read_file_path>, <write_file_path>, <write_file_contents>, <list_directory_path>, <delete_file_path>, <rename__or_move_file_current_path>, <rename__or_move_file_new_path>.",
+                    system=SYSTEM_PROMPT,
                     messages=[
                         {"role": "user", "content": llm_message}
                     ]
