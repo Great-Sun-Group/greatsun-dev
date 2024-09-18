@@ -140,8 +140,10 @@ def main():
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
-                    model=MODEL_NAME,
+                    model="claude-3-opus-20240229",
                     max_tokens=4096,
+                    temperature=0,
+                    system="When you need to read a file, use the exact format 'read file: [filepath]'. For example: read file: path/to/file.txt in your response. When you need to write a file, use the exact format 'write file: [filepath] \n ******* file contents *******'. For example: write file: path/to/file.html \n ******* <html><body>content here</body></html> \n *******",
                     messages=[
                         {"role": "user", "content": llm_message}
                     ]
