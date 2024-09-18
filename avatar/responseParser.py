@@ -9,6 +9,7 @@ logger = logging.getLogger(__name__)
 def parse_llm_response(llm_response):
     conversation = read_file("avatar/avatarConversation.txt")
     file_operation_performed = False
+    developer_input_required = False
     processed_response = []
 
     logger.info("Starting to process LLM response")
@@ -23,7 +24,8 @@ def parse_llm_response(llm_response):
         'rename': r'<rename current_path="([^"]+)" new_path="([^"]+)" />',
         'move': r'<move current_path="([^"]+)" new_path="([^"]+)" />',
         'list_directory': r'<list_directory path="([^"]+)" />',
-        'create_directory': r'<create_directory path="([^"]+)" />'
+        'create_directory': r'<create_directory path="([^"]+)" />',
+        'developer_action': r'<developer_action>([\s\S]*?)</developer_action>'
     }
 
     for operation, pattern in patterns.items():
@@ -79,6 +81,11 @@ def parse_llm_response(llm_response):
                     processed_response.append(f"Directory created: {path}")
                     file_operation_performed = True
 
+                elif operation == 'developer_action':
+                    action_content = match.group(1)
+                    processed_response.append(f"Developer action required: {action_content}")
+                    developer_input_required = True
+
             except Exception as e:
                 error_msg = f"Error performing {operation}: {str(e)}"
                 logger.error(error_msg)
@@ -97,7 +104,8 @@ def parse_llm_response(llm_response):
     write_file("avatar/avatarConversation.txt", conversation + "\n\n" + processed_response)
 
     logger.info(f"File operation performed: {file_operation_performed}")
+    logger.info(f"Developer input required: {developer_input_required}")
     logger.debug(f"Processed response:\n{processed_response}")
     logger.debug(f"Response to developer:\n{response_to_developer}")
 
-    return response_to_developer, file_operation_performed
+    return response_to_developer, file_operation_performed, developer_input_required
