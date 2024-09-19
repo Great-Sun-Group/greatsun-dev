@@ -8,8 +8,24 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Add the script directory to the Python path
 sys.path.insert(0, script_dir)
 
-# Import and run the main function from avatarUp.py
-from avatarUp import main
+# Import the main function from avatarUp.py
+from avatarUp import main as avatar_up
+
+def main():
+    if len(sys.argv) < 2:
+        print("Usage: avatar [up|down]")
+        sys.exit(1)
+
+    command = sys.argv[1]
+
+    if command == "up":
+        avatar_up()
+    elif command == "down":
+        print("Avatar is shutting down...")
+        # Add any cleanup or shutdown logic here if needed
+    else:
+        print(f"Unknown command: {command}")
+        print("Usage: avatar [up|down]")
 
 if __name__ == "__main__":
     main()
