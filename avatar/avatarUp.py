@@ -176,27 +176,16 @@ def main():
         "** INITIAL DEVELOPER INSTRUCTIONS **",
     ]
     conversation_thread = "\n\n".join(avatarUp_content)
-    write_file("avatar/conversation_thread.txt", conversation_thread)
+    write_file("avatar/context/conversation_thread.txt", conversation_thread)
     logger.info("Initial context prepared")
     clear_screen()
     print("greatsun-dev: welcome to your development environment. how can I help you?")
 
     while True:
-        print("\ngreatsun-dev is waiting for your next response")
-        print("Enter your response below, or use one of the following commands:")
-        print("'avatar down' to exit, 'avatar clear' to start a new conversation, 'avatar commit' to commit changes")
-        print(
-            "'avatar create branch [branch_name]' to create a new branch, 'avatar checkout [branch_name]' to checkout a branch")
-        print("'avatar merge to dev' to merge the current branch into dev across all repos")
-
         terminal_input = input(f"{greatsun_developer}: ").strip()
 
         if terminal_input.lower() == "avatar down":
-            write_file("avatar/context/conversation_thread.txt",
-                       "ready for conversation")
-            logger.info("Avatar conversation cleared")
-            logger.info("Avatar environment shutting down")
-            print("\ngreatsun-dev avatar, signing off\n\n")
+            print("greatsun-dev avatar, signing off")
             break
 
         if terminal_input.lower() == "avatar commit":
@@ -253,10 +242,12 @@ def main():
             continue
 
         # Add new terminal message to conversation
-        conversation_thread = read_file("avatar/conversation_thread.txt")
+        conversation_thread = read_file(
+            "avatar/context/conversation_thread.txt")
         conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
             terminal_input}"
-        write_file("avatar/conversation_thread.txt", conversation_thread)
+        write_file("avatar/context/conversation_thread.txt",
+                   conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
@@ -283,7 +274,7 @@ def main():
                 # Process the LLM response
                 conversation_thread, developer_input_required, terminal_output = parse_llm_response(
                     conversation_thread, llm_response)
-                write_file("avatar/conversation_thread.txt",
+                write_file("avatar/context/conversation_thread.txt",
                            conversation_thread)
 
                 print(terminal_output)
@@ -313,7 +304,8 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
-            write_file("avatar/conversation_thread.txt", conversation_thread)
+            write_file("avatar/context/conversation_thread.txt",
+                       conversation_thread)
             print(final_response)
 
 
