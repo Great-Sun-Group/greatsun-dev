@@ -1,5 +1,3 @@
-from utils.responseParser import parse_llm_response
-from utils.file_operations import read_file, write_file, get_directory_tree
 import sys
 import logging
 import os
@@ -7,10 +5,7 @@ import json
 import subprocess
 import uuid
 import site
-
-# Add user site-packages to Python path
-user_site_packages = site.getusersitepackages()
-sys.path.append(user_site_packages)
+import importlib.util
 
 # Configure logging
 logging.basicConfig(
@@ -23,13 +18,33 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Add user site-packages to Python path
+user_site_packages = site.getusersitepackages()
+sys.path.append(user_site_packages)
+
 # Diagnostic information
 print(f"Python version: {sys.version}")
 print(f"Python executable: {sys.executable}")
 print(f"User site-packages: {user_site_packages}")
 print(f"Python path: {sys.path}")
 
-# Try to import anthropic with error handling
+def install_package(package_name):
+    try:
+        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        print(f"Successfully installed {package_name}")
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install {package_name}: {e}")
+        return False
+
+# Check if anthropic is installed, if not, install it
+if importlib.util.find_spec("anthropic") is None:
+    print("anthropic package not found. Attempting to install...")
+    if not install_package("anthropic"):
+        print("Failed to install anthropic. Please install it manually and try again.")
+        sys.exit(1)
+
+# Now try to import anthropic
 try:
     print("Attempting to import anthropic...")
     import anthropic
@@ -46,13 +61,16 @@ except ImportError as e:
         print(f"Anthropic location: {anthropic_dist.location}")
     except Exception as pkg_error:
         print(f"Error getting package information: {pkg_error}")
+    sys.exit(1)
 
+# Import other required modules
+from utils.responseParser import parse_llm_response
+from utils.file_operations import read_file, write_file, get_directory_tree
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 # Git operation functions
-
 
 def execute_git_command(repo, command):
     repo_dirs = {
@@ -74,7 +92,6 @@ def execute_git_command(repo, command):
         logger.error(f"Error executing git command in {repo}: {e}")
         return False
 
-
 def create_branches(branch_name):
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     for repo in repos:
@@ -84,14 +101,12 @@ def create_branches(branch_name):
             return False
     return True
 
-
 def checkout_branches(branch_name):
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {branch_name}"):
             return False
     return True
-
 
 def push_changes(commit_message):
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
@@ -104,7 +119,6 @@ def push_changes(commit_message):
         if not execute_git_command(repo, "git push origin HEAD"):
             return False
     return True
-
 
 def merge_to_dev():
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
@@ -119,20 +133,17 @@ def merge_to_dev():
         if not execute_git_command(repo, "git pull origin dev"):
             return False
         if not execute_git_command(repo, f"git merge {current_branch}"):
-            print(f"Merge conflict in {
-                  repo}. Please resolve conflicts manually and complete the merge.")
+            print(f"Merge conflict in {repo}. Please resolve conflicts manually and complete the merge.")
             return False
         if not execute_git_command(repo, "git push origin dev"):
             return False
-        print(f"Changes merged to dev branch in {
-              repo}. Please create a pull request manually if needed.")
+        print(f"Changes merged to dev branch in {repo}. Please create a pull request manually if needed.")
 
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {current_branch}"):
             return False
 
     return True
-
 
 def main():
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
@@ -192,8 +203,7 @@ def main():
             try:
                 commit_message = input("Enter commit message: ")
                 if push_changes(commit_message):
-                    write_file("avatar/context/conversation_thread.txt",
-                               "ready for conversation")
+                    write_file("avatar/context/conversation_thread.txt", "ready for conversation")
                     logger.info(f"Commit made and avatar cleared")
                     print(f"Commit made and avatar cleared")
                 else:
@@ -205,14 +215,11 @@ def main():
                 continue
 
         if terminal_input.lower().startswith("avatar create branch"):
-            branch_name = terminal_input.split(
-                "avatar create branch", 1)[1].strip()
+            branch_name = terminal_input.split("avatar create branch", 1)[1].strip()
             if create_branches(branch_name):
-                print(f"Created and checked out new branch '{
-                      branch_name}' in all repos")
+                print(f"Created and checked out new branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to create branch '{
-                      branch_name}'. Check logs for details.")
+                print(f"Failed to create branch '{branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower().startswith("avatar checkout"):
@@ -220,8 +227,7 @@ def main():
             if checkout_branches(branch_name):
                 print(f"Checked out branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to checkout branch '{
-                      branch_name}'. Check logs for details.")
+                print(f"Failed to checkout branch '{branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower() == "avatar merge to dev":
@@ -233,28 +239,22 @@ def main():
 
         if terminal_input.lower() == "avatar clear":
             conversation_thread = "\n\n".join(avatarUp_content)
-            write_file("avatar/context/conversation_thread.txt",
-                       conversation_thread)
-            logger.info(
-                "Avatar conversation cleared and reset to initial context")
+            write_file("avatar/context/conversation_thread.txt", conversation_thread)
+            logger.info("Avatar conversation cleared and reset to initial context")
             clear_screen()
             print("Conversation cleared and reset to initial context")
             continue
 
         # Add new terminal message to conversation
-        conversation_thread = read_file(
-            "avatar/context/conversation_thread.txt")
-        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
-            terminal_input}"
-        write_file("avatar/context/conversation_thread.txt",
-                   conversation_thread)
+        conversation_thread = read_file("avatar/context/conversation_thread.txt")
+        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
+        write_file("avatar/context/conversation_thread.txt", conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                logger.info(
-                    f"Sending message to LLM (iteration {iteration + 1})")
+                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
@@ -267,31 +267,25 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
-                    llm_response}"
+                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
                 conversation_thread, developer_input_required, terminal_output = parse_llm_response(
                     conversation_thread, llm_response)
-                write_file("avatar/context/conversation_thread.txt",
-                           conversation_thread)
+                write_file("avatar/context/conversation_thread.txt", conversation_thread)
 
                 print(terminal_output)
 
                 if developer_input_required:
-                    logger.info(
-                        "Developer input required. Waiting for response.")
-                    print(
-                        "\nDeveloper input required. Please provide your next instruction.")
+                    logger.info("Developer input required. Waiting for response.")
+                    print("\nDeveloper input required. Please provide your next instruction.")
                     break
 
                 # If no developer input is required, but there's no more to do, also break
                 if not terminal_output.strip():
-                    logger.info(
-                        "No more actions to perform. Waiting for next instruction.")
-                    print(
-                        "\nNo more actions to perform. Please provide your next instruction.")
+                    logger.info("No more actions to perform. Waiting for next instruction.")
+                    print("\nNo more actions to perform. Please provide your next instruction.")
                     break
 
                 # If there are more actions to perform, continue to the next iteration
@@ -299,8 +293,7 @@ def main():
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {
-                             iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -311,10 +304,8 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
-            write_file("avatar/context/conversation_thread.txt",
-                       conversation_thread)
+            write_file("avatar/context/conversation_thread.txt", conversation_thread)
             print(final_response)
-
 
 if __name__ == "__main__":
     try:
