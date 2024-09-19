@@ -1,8 +1,12 @@
-# greatsun-dev README
+# greatsun-dev
 
-Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client.
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client. This container is managed by an AI avatar called greatsun-dev. The avatar *is* the development environment, launched with `avatar up` in your terminal. Once launched, you can can communicate through the avatar script with an underlying large language model (LLM) by typing into the terminal or at the bottom of the [conversation_thread](/workspaces/greatsun-dev/avatar/context/conversation_thread.txt). 
 
-This container is managed by an AI avatar called greatsun-dev. The avatar *is* the development environment. It has access to:
+The avatar script gives the LLM iterative access to the project code bases.
+
+
+
+It has access to:
   - the full scope of multiple underlying LLMs,
   - our current codebases and commit histories,
   - and the logged conversations that members of the dev team have had with the LLMs.

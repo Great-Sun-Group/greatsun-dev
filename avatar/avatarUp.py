@@ -1,3 +1,5 @@
+from utils.file_operations import read_file, write_file, get_directory_tree
+from utils.responseParser import parse_llm_response
 import sys
 import logging
 import os
@@ -6,6 +8,7 @@ import subprocess
 import uuid
 import site
 import importlib.util
+from typing import Tuple, List
 
 # Configure logging
 logging.basicConfig(
@@ -28,14 +31,17 @@ print(f"Python executable: {sys.executable}")
 print(f"User site-packages: {user_site_packages}")
 print(f"Python path: {sys.path}")
 
-def install_package(package_name):
+
+def install_package(package_name: str) -> bool:
     try:
-        subprocess.check_call([sys.executable, "-m", "pip", "install", package_name])
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package_name])
         print(f"Successfully installed {package_name}")
         return True
     except subprocess.CalledProcessError as e:
         print(f"Failed to install {package_name}: {e}")
         return False
+
 
 # Check if anthropic is installed, if not, install it
 if importlib.util.find_spec("anthropic") is None:
@@ -64,15 +70,15 @@ except ImportError as e:
     sys.exit(1)
 
 # Import other required modules
-from utils.responseParser import parse_llm_response
-from utils.file_operations import read_file, write_file, get_directory_tree
+
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 # Git operation functions
 
-def execute_git_command(repo, command):
+
+def execute_git_command(repo: str, command: str) -> bool:
     repo_dirs = {
         "greatsun-dev": "/workspaces/greatsun-dev",
         "credex-core": "/workspaces/greatsun-dev/credex-ecosystem/credex-core",
@@ -92,7 +98,8 @@ def execute_git_command(repo, command):
         logger.error(f"Error executing git command in {repo}: {e}")
         return False
 
-def create_branches(branch_name):
+
+def create_branches(branch_name: str) -> bool:
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     for repo in repos:
         if not execute_git_command(repo, f"git fetch --all"):
@@ -101,14 +108,16 @@ def create_branches(branch_name):
             return False
     return True
 
-def checkout_branches(branch_name):
+
+def checkout_branches(branch_name: str) -> bool:
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {branch_name}"):
             return False
     return True
 
-def push_changes(commit_message):
+
+def push_changes(commit_message: str) -> bool:
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     commit_uuid = str(uuid.uuid4())
     for repo in repos:
@@ -120,7 +129,8 @@ def push_changes(commit_message):
             return False
     return True
 
-def merge_to_dev():
+
+def merge_to_dev() -> bool:
     repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
     current_branch = subprocess.check_output(
         ["git", "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
@@ -133,17 +143,55 @@ def merge_to_dev():
         if not execute_git_command(repo, "git pull origin dev"):
             return False
         if not execute_git_command(repo, f"git merge {current_branch}"):
-            print(f"Merge conflict in {repo}. Please resolve conflicts manually and complete the merge.")
+            print(f"Merge conflict in {
+                  repo}. Please resolve conflicts manually and complete the merge.")
             return False
         if not execute_git_command(repo, "git push origin dev"):
             return False
-        print(f"Changes merged to dev branch in {repo}. Please create a pull request manually if needed.")
+        print(f"Changes merged to dev branch in {
+              repo}. Please create a pull request manually if needed.")
 
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {current_branch}"):
             return False
 
     return True
+
+
+def process_llm_response(conversation_thread: str, llm_response: str, max_iterations: int = 5) -> Tuple[str, bool, str]:
+    for iteration in range(max_iterations):
+        conversation_thread, developer_input_required, terminal_output = parse_llm_response(
+            conversation_thread, llm_response)
+
+        if developer_input_required or not terminal_output.strip():
+            return conversation_thread, developer_input_required, terminal_output
+
+        # If there are more actions to perform, continue to the next iteration
+        conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
+        write_file("avatar/context/conversation_thread.txt",
+                   conversation_thread)
+
+        try:
+            llm_call = large_language_model.messages.create(
+                model=MODEL_NAME,
+                max_tokens=4096,
+                temperature=0,
+                system=SYSTEM_PROMPT,
+                messages=[
+                    {"role": "user", "content": conversation_thread}
+                ]
+            )
+            llm_response = llm_call.content[0].text
+        except Exception as e:
+            logger.error(f"Error in LLM call: {str(e)}")
+            return conversation_thread, True, f"An error occurred: {str(e)}"
+
+    # If we've reached this point, we've hit the maximum number of iterations
+    final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
+    logger.warning("LLM reached maximum iterations without completion")
+    conversation_thread += f"\n\n{final_response}"
+    return conversation_thread, True, final_response
+
 
 def main():
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
@@ -203,7 +251,8 @@ def main():
             try:
                 commit_message = input("Enter commit message: ")
                 if push_changes(commit_message):
-                    write_file("avatar/context/conversation_thread.txt", "ready for conversation")
+                    write_file("avatar/context/conversation_thread.txt",
+                               "ready for conversation")
                     logger.info(f"Commit made and avatar cleared")
                     print(f"Commit made and avatar cleared")
                 else:
@@ -214,12 +263,16 @@ def main():
                 print("Failed to perform commit. Check logs for details.")
                 continue
 
+
         if terminal_input.lower().startswith("avatar create branch"):
-            branch_name = terminal_input.split("avatar create branch", 1)[1].strip()
+            branch_name = terminal_input.split(
+                "avatar create branch", 1)[1].strip()
             if create_branches(branch_name):
-                print(f"Created and checked out new branch '{branch_name}' in all repos")
+                print(f"Created and checked out new branch '{
+                      branch_name}' in all repos")
             else:
-                print(f"Failed to create branch '{branch_name}'. Check logs for details.")
+                print(f"Failed to create branch '{
+                      branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower().startswith("avatar checkout"):
@@ -250,62 +303,35 @@ def main():
         conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
         write_file("avatar/context/conversation_thread.txt", conversation_thread)
 
-        # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
-        for iteration in range(MAX_LLM_ITERATIONS):
-            try:
-                llm_message = conversation_thread
-                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
-                print(f"Sending message to LLM (iteration {iteration + 1})")
+        # Process LLM response
+        try:
+            llm_call = large_language_model.messages.create(
+                model=MODEL_NAME,
+                max_tokens=4096,
+                temperature=0,
+                system=SYSTEM_PROMPT,
+                messages=[
+                    {"role": "user", "content": conversation_thread}
+                ]
+            )
+            llm_response = llm_call.content[0].text
+            logger.info("Received initial response from LLM")
 
-                llm_call = large_language_model.messages.create(
-                    model=MODEL_NAME,
-                    max_tokens=4096,
-                    temperature=0,
-                    system=SYSTEM_PROMPT,
-                    messages=[
-                        {"role": "user", "content": llm_message}
-                    ]
-                )
-                llm_response = llm_call.content[0].text
-                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
-                logger.info("Received response from LLM")
-
-                # Process the LLM response
-                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
-                    conversation_thread, llm_response)
-                write_file("avatar/context/conversation_thread.txt", conversation_thread)
-
-                print(terminal_output)
-
-                if developer_input_required:
-                    logger.info("Developer input required. Waiting for response.")
-                    print("\nDeveloper input required. Please provide your next instruction.")
-                    break
-
-                # If no developer input is required, but there's no more to do, also break
-                if not terminal_output.strip():
-                    logger.info("No more actions to perform. Waiting for next instruction.")
-                    print("\nNo more actions to perform. Please provide your next instruction.")
-                    break
-
-                # If there are more actions to perform, continue to the next iteration
-                print("Continuing to next iteration")
-                logger.info("Continuing to next iteration")
-
-            except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
-                print(f"An error occurred in LLM iteration {iteration + 1}:")
-                print(str(e))
-                print("Please check the logs for more details.")
-                break
-
-        else:
-            # This block executes if the for loop completes without breaking
-            final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
-            logger.warning("LLM reached maximum iterations without completion")
-            conversation_thread += f"\n\n{final_response}"
+            conversation_thread, developer_input_required, terminal_output = process_llm_response(
+                conversation_thread, llm_response, MAX_LLM_ITERATIONS)
+            
             write_file("avatar/context/conversation_thread.txt", conversation_thread)
-            print(final_response)
+            print(terminal_output)
+
+            if developer_input_required:
+                logger.info("Developer input required. Waiting for response.")
+                print("\nDeveloper input required. Please provide your next instruction.")
+
+        except Exception as e:
+            logger.error(f"Error in LLM processing: {str(e)}")
+            print(f"An error occurred while processing the request:")
+            print(str(e))
+            print("Please check the logs for more details.")
 
 if __name__ == "__main__":
     try:
