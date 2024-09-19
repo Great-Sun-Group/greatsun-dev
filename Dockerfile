@@ -1,13 +1,10 @@
 FROM mcr.microsoft.com/devcontainers/python:3
 
-# Copy the startup script
-COPY startup.sh /usr/local/bin/startup.sh
+# Copy the avatar command script
+COPY avatar_command.sh /usr/local/bin/avatar
 
-# Make the startup script executable
-RUN chmod +x /usr/local/bin/startup.sh
-
-# Run the startup script during build
-RUN /usr/local/bin/startup.sh
+# Make the avatar command executable
+RUN chmod +x /usr/local/bin/avatar
 
 # Set the entrypoint to run bash
 ENTRYPOINT ["/bin/bash"]

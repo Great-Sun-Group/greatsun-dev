@@ -11,6 +11,6 @@
             ]
         }
     },
-    "postCreateCommand": "pip install -r requirements.txt && /usr/local/bin/startup.sh && echo 'source ~/.bashrc' >> ~/.bashrc",
+    "postCreateCommand": "pip install -r requirements.txt",
     "remoteUser": "vscode"
 }
