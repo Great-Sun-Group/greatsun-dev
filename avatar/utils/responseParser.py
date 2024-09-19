@@ -59,12 +59,13 @@ def parse_llm_response(conversation_thread, llm_response):
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    conversation_thread = conversation_thread, processed_response
+    conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
+        llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response}"
 
     # Add the modified LLM response (with placeholders) to terminal output
     terminal_output.append(llm_response)
 
-# Prepare terminal output
+    # Prepare terminal output
     terminal_output = '\n'.join(terminal_output)
 
     logger.info(f"File operation performed: {file_operation_performed}")
