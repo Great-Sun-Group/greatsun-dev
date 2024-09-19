@@ -118,9 +118,9 @@ def main():
     # Constants
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
     DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
-    MAX_LLM_ITERATIONS = 7
+    MAX_LLM_ITERATIONS = 14
     MODEL_NAME = "claude-3-5-sonnet-20240620"
-    SYSTEM_PROMPT = read_file("responseInstructions.txt")
+    SYSTEM_PROMPT = read_file("context/responseInstructions.txt")
 
     # Initialize Anthropic client
     try:
