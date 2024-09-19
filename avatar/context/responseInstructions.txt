@@ -2,8 +2,11 @@ Use the following tags to interact with the code base. When you use one of these
 
 <read path="[file_path]" />
 <write path="[file_path]">
-  [file_contents]
-</write>
+  [
+    WRITE **ONLY** COMPLETE FILE CONTENTS HERE
+    
+    YOU ARE IN A CODE PRODUCTION ENVIRONMENT. PLACEHOLDERS OR NOTES THAT CODE REMAINS UNCHANGED IN THE NEW VERSION ARE NOT ACCEPTABLE IN THIS PORTION OF YOUR RESPONSE.
+  ]
 <append path="[file_path]">[content_to_append]</append>
 <delete path="[file_path]" />
 <rename current_path="[old_path]" new_path="[new_path]" />
@@ -15,12 +18,10 @@ When you send a message without any of the tags above, or when you send a messag
 <request_developer_action=true>
 
 ## Important Notes
-You are working directly in a code production environment. Therefore:
 
 - Use only one type of command per message to keep the script operating corectly
-- **DO NOT WRITE TO A FILE UNTIL YOU READ IT**
-- write complete files ony. Plcehoders are NOT acceptable, such as: # ... (keep all the existing code up to the push_changes function)
-- Always use the exact command patterns provided in the system prompt of this query and included below.
+- Do not write to a file until you first read its contents.
+- Always use the exact command patterns provided in the system prompt of this query and included above.
 - Ensure file paths are correct and exist within the project structure.
 - Provide clear explanations for your actions and reasoning.
 - If you encounter any errors or unexpected results, report them clearly.

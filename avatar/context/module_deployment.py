@@ -3,6 +3,9 @@ import subprocess
 import sys
 import time
 import uuid
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Configuration
 CONFIG = {
@@ -38,10 +41,15 @@ def run_command(command, cwd=None):
         print(f"Error message: {e.stderr}")
         return None
 
-def check_secret(secret_name):
-    """Check if a secret is set in the environment."""
-    if secret_name not in os.environ:
-        print(f"Error: {secret_name} is not set. Please set it in your environment or .env file.")
+def check_dev_manager_secrets():
+    """Check if dev-manager secrets are set in the environment."""
+    required_secrets = ["CLAUDE", "GH_USERNAME", "GH_PAT"]
+    missing_secrets = [secret for secret in required_secrets if not os.getenv(secret)]
+    
+    if missing_secrets:
+        print("Error: The following required secrets are missing for dev-manager:")
+        for secret in missing_secrets:
+            print(f"- {secret}")
         return False
     return True
 
@@ -49,33 +57,8 @@ def initialize_environment():
     """Initialize the greatsun-dev environment."""
     print("Initializing greatsun-dev environment...")
 
-    # Check if running in Codespaces
-    if "CODESPACES" in os.environ:
-        print("Running in Codespaces environment")
-        if not check_secret("GITHUB_TOKEN"):
-            return False
-    else:
-        print("Running in local environment")
-        if os.path.exists(".env"):
-            with open(".env") as f:
-                for line in f:
-                    key, value = line.strip().split("=", 1)
-                    os.environ[key] = value
-        else:
-            print("Error: .env file not found. Please create one.")
-            return False
-
-    # Check for required secrets
-    required_secrets = [
-        "CLAUDE", "DJANGO_SECRET", "GH_USERNAME", "GH_PAT", "JWT_SECRET",
-        "NEO_4J_LEDGER_SPACE_BOLT_URL", "NEO_4J_LEDGER_SPACE_PASS", "NEO_4J_LEDGER_SPACE_USER",
-        "NEO_4J_SEARCH_SPACE_BOLT_URL", "NEO_4J_SEARCH_SPACE_PASS", "NEO_4J_SEARCH_SPACE_USER",
-        "OPEN_EXCHANGE_RATES_API", "WHATSAPP_BOT_API_KEY"
-    ]
-
-    for secret in required_secrets:
-        if not check_secret(secret):
-            return False
+    if not check_dev_manager_secrets():
+        return False
 
     # Clone or update modules
     for module in CONFIG["modules"]:
