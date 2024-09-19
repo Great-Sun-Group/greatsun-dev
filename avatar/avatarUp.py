@@ -140,7 +140,16 @@ def main():
     DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
     MAX_LLM_ITERATIONS = 14
     MODEL_NAME = "claude-3-5-sonnet-20240620"
-    SYSTEM_PROMPT = read_file("context/responseInstructions.txt")
+    
+    # Check if responseInstructions.txt exists, if not create a default one
+    response_instructions_path = "avatar/context/responseInstructions.txt"
+    if not os.path.exists(response_instructions_path):
+        default_instructions = "You are an AI assistant helping with development tasks."
+        with open(response_instructions_path, "w") as f:
+            f.write(default_instructions)
+        print(f"Created default {response_instructions_path}")
+    
+    SYSTEM_PROMPT = read_file(response_instructions_path)
 
     # Initialize Anthropic client
     try:
