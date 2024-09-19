@@ -4,10 +4,15 @@ import os
 import json
 import subprocess
 import uuid
+import site
+
+# Add user site-packages to Python path
+user_site_packages = site.getusersitepackages()
+sys.path.append(user_site_packages)
+
 from utils.file_operations import read_file, write_file, get_directory_tree
 from utils.responseParser import parse_llm_response
 from utils.avatarUpCommands import cross_repo_commit
-from anthropic import Anthropic
 
 # Configure logging
 logging.basicConfig(
@@ -20,14 +25,26 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Check if we can write to the log file
+# Diagnostic information
+print(f"Python version: {sys.version}")
+print(f"Python executable: {sys.executable}")
+print(f"User site-packages: {user_site_packages}")
+print(f"Python path: {sys.path}")
+
+# Try to import anthropic with error handling
 try:
-    with open("avatar.log", "a") as f:
-        f.write("Logging test\n")
-except IOError as e:
-    print(f"Unable to write to log file: {str(e)}")
-    print("Please check file permissions and try again.")
-    sys.exit(1)
+    from anthropic import Anthropic
+    print("Successfully imported Anthropic")
+except ImportError as e:
+    print(f"Error importing Anthropic: {e}")
+    print("Trying to get more information about the package:")
+    try:
+        import pkg_resources
+        anthropic_dist = pkg_resources.get_distribution("anthropic")
+        print(f"Anthropic version: {anthropic_dist.version}")
+        print(f"Anthropic location: {anthropic_dist.location}")
+    except Exception as pkg_error:
+        print(f"Error getting package information: {pkg_error}")
 
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
@@ -128,7 +145,8 @@ def main():
         greatsun_developer = DEVELOPER_GITHUB_USERNAME
     except Exception as e:
         logger.error(f"Failed to initialize Anthropic client: {str(e)}")
-        raise
+        print(f"Error initializing Anthropic client: {e}")
+        return
 
     first_run = True
     logger.info("Starting avatar environment")
