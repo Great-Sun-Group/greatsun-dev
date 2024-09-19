@@ -120,13 +120,11 @@ def merge_to_dev():
         if not execute_git_command(repo, "git pull origin dev"):
             return False
         if not execute_git_command(repo, f"git merge {current_branch}"):
-            print(f"Merge conflict in {
-                  repo}. Please resolve conflicts manually and complete the merge.")
+            print(f"Merge conflict in {repo}. Please resolve conflicts manually and complete the merge.")
             return False
         if not execute_git_command(repo, "git push origin dev"):
             return False
-        print(f"Changes merged to dev branch in {
-              repo}. Please create a pull request manually if needed.")
+        print(f"Changes merged to dev branch in {repo}. Please create a pull request manually if needed.")
 
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {current_branch}"):
@@ -208,11 +206,9 @@ def main():
             branch_name = terminal_input.split(
                 "avatar create branch", 1)[1].strip()
             if create_branches(branch_name):
-                print(f"Created and checked out new branch '{
-                      branch_name}' in all repos")
+                print(f"Created and checked out new branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to create branch '{
-                      branch_name}'. Check logs for details.")
+                print(f"Failed to create branch '{branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower().startswith("avatar checkout"):
@@ -220,8 +216,7 @@ def main():
             if checkout_branches(branch_name):
                 print(f"Checked out branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to checkout branch '{
-                      branch_name}'. Check logs for details.")
+                print(f"Failed to checkout branch '{branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower() == "avatar merge to dev":
@@ -244,8 +239,7 @@ def main():
         # Add new terminal message to conversation
         conversation_thread = read_file(
             "avatar/context/conversation_thread.txt")
-        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
-            terminal_input}"
+        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
         write_file("avatar/context/conversation_thread.txt",
                    conversation_thread)
 
@@ -267,8 +261,7 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
-                    llm_response}"
+                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
@@ -292,8 +285,7 @@ def main():
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {
-                             iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
