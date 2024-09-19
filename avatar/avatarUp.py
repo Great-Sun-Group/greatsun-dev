@@ -12,7 +12,6 @@ import site
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
 
-
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -287,7 +286,15 @@ def main():
                         "\nDeveloper input required. Please provide your next instruction.")
                     break
 
-                # Else continue to the next iteration of the loop
+                # If no developer input is required, but there's no more to do, also break
+                if not terminal_output.strip():
+                    logger.info(
+                        "No more actions to perform. Waiting for next instruction.")
+                    print(
+                        "\nNo more actions to perform. Please provide your next instruction.")
+                    break
+
+                # If there are more actions to perform, continue to the next iteration
                 print("Continuing to next iteration")
                 logger.info("Continuing to next iteration")
 
@@ -297,8 +304,8 @@ def main():
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
-                developer_input_required = True
                 break
+
         else:
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
