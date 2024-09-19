@@ -1,4 +1,4 @@
-from utils.avatarUpCommands import cross_repo_commit
+from avatar.utils.avatarUp_commands import cross_repo_commit
 from utils.responseParser import parse_llm_response
 from utils.file_operations import read_file, write_file, get_directory_tree
 import sys
@@ -142,7 +142,7 @@ def main():
     MAX_LLM_ITERATIONS = 14
     MODEL_NAME = "claude-3-5-sonnet-20240620"
 
-    response_instructions_path = "avatar/context/responseInstructions.txt"
+    response_instructions_path = "avatar/context/response_instructions.txt"
     if not os.path.exists(response_instructions_path):
         default_instructions = "You are an AI assistant helping with development tasks."
         with open(response_instructions_path, "w") as f:
@@ -152,6 +152,7 @@ def main():
     SYSTEM_PROMPT = read_file(response_instructions_path)
 
     try:
+        logger.info("Starting avatar environment")
         large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
         greatsun_developer = DEVELOPER_GITHUB_USERNAME
     except Exception as e:
@@ -159,19 +160,10 @@ def main():
         print(f"Error initializing Anthropic client: {e}")
         return
 
-    logger.info("Starting avatar environment")
-    write_file("avatar/context/avatarConversation.txt",
-               "ready for conversation")
-
-    clear_screen()
-    print("Welcome to the greatsun-dev avatar environment.")
-    print("The text in avatar/context/messageFromDeveloper.md will be appended to")
-    print("your message below and sent to greatsun-dev")
-
     # Prepare the initial context
     avatar_up_content = [
-        read_file("avatar/context/avatarOrientation.md"),
-        read_file("avatar/context/responseInstructions.txt"),
+        read_file("avatar/context/avatar_orientation.md"),
+        read_file("avatar/context/response_instructions.txt"),
         "** This is the project README.md **",
         read_file("README.md"),
         "** This is the credex-core submodule README.md **",
@@ -179,14 +171,17 @@ def main():
         "** This is the vimbiso-pay submodule README.md **",
         read_file("credex-ecosystem/vimbiso-pay/README.md"),
         "** This is the current project **",
-        read_file("avatar/context/currentProject.md"),
+        read_file("avatar/context/current_project.md"),
         "** This is the full project structure **",
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "** INITIAL DEVELOPER INSTRUCTIONS **",
     ]
     conversation_thread = "\n\n".join(avatar_up_content)
-    write_file("avatar/avatarConversation.txt", conversation_thread)
+    write_file("avatar/conversation_thread.txt", conversation_thread)
     logger.info("Initial context prepared")
+    clear_screen()
+    print("greatsun-dev: welcome to your development environment. how can I help you?")
+
 
     while True:
         print("\ngreatsun-dev is waiting for your next response")
@@ -199,7 +194,7 @@ def main():
         terminal_input = input(f"{greatsun_developer}: ").strip()
 
         if terminal_input.lower() == "avatar down":
-            write_file("avatar/context/avatarConversation.txt",
+            write_file("avatar/context/conversation_thread.txt",
                        "ready for conversation")
             logger.info("Avatar conversation cleared")
             logger.info("Avatar environment shutting down")
@@ -210,7 +205,7 @@ def main():
             try:
                 commit_message = input("Enter commit message: ")
                 if push_changes(commit_message):
-                    write_file("avatar/context/avatarConversation.txt",
+                    write_file("avatar/context/conversation_thread.txt",
                                "ready for conversation")
                     logger.info(f"Commit made and avatar cleared")
                     print(f"Commit made and avatar cleared")
@@ -251,7 +246,7 @@ def main():
 
         if terminal_input.lower() == "avatar clear":
             conversation_thread = "\n\n".join(avatar_up_content)
-            write_file("avatar/context/avatarConversation.txt",
+            write_file("avatar/context/conversation_thread.txt",
                        conversation_thread)
             logger.info(
                 "Avatar conversation cleared and reset to initial context")
@@ -260,9 +255,9 @@ def main():
             continue
 
         # Add new terminal message to conversation
-        conversation_thread = read_file("avatar/avatarConversation.txt")
+        conversation_thread = read_file("avatar/conversation_thread.txt")
         conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
-        write_file("avatar/avatarConversation.txt", conversation_thread)
+        write_file("avatar/conversation_thread.txt", conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
@@ -286,7 +281,7 @@ def main():
 
                 # Process the LLM response
                 conversation_thread, developer_input_required, terminal_output = parse_llm_response(conversation_thread, llm_response)
-                write_file("avatar/avatarConversation.txt", conversation_thread)
+                write_file("avatar/conversation_thread.txt", conversation_thread)
                 
                 print(terminal_output)
 
@@ -312,7 +307,7 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
-            write_file("avatar/avatarConversation.txt", conversation_thread)
+            write_file("avatar/conversation_thread.txt", conversation_thread)
             print(final_response)
 
 if __name__ == "__main__":

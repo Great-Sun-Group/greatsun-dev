@@ -8,8 +8,8 @@ script_dir = os.path.dirname(os.path.abspath(__file__))
 # Add the script directory to the Python path
 sys.path.insert(0, script_dir)
 
-# Import the main function from avatarUp.py
-from avatarUp import main as avatar_up
+# Import the main function from avatar_up.py
+from avatar_up import main as avatar_up
 
 def main():
     if len(sys.argv) < 2:
