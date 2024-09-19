@@ -5,7 +5,6 @@ from utils.file_operations import FileOperationQueue
 
 logger = logging.getLogger(__name__)
 
-
 def parse_llm_response(conversation_thread, llm_response):
     file_op_queue = FileOperationQueue()
     file_operation_performed = False
@@ -34,7 +33,6 @@ def parse_llm_response(conversation_thread, llm_response):
             if operation == 'read':
                 path = os.path.abspath(match.group(1))
                 read_op = file_op_queue.add_operation('read', path)
-                # Add dependency: read operation depends on write operation to the same file
                 for op in file_op_queue.queue:
                     if op.operation in ['write', 'append'] and op.args[0] == path:
                         file_op_queue.add_dependency(read_op, op)
@@ -58,8 +56,7 @@ def parse_llm_response(conversation_thread, llm_response):
                 current_path = os.path.abspath(current_path)
                 new_path = os.path.abspath(new_path)
                 file_op_queue.add_operation(operation, current_path, new_path)
-                terminal_output.append(f"File {operation}d from {
-                                       current_path} to {new_path}")
+                terminal_output.append(f"File {operation}d from {current_path} to {new_path}")
             elif operation == 'list_directory':
                 path = os.path.abspath(match.group(1))
                 file_op_queue.add_operation('list_directory', path)
@@ -85,11 +82,9 @@ def parse_llm_response(conversation_thread, llm_response):
         elif op.operation == 'delete':
             processed_response.append(f"File deleted: {op.args[0]}")
         elif op.operation in ['rename', 'move']:
-            processed_response.append(f"File {op.operation}d from {
-                                      op.args[0]} to {op.args[1]}")
+            processed_response.append(f"File {op.operation}d from {op.args[0]} to {op.args[1]}")
         elif op.operation == 'list_directory':
-            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(
-                result) if isinstance(result, list) else str(result)}")
+            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(result) if isinstance(result, list) else str(result)}")
         elif op.operation == 'create_directory':
             processed_response.append(f"Directory created: {op.args[0]}")
 
@@ -98,16 +93,24 @@ def parse_llm_response(conversation_thread, llm_response):
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    conversation_thread = f"{
-        conversation_thread}\n\n*** OPERATION RESULTS ***\n\n{processed_response}"
+    conversation_thread = f"{conversation_thread}\n\n*** OPERATION RESULTS ***\n\n{processed_response}"
 
     # Prepare terminal output
     terminal_output = '\n'.join(terminal_output)
 
+    # Replace file contents with placeholder for write and append operations in terminal output only
+    for operation in ['write', 'append']:
+        pattern = rf'({operation.capitalize()}.*?:.*?)(\n|$)'
+        terminal_output = re.sub(pattern, r'\1\n[File contents not displayed]\2', terminal_output, flags=re.IGNORECASE)
+
+    # Replace directory contents with placeholder for list_directory operation in terminal output
+    pattern = r'(Listing directory:.*?)(\n|$)'
+    terminal_output = re.sub(pattern, r'\1\n[Directory contents not displayed]\2', terminal_output, flags=re.IGNORECASE)
+
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.info(f"Developer input required: {developer_input_required}")
-    logger.debug(f"Processed response:\n{processed_response}")
-    logger.debug(f"Terminal output:\n{terminal_output}")
+    logger.debug(f"Processed response (full content):\n{processed_response}")
+    logger.debug(f"Terminal output (with placeholders):\n{terminal_output}")
 
-    # Return the updated conversation thread, whether developer input is required, and the terminal output
+    # Return the updated conversation thread (full content), whether developer input is required, and the modified terminal output
     return conversation_thread, developer_input_required, terminal_output
