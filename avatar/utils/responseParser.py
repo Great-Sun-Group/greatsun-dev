@@ -5,11 +5,13 @@ from utils.file_operations import FileOperationQueue
 
 logger = logging.getLogger(__name__)
 
+
 def parse_llm_response(conversation_thread, llm_response):
     file_op_queue = FileOperationQueue()
     file_operation_performed = False
     developer_input_required = False
     processed_response = []
+    terminal_output = []
 
     logger.info("Starting to process LLM response")
     logger.debug(f"Raw LLM response:\n{llm_response}")
@@ -36,30 +38,39 @@ def parse_llm_response(conversation_thread, llm_response):
                 for op in file_op_queue.queue:
                     if op.operation in ['write', 'append'] and op.args[0] == path:
                         file_op_queue.add_dependency(read_op, op)
+                terminal_output.append(f"Reading file: {path}")
             elif operation == 'write':
                 path, content = match.groups()
                 path = os.path.abspath(path)
                 file_op_queue.add_operation('write', path, content)
+                terminal_output.append(f"File written: {path}")
             elif operation == 'append':
                 path, content = match.groups()
                 path = os.path.abspath(path)
                 file_op_queue.add_operation('append', path, content)
+                terminal_output.append(f"Content appended to: {path}")
             elif operation == 'delete':
                 path = os.path.abspath(match.group(1))
                 file_op_queue.add_operation('delete', path)
+                terminal_output.append(f"File deleted: {path}")
             elif operation in ['rename', 'move']:
                 current_path, new_path = match.groups()
                 current_path = os.path.abspath(current_path)
                 new_path = os.path.abspath(new_path)
                 file_op_queue.add_operation(operation, current_path, new_path)
+                terminal_output.append(f"File {operation}d from {
+                                       current_path} to {new_path}")
             elif operation == 'list_directory':
                 path = os.path.abspath(match.group(1))
                 file_op_queue.add_operation('list_directory', path)
+                terminal_output.append(f"Listing directory: {path}")
             elif operation == 'create_directory':
                 path = os.path.abspath(match.group(1))
                 file_op_queue.add_operation('create_directory', path)
+                terminal_output.append(f"Directory created: {path}")
             elif operation == 'request_developer_action':
                 developer_input_required = True
+                terminal_output.append("Developer action requested")
 
     # Process all queued operations
     results = file_op_queue.process_queue()
@@ -74,42 +85,29 @@ def parse_llm_response(conversation_thread, llm_response):
         elif op.operation == 'delete':
             processed_response.append(f"File deleted: {op.args[0]}")
         elif op.operation in ['rename', 'move']:
-            processed_response.append(f"File {op.operation}d from {op.args[0]} to {op.args[1]}")
+            processed_response.append(f"File {op.operation}d from {
+                                      op.args[0]} to {op.args[1]}")
         elif op.operation == 'list_directory':
-            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(result) if isinstance(result, list) else str(result)}")
+            processed_response.append(f"Contents of {op.args[0]}:\n{', '.join(
+                result) if isinstance(result, list) else str(result)}")
         elif op.operation == 'create_directory':
             processed_response.append(f"Directory created: {op.args[0]}")
-        
+
         if result is not False:
             file_operation_performed = True
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    conversation_thread = f"{conversation_thread}\n\n*** OPERATION RESULTS ***\n\n{processed_response}"
+    conversation_thread = f"{
+        conversation_thread}\n\n*** OPERATION RESULTS ***\n\n{processed_response}"
 
-    # Check if developer input is required
-    if developer_input_required:
-        return conversation_thread, True
-
-    # Check if any file operation was performed
-    if not file_operation_performed:
-        # If no file operation was performed and no developer action was requested,
-        # we assume the AI's response is complete and requires developer input
-        return conversation_thread, True
-
-    # Prepare response to developer (for logging purposes)
-    response_to_developer = llm_response
-
-    # Remove file contents of written files from the response (for logging purposes)
-    for match in re.finditer(patterns['write'], llm_response, re.DOTALL):
-        path, content = match.groups()
-        if content:
-            response_to_developer = response_to_developer.replace(content, f"[Content written to {path}]")
+    # Prepare terminal output
+    terminal_output = '\n'.join(terminal_output)
 
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.info(f"Developer input required: {developer_input_required}")
     logger.debug(f"Processed response:\n{processed_response}")
-    logger.debug(f"Response to developer:\n{response_to_developer}")
+    logger.debug(f"Terminal output:\n{terminal_output}")
 
-    # Return the updated conversation thread and False to indicate no developer input is required
-    return conversation_thread, False
+    # Return the updated conversation thread, whether developer input is required, and the terminal output
+    return conversation_thread, developer_input_required, terminal_output
