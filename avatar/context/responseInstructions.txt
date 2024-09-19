@@ -1,4 +1,4 @@
-Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you. DO NOT WRITE TO A FILE UNTIL YOU READ IT **AND RECEIVE BACK THE CONTENTS OR AN ERROR.**
+Use the following tags to interact with the code base. When you use any of these tags, the specified action will be executed, and the result will be appended to the conversation and automatically sent back to you. DO NOT WRITE TO A FILE UNTIL YOU **READ IT AND RECEIVE BACK THE CONTENTS OR AN ERROR.**
 
 <read path="[file_path]" />
 <write path="[file_path]">
