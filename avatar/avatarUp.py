@@ -120,11 +120,13 @@ def merge_to_dev():
         if not execute_git_command(repo, "git pull origin dev"):
             return False
         if not execute_git_command(repo, f"git merge {current_branch}"):
-            print(f"Merge conflict in {repo}. Please resolve conflicts manually and complete the merge.")
+            print(f"Merge conflict in {
+                  repo}. Please resolve conflicts manually and complete the merge.")
             return False
         if not execute_git_command(repo, "git push origin dev"):
             return False
-        print(f"Changes merged to dev branch in {repo}. Please create a pull request manually if needed.")
+        print(f"Changes merged to dev branch in {
+              repo}. Please create a pull request manually if needed.")
 
     for repo in repos:
         if not execute_git_command(repo, f"git checkout {current_branch}"):
@@ -135,7 +137,7 @@ def merge_to_dev():
 
 def main():
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
-    DEVELOPER_GITHUB_USERNAME = os.environ.get('DEVELOPER_GITHUB_USERNAME')
+    GH_USERNAME = os.environ.get('GH_USERNAME')
     MAX_LLM_ITERATIONS = 14
     MODEL_NAME = "claude-3-5-sonnet-20240620"
 
@@ -151,7 +153,7 @@ def main():
     try:
         logger.info("Starting avatar environment")
         large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
-        greatsun_developer = DEVELOPER_GITHUB_USERNAME
+        greatsun_developer = GH_USERNAME
     except Exception as e:
         logger.error(f"Failed to initialize Anthropic client: {str(e)}")
         print(f"Error initializing Anthropic client: {e}")
@@ -177,10 +179,11 @@ def main():
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
     logger.info("Initial context prepared")
     clear_screen()
+
     print("greatsun-dev: welcome to your development environment. how can I help you?")
 
     while True:
-        terminal_input = input(f"{greatsun_developer}: ").strip()
+        terminal_input = input(f"@{greatsun_developer}: ").strip()
 
         if terminal_input.lower() == "avatar down":
             print("greatsun-dev avatar, signing off")
@@ -206,9 +209,11 @@ def main():
             branch_name = terminal_input.split(
                 "avatar create branch", 1)[1].strip()
             if create_branches(branch_name):
-                print(f"Created and checked out new branch '{branch_name}' in all repos")
+                print(f"Created and checked out new branch '{
+                      branch_name}' in all repos")
             else:
-                print(f"Failed to create branch '{branch_name}'. Check logs for details.")
+                print(f"Failed to create branch '{
+                      branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower().startswith("avatar checkout"):
@@ -216,7 +221,8 @@ def main():
             if checkout_branches(branch_name):
                 print(f"Checked out branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to checkout branch '{branch_name}'. Check logs for details.")
+                print(f"Failed to checkout branch '{
+                      branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower() == "avatar merge to dev":
@@ -239,7 +245,8 @@ def main():
         # Add new terminal message to conversation
         conversation_thread = read_file(
             "avatar/context/conversation_thread.txt")
-        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
+        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
+            terminal_input}"
         write_file("avatar/context/conversation_thread.txt",
                    conversation_thread)
 
@@ -261,27 +268,32 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
+                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
+                    llm_response}"
                 logger.info("Received response from LLM")
-                
+
                 # Process the LLM response
                 conversation_thread, developer_input_required, terminal_output = parse_llm_response(
                     conversation_thread, llm_response)
-                write_file("avatar/context/conversation_thread.txt", conversation_thread)
+                write_file("avatar/context/conversation_thread.txt",
+                           conversation_thread)
 
                 print(terminal_output)
 
                 if developer_input_required:
-                    logger.info("Developer input required. Waiting for response.")
-                    print("\nDeveloper input required. Please provide your next instruction.")
+                    logger.info(
+                        "Developer input required. Waiting for response.")
+                    print(
+                        "\nDeveloper input required. Please provide your next instruction.")
                     break
-                
+
                 # Else continue to the next iteration of the loop
                 print("Continuing to next iteration")
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {
+                             iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
