@@ -1,4 +1,3 @@
-from utils.avatar_up_commands import cross_repo_commit
 from utils.responseParser import parse_llm_response
 from utils.file_operations import read_file, write_file, get_directory_tree
 import sys
@@ -161,7 +160,7 @@ def main():
         return
 
     # Prepare the initial context
-    avatar_up_content = [
+    avatarUp_content = [
         read_file("avatar/context/avatar_orientation.md"),
         read_file("avatar/context/response_instructions.txt"),
         "** This is the project README.md **",
@@ -176,12 +175,11 @@ def main():
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "** INITIAL DEVELOPER INSTRUCTIONS **",
     ]
-    conversation_thread = "\n\n".join(avatar_up_content)
+    conversation_thread = "\n\n".join(avatarUp_content)
     write_file("avatar/conversation_thread.txt", conversation_thread)
     logger.info("Initial context prepared")
     clear_screen()
     print("greatsun-dev: welcome to your development environment. how can I help you?")
-
 
     while True:
         print("\ngreatsun-dev is waiting for your next response")
@@ -245,7 +243,7 @@ def main():
             continue
 
         if terminal_input.lower() == "avatar clear":
-            conversation_thread = "\n\n".join(avatar_up_content)
+            conversation_thread = "\n\n".join(avatarUp_content)
             write_file("avatar/context/conversation_thread.txt",
                        conversation_thread)
             logger.info(
@@ -256,14 +254,16 @@ def main():
 
         # Add new terminal message to conversation
         conversation_thread = read_file("avatar/conversation_thread.txt")
-        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
+        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
+            terminal_input}"
         write_file("avatar/conversation_thread.txt", conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
+                logger.info(
+                    f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
@@ -276,19 +276,24 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
+                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
+                    llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                conversation_thread, developer_input_required, terminal_output = parse_llm_response(conversation_thread, llm_response)
-                write_file("avatar/conversation_thread.txt", conversation_thread)
-                
+                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
+                    conversation_thread, llm_response)
+                write_file("avatar/conversation_thread.txt",
+                           conversation_thread)
+
                 print(terminal_output)
 
                 # If developer input is required, break the loop
                 if developer_input_required:
-                    logger.info("Developer input required. Waiting for response.")
-                    print("\nDeveloper input required. Please provide your next instruction.")
+                    logger.info(
+                        "Developer input required. Waiting for response.")
+                    print(
+                        "\nDeveloper input required. Please provide your next instruction.")
                     break
 
                 # Else continue to the next iteration of the loop
@@ -296,7 +301,8 @@ def main():
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {
+                             iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -309,6 +315,7 @@ def main():
             conversation_thread += f"\n\n{final_response}"
             write_file("avatar/conversation_thread.txt", conversation_thread)
             print(final_response)
+
 
 if __name__ == "__main__":
     try:
