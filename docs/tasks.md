@@ -1,5 +1,7 @@
 7. Undo Operation: Consider adding an "undo" feature for the merge operation, in case the developer wants to revert the merge.
 
+8. Status Command: It might be helpful to have a command that shows the current status of all repositories (current branch, any uncommitted changes, etc.).
+
 
 
 
