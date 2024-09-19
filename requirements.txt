@@ -42,4 +42,4 @@ matplotlib==3.5.1
 seaborn==0.11.2
 
 # Anthropic library
-anthropic==0.3.6
+anthropic
