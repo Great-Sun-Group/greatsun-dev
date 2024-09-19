@@ -1,9 +1,0 @@
-Now, let's create a configuration file to store repository paths and other settings:
-
-
-{
-"repositories": ["vimbiso-pay", "credex-core", "greatsun-dev"],
-"greatsun_dev_dir": "/workspaces/greatsun-dev",
-"credex_core_dir": "/workspaces/greatsun-dev/credex-core",
-"vimbiso_pay_dir": "/workspaces/greatsun-dev/vimbiso-pay"
-}

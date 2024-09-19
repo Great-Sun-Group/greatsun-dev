@@ -1,3 +1,8 @@
+7. Undo Operation: Consider adding an "undo" feature for the merge operation, in case the developer wants to revert the merge.
+
+
+
+
 # Credex-Dev Next Steps Workplan
 
 ## 1. Review and Test Changes
