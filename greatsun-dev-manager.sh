@@ -6,7 +6,12 @@
 set -e
 
 # Configuration
-CONFIG_FILE="/workspaces/greatsun-dev/greatsun-dev-config.json"
+{
+  "repositories": "["vimbiso-pay", "credex-core", "greatsun-dev"]",
+  "greatsun_dev_dir": "/workspaces/greatsun-dev",
+  "credex_core_dir": "/workspaces/greatsun-dev/credex-ecosystem/credex-core",
+  "vimbiso_pay_dir": "/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay"
+}
 
 # Load configuration
 load_config() {
