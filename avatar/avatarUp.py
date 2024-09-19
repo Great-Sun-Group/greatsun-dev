@@ -5,6 +5,7 @@ import json
 import subprocess
 import uuid
 import site
+import importlib
 
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
@@ -33,8 +34,15 @@ print(f"Python path: {sys.path}")
 
 # Try to import anthropic with error handling
 try:
-    from anthropic import Anthropic
-    print("Successfully imported Anthropic")
+    print("Attempting to import anthropic...")
+    anthropic_spec = importlib.util.find_spec("anthropic")
+    if anthropic_spec is not None:
+        print(f"anthropic module found at: {anthropic_spec.origin}")
+        from anthropic import Anthropic
+        print("Successfully imported Anthropic")
+    else:
+        print("anthropic module not found in sys.path")
+        raise ImportError("anthropic module not found")
 except ImportError as e:
     print(f"Error importing Anthropic: {e}")
     print("Trying to get more information about the package:")
