@@ -2,6 +2,8 @@ import sys
 import logging
 import os
 import json
+import subprocess
+import uuid
 from utils.file_operations import read_file, write_file, get_directory_tree
 from utils.responseParser import parse_llm_response
 from utils.avatarUpCommands import cross_repo_commit
@@ -27,10 +29,90 @@ except IOError as e:
     print("Please check file permissions and try again.")
     sys.exit(1)
 
-
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
+# Git operation functions
+def execute_git_command(repo, command):
+    repo_dirs = {
+        "greatsun-dev": "/workspaces/greatsun-dev",
+        "credex-core": "/workspaces/greatsun-dev/credex-ecosystem/credex-core",
+        "vimbiso-pay": "/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay"
+    }
+    
+    if repo not in repo_dirs:
+        logger.error(f"Unknown repository: {repo}")
+        return False
+
+    try:
+        result = subprocess.run(command, cwd=repo_dirs[repo], shell=True, check=True, capture_output=True, text=True)
+        logger.info(f"Git command executed successfully in {repo}: {command}")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error executing git command in {repo}: {e}")
+        return False
+
+def create_branches(branch_name):
+    repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
+    for repo in repos:
+        if not execute_git_command(repo, f"git fetch --all"):
+            return False
+        if not execute_git_command(repo, f"git checkout -b {branch_name} origin/dev || git checkout -b {branch_name}"):
+            return False
+    return True
+
+def checkout_branches(branch_name):
+    repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
+    for repo in repos:
+        if not execute_git_command(repo, f"git checkout {branch_name}"):
+            return False
+    return True
+
+def push_changes(commit_message):
+    repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
+    commit_uuid = str(uuid.uuid4())
+    for repo in repos:
+        if not execute_git_command(repo, "git add ."):
+            return False
+        if not execute_git_command(repo, f'git commit -m "{commit_message} [{commit_uuid}]"'):
+            return False
+        if not execute_git_command(repo, "git push origin HEAD"):
+            return False
+    return True
+
+def merge_to_dev():
+    repos = ["greatsun-dev", "credex-core", "vimbiso-pay"]
+    current_branch = subprocess.check_output(["git", "rev-parse", "--abbrev-ref", "HEAD"], text=True).strip()
+    
+    for repo in repos:
+        # Fetch the latest changes from the remote
+        if not execute_git_command(repo, "git fetch origin"):
+            return False
+        
+        # Switch to dev branch and pull latest changes
+        if not execute_git_command(repo, "git checkout dev"):
+            return False
+        if not execute_git_command(repo, "git pull origin dev"):
+            return False
+        
+        # Merge the current branch into dev
+        if not execute_git_command(repo, f"git merge {current_branch}"):
+            print(f"Merge conflict in {repo}. Please resolve conflicts manually and complete the merge.")
+            return False
+        
+        # Push the changes to the remote dev branch
+        if not execute_git_command(repo, "git push origin dev"):
+            return False
+        
+        # Create a pull request (this step requires GitHub CLI or API integration)
+        print(f"Changes merged to dev branch in {repo}. Please create a pull request manually if needed.")
+    
+    # Switch back to the original branch
+    for repo in repos:
+        if not execute_git_command(repo, f"git checkout {current_branch}"):
+            return False
+    
+    return True
 
 def main():
     # Constants
@@ -51,8 +133,7 @@ def main():
     first_run = True
     logger.info("Starting avatar environment")
     # Clear the context
-    write_file("avatar/context/avatarConversation.txt",
-               "ready for conversation")
+    write_file("avatar/context/avatarConversation.txt", "ready for conversation")
 
     clear_screen()
     print("Welcome to the greatsun-dev avatar environment.")
@@ -64,8 +145,7 @@ def main():
             terminal_input = input(f"{greatsun_developer}: ").strip()
 
             if terminal_input.lower() == "avatar down":
-                write_file("avatar/context/avatarConversation.txt",
-                           "ready for conversation")
+                write_file("avatar/context/avatarConversation.txt", "ready for conversation")
                 logger.info("Avatar conversation cleared")
                 logger.info("Avatar environment shutting down")
                 print("\ngreatsun-dev avatar, signing off\n\n")
@@ -73,23 +153,44 @@ def main():
 
             if terminal_input.lower() == "avatar commit":
                 try:
-                    commit_id = cross_repo_commit()
-                    if commit_id:
-                        write_file("avatar/context/avatarConversation.txt",
-                                   "ready for conversation")
-                        logger.info(
-                            f"Commit {commit_id} made and avatar cleared")
-                        print(f"Commit {commit_id} made and avatar cleared")
-                        continue
+                    commit_message = input("Enter commit message: ")
+                    if push_changes(commit_message):
+                        write_file("avatar/context/avatarConversation.txt", "ready for conversation")
+                        logger.info(f"Commit made and avatar cleared")
+                        print(f"Commit made and avatar cleared")
+                    else:
+                        print("Failed to perform commit. Check logs for details.")
+                    continue
                 except Exception as e:
-                    logger.error(
-                        f"Failed to perform cross-repo commit: {str(e)}")
+                    logger.error(f"Failed to perform cross-repo commit: {str(e)}")
                     print("Failed to perform commit. Check logs for details.")
                     continue
 
+            if terminal_input.lower().startswith("avatar create branch"):
+                branch_name = terminal_input.split("avatar create branch", 1)[1].strip()
+                if create_branches(branch_name):
+                    print(f"Created and checked out new branch '{branch_name}' in all repos")
+                else:
+                    print(f"Failed to create branch '{branch_name}'. Check logs for details.")
+                continue
+
+            if terminal_input.lower().startswith("avatar checkout"):
+                branch_name = terminal_input.split("avatar checkout", 1)[1].strip()
+                if checkout_branches(branch_name):
+                    print(f"Checked out branch '{branch_name}' in all repos")
+                else:
+                    print(f"Failed to checkout branch '{branch_name}'. Check logs for details.")
+                continue
+
+            if terminal_input.lower() == "avatar merge to dev":
+                if merge_to_dev():
+                    print("Successfully merged changes to dev branch in all repos")
+                else:
+                    print("Failed to merge changes to dev. Check logs for details.")
+                continue
+
             if terminal_input.lower() == "avatar clear":
-                write_file("avatar/context/avatarConversation.txt",
-                           "ready for conversation")
+                write_file("avatar/context/avatarConversation.txt", "ready for conversation")
                 logger.info("Avatar conversation cleared")
                 clear_screen()
                 print("Conversation cleared")
@@ -97,10 +198,8 @@ def main():
                 continue
 
             # Prepare the message from the developer
-            append_to_terminal_input = read_file(
-                "avatar/context/appendToTerminalInput.md")
-            trigger_message_content = f"{terminal_input}\n\n{
-                append_to_terminal_input}"
+            append_to_terminal_input = read_file("avatar/context/appendToTerminalInput.md")
+            trigger_message_content = f"{terminal_input}\n\n{append_to_terminal_input}"
 
             if first_run:
                 # Prepare the full context for the LLM (first run)
@@ -116,8 +215,7 @@ def main():
                     "** This is the current project **",
                     read_file("avatar/context/currentProject.md"),
                     "** This is the full project structure **",
-                    json.dumps(get_directory_tree(
-                        '/workspaces/greatsun-dev'), indent=2),
+                    json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
                     "** INITIAL DEVELOPER INSTRUCTIONS **",
                     trigger_message_content
                 ]
@@ -132,8 +230,7 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                logger.info(
-                    f"Sending message to LLM (iteration {iteration + 1})")
+                logger.info(f"Sending message to LLM (iteration {iteration + 1})")
                 print(f"Sending message to LLM (iteration {iteration + 1})")
 
                 llm_call = large_language_model.messages.create(
@@ -146,23 +243,18 @@ def main():
                     ]
                 )
                 llm_response = llm_call.content[0].text
-                conversation_thread = f"{
-                    conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
+                conversation_thread = f"{conversation_thread}\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
 
                 # Process the LLM response
-                conversation_thread, developer_input_required = parse_llm_response(
-                    conversation_thread, llm_response)
+                conversation_thread, developer_input_required = parse_llm_response(conversation_thread, llm_response)
                 print(conversation_thread)
 
                 # If developer input is required, save conversation thread and break the loop
                 if developer_input_required:
-                    write_file("avatar/context/avatarConversation.txt",
-                               conversation_thread)
-                    logger.info(
-                        "Developer input required. Waiting for response.")
-                    print(
-                        "\nDeveloper input required. Please provide your next instruction.")
+                    write_file("avatar/context/avatarConversation.txt", conversation_thread)
+                    logger.info("Developer input required. Waiting for response.")
+                    print("\nDeveloper input required. Please provide your next instruction.")
                     break
 
                 # Else continue to the next iteration of the loop
@@ -170,8 +262,7 @@ def main():
                 logger.info("Continuing to next iteration")
 
             except Exception as e:
-                logger.error(f"Error in LLM iteration {
-                             iteration + 1}: {str(e)}")
+                logger.error(f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print(f"An error occurred in LLM iteration {iteration + 1}:")
                 print(str(e))
                 print("Please check the logs for more details.")
@@ -181,8 +272,7 @@ def main():
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             logger.warning("LLM reached maximum iterations without completion")
-            write_file("avatar/context/avatarConversation.txt",
-                       f"{conversation_thread}\n\n{final_response}")
+            write_file("avatar/context/avatarConversation.txt", f"{conversation_thread}\n\n{final_response}")
             print(final_response)
             developer_input_required = True
 
@@ -194,7 +284,8 @@ def main():
         print("\ngreatsun-dev is waiting for your next response")
         print("Enter your response below, or use one of the following commands:")
         print("'avatar down' to exit, 'avatar clear' to start a new conversation, 'avatar commit' to commit changes")
-
+        print("'avatar create branch [branch_name]' to create a new branch, 'avatar checkout [branch_name]' to checkout a branch")
+        print("'avatar merge to dev' to merge the current branch into dev across all repos")
 
 if __name__ == "__main__":
     try:

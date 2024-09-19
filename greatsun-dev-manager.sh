@@ -81,6 +81,11 @@ initialize_environment() {
 
     echo "Submodules added successfully!"
 
+    # Import latest from "dev" branches
+    echo "Importing latest from 'dev' branches..."
+    (cd "$CREDEX_CORE_DIR" && git fetch origin dev && git checkout dev && git pull origin dev)
+    (cd "$VIMBISO_PAY_DIR" && git fetch origin dev && git checkout dev && git pull origin dev)
+
     # Create and activate virtual environment
     python3 -m venv /home/vscode/venv
     source /home/vscode/venv/bin/activate
@@ -136,7 +141,7 @@ create_branches() {
     fi
     for repo in "${repos[@]}"; do
         execute_git_command "$repo" "git fetch --all"
-        execute_git_command "$repo" "git checkout -b $new_branch origin/$new_branch || git checkout -b $new_branch"
+        execute_git_command "$repo" "git checkout -b $new_branch origin/dev || git checkout -b $new_branch"
     done
 }
 
