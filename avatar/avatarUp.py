@@ -179,7 +179,7 @@ def main():
     logger.info("Initial context prepared")
     clear_screen()
 
-    print("greatsun-dev: welcome to your development environment. how can I help you?")
+    print("@greatsun-dev: welcome to your development environment. how can I help you?")
 
     while True:
         terminal_input = input(f"@{greatsun_developer}: ").strip()
