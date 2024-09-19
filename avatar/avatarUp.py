@@ -263,23 +263,19 @@ def main():
                 llm_response = llm_call.content[0].text
                 conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
                 logger.info("Received response from LLM")
-
+                
                 # Process the LLM response
                 conversation_thread, developer_input_required, terminal_output = parse_llm_response(
                     conversation_thread, llm_response)
-                write_file("avatar/context/conversation_thread.txt",
-                           conversation_thread)
+                write_file("avatar/context/conversation_thread.txt", conversation_thread)
 
                 print(terminal_output)
 
-                # If developer input is required, break the loop
                 if developer_input_required:
-                    logger.info(
-                        "Developer input required. Waiting for response.")
-                    print(
-                        "\nDeveloper input required. Please provide your next instruction.")
+                    logger.info("Developer input required. Waiting for response.")
+                    print("\nDeveloper input required. Please provide your next instruction.")
                     break
-
+                
                 # Else continue to the next iteration of the loop
                 print("Continuing to next iteration")
                 logger.info("Continuing to next iteration")

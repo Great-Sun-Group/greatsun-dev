@@ -30,8 +30,10 @@ def parse_llm_response(conversation_thread, llm_response):
 
     # Process file operations
     for operation, pattern in patterns.items():
-        llm_response = re.sub(pattern, lambda m: process_operation(
-            m, operation, file_op_queue, terminal_output), llm_response)
+        llm_response, dev_action = process_operation(
+            pattern, operation, file_op_queue, terminal_output, llm_response)
+        if dev_action:
+            developer_input_required = True
 
     # Process all queued operations
     results = file_op_queue.process_queue()
@@ -77,54 +79,57 @@ def parse_llm_response(conversation_thread, llm_response):
     return conversation_thread, developer_input_required, terminal_output
 
 
-def process_operation(match, operation, file_op_queue, terminal_output):
-    if operation == 'read':
-        path = os.path.abspath(match.group(1))
-        read_op = file_op_queue.add_operation('read', path)
-        for op in file_op_queue.queue:
-            if op.operation in ['write', 'append'] and op.args[0] == path:
-                file_op_queue.add_dependency(read_op, op)
-        terminal_output.append(f"Reading file: {path}")
-        return f"<read path=\"{path}\" />"
-    elif operation == 'write':
-        path, content = match.groups()
-        path = os.path.abspath(path)
-        file_op_queue.add_operation('write', path, content)
-        terminal_output.append(f"File written: {path}")
-        return f"<write path=\"{path}\">[File contents not displayed]</write>"
-    elif operation == 'append':
-        path, content = match.groups()
-        path = os.path.abspath(path)
-        file_op_queue.add_operation('append', path, content)
-        terminal_output.append(f"Content appended to: {path}")
-        return f"<append path=\"{path}\">[Appended contents not displayed]</append>"
-    elif operation == 'delete':
-        path = os.path.abspath(match.group(1))
-        file_op_queue.add_operation('delete', path)
-        terminal_output.append(f"File deleted: {path}")
-        return f"<delete path=\"{path}\" />"
-    elif operation in ['rename', 'move']:
-        current_path, new_path = match.groups()
-        current_path = os.path.abspath(current_path)
-        new_path = os.path.abspath(new_path)
-        file_op_queue.add_operation(operation, current_path, new_path)
-        terminal_output.append(f"File {operation}d from {
-                               current_path} to {new_path}")
-        return f"<{operation} current_path=\"{current_path}\" new_path=\"{new_path}\" />"
-    elif operation == 'list_directory':
-        path = os.path.abspath(match.group(1))
-        file_op_queue.add_operation('list_directory', path)
-        terminal_output.append(f"Listing directory: {path}")
-        return f"<list_directory path=\"{path}\">[Directory contents not displayed]</list_directory>"
-    elif operation == 'create_directory':
-        path = os.path.abspath(match.group(1))
-        file_op_queue.add_operation('create_directory', path)
-        terminal_output.append(f"Directory created: {path}")
-        return f"<create_directory path=\"{path}\" />"
-    elif operation == 'request_developer_action':
-        global developer_input_required
-        developer_input_required = True
-        terminal_output.append("Developer action requested")
-        return "<request_developer_action=true>"
-    else:
-        return match.group(0)
+def process_operation(pattern, operation, file_op_queue, terminal_output, llm_response):
+    def replace_func(match):
+        if operation == 'read':
+            path = os.path.abspath(match.group(1))
+            read_op = file_op_queue.add_operation('read', path)
+            for op in file_op_queue.queue:
+                if op.operation in ['write', 'append'] and op.args[0] == path:
+                    file_op_queue.add_dependency(read_op, op)
+            terminal_output.append(f"Reading file: {path}")
+            return f"<read path=\"{path}\" />"
+        elif operation == 'write':
+            path, content = match.groups()
+            path = os.path.abspath(path)
+            file_op_queue.add_operation('write', path, content)
+            terminal_output.append(f"File written: {path}")
+            return f"<write path=\"{path}\">[File contents not displayed]</write>"
+        elif operation == 'append':
+            path, content = match.groups()
+            path = os.path.abspath(path)
+            file_op_queue.add_operation('append', path, content)
+            terminal_output.append(f"Content appended to: {path}")
+            return f"<append path=\"{path}\">[Appended contents not displayed]</append>"
+        elif operation == 'delete':
+            path = os.path.abspath(match.group(1))
+            file_op_queue.add_operation('delete', path)
+            terminal_output.append(f"File deleted: {path}")
+            return f"<delete path=\"{path}\" />"
+        elif operation in ['rename', 'move']:
+            current_path, new_path = match.groups()
+            current_path = os.path.abspath(current_path)
+            new_path = os.path.abspath(new_path)
+            file_op_queue.add_operation(operation, current_path, new_path)
+            terminal_output.append(f"File {operation}d from {
+                                   current_path} to {new_path}")
+            return f"<{operation} current_path=\"{current_path}\" new_path=\"{new_path}\" />"
+        elif operation == 'list_directory':
+            path = os.path.abspath(match.group(1))
+            file_op_queue.add_operation('list_directory', path)
+            terminal_output.append(f"Listing directory: {path}")
+            return f"<list_directory path=\"{path}\">[Directory contents not displayed]</list_directory>"
+        elif operation == 'create_directory':
+            path = os.path.abspath(match.group(1))
+            file_op_queue.add_operation('create_directory', path)
+            terminal_output.append(f"Directory created: {path}")
+            return f"<create_directory path=\"{path}\" />"
+        elif operation == 'request_developer_action':
+            terminal_output.append("Developer action requested")
+            return "<request_developer_action=true>"
+        else:
+            return match.group(0)
+
+    new_response = re.sub(pattern, replace_func, llm_response)
+    dev_action_requested = operation == 'request_developer_action' and new_response != llm_response
+    return new_response, dev_action_requested
