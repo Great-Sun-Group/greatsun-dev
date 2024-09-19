@@ -1,4 +1,4 @@
-from avatar.utils.avatarUp_commands import cross_repo_commit
+from utils.avatar_up_commands import cross_repo_commit
 from utils.responseParser import parse_llm_response
 from utils.file_operations import read_file, write_file, get_directory_tree
 import sys
