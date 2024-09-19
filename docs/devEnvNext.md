@@ -4,13 +4,13 @@
 - [x] Update Dockerfile to fix user creation issue
 - [x] Update init-environment.sh script
 - [ ] Create a new Codespace or set up local environment with updated files
-- [ ] Verify all services (credex-core, credex-bot, credex-dev) start correctly
+- [ ] Verify all services (credex-core, vimbiso-pay, greatsun-dev) start correctly
 - [ ] Test the integration of all components
 
 ## 2. Implement Core Functionality in main.py
 - [ ] Develop run_automated_tests() function
   - [ ] Create tests for credex-core
-  - [ ] Create tests for credex-bot
+  - [ ] Create tests for vimbiso-pay
   - [ ] Implement test runner
 - [ ] Implement analyze_data() function
   - [ ] Define key metrics and data points
@@ -21,10 +21,10 @@
   - [ ] Implement transaction generation logic
   - [ ] Create API call simulation
 
-## 3. Integrate with credex-core and credex-bot
+## 3. Integrate with credex-core and vimbiso-pay
 - [ ] Update import statements in main.py
 - [ ] Implement secure communication between services
-- [ ] Create interfaces for interacting with credex-core and credex-bot
+- [ ] Create interfaces for interacting with credex-core and vimbiso-pay
 
 ## 4. Enhance Security
 - [ ] Implement authentication mechanisms
@@ -57,7 +57,7 @@
 - [ ] Implement automated deployment
 
 ## 10. Review and Iterate
-- [ ] Conduct team review of credex-dev implementation
+- [ ] Conduct team review of greatsun-dev implementation
 - [ ] Gather feedback from users
 - [ ] Plan next iteration of improvements
 

@@ -1,6 +1,6 @@
 [submodule "credex-core"]
 	path = credex-core
 	url = https://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@github.com/Credex/credex-core.git
-[submodule "credex-bot"]
-	path = credex-bot
-	url = https://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@github.com/Credex/credex-bot.git
+[submodule "vimbiso-pay"]
+	path = vimbiso-pay
+	url = https://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@github.com/Credex/vimbiso-pay.git

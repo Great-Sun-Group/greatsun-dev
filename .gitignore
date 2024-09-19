@@ -1,11 +1,3 @@
-# Exclude avatar script files
-avatar-ops/context/currentResponse.txt
-avatar-ops/terminalCommands.txt
-avatar-ops/context_summary.json
-avatar-ops/messageToSend.txt
-avatar-ops/context/fullResponseReceived.txt
-avatar-ops/context/messageSent.txt
-
 # Exclude Python cache files
 __pycache__/
 *.pyc

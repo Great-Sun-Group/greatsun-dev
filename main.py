@@ -3,17 +3,19 @@ import sys
 import logging
 from typing import Dict, Any
 
-# Add credex-core and credex-bot to Python path
-sys.path.append('/workspaces/credex-dev/credex-core')
-sys.path.append('/workspaces/credex-dev/credex-bot')
+# Add credex-core and vimbiso-pay to Python path
+sys.path.append('/workspaces/greatsun-dev/credex-core')
+sys.path.append('/workspaces/greatsun-dev/vimbiso-pay')
 
-# Import necessary modules from credex-core and credex-bot
-# Note: These import statements may need to be adjusted based on the actual structure of credex-core and credex-bot
+# Import necessary modules from credex-core and vimbiso-pay
+# Note: These import statements may need to be adjusted based on the actual structure of credex-core and vimbiso-pay
 # from credex_core import core_functions
 # from credex_bot import bot_functions
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
 
 class CredexDev:
     def __init__(self):
@@ -23,7 +25,7 @@ class CredexDev:
 
     def run_automated_tests(self):
         logger.info("Running automated tests...")
-        # TODO: Implement automated tests for credex-core and credex-bot
+        # TODO: Implement automated tests for credex-core and vimbiso-pay
         pass
 
     def analyze_data(self):
@@ -36,12 +38,14 @@ class CredexDev:
         # TODO: Implement transaction simulation
         pass
 
+
 def main():
     credex_dev = CredexDev()
     credex_dev.run_automated_tests()
     credex_dev.analyze_data()
     credex_dev.simulate_transactions()
-    logger.info("Credex-dev is running")
+    logger.info("vimbiso-pay is running")
+
 
 if __name__ == "__main__":
     main()
