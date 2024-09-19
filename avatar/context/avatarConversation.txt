@@ -931,3 +931,101 @@ Please review these changes and rebuild your container. After rebuilding, try ru
 File written: /workspaces/greatsun-dev/startup.sh
 File written: /workspaces/greatsun-dev/Dockerfile
 File written: /workspaces/greatsun-dev/.devcontainer/devcontainer.json
+
+*** DEVELOPER INSTRUCTIONS ***
+
+nope. something isn't getting set properly on codespace build: @ryanlukewatson ➜ /workspaces/greatsun-dev (tributary43) $ avatar upbash: avatar: command not found
+
+
+
+
+*** LLM RESPONSE ***
+
+I apologize for the continued issue. It seems that the changes are not being applied correctly during the Codespace build. Let's try a different approach that should work more reliably in a Codespace environment.
+
+1. First, let's modify the startup script to create a shell script that sets up the avatar command:
+
+<write path="/workspaces/greatsun-dev/startup.sh">
+#!/bin/bash
+
+# Create a script to set up the avatar command
+cat << EOF > /usr/local/bin/setup-avatar.sh
+#!/bin/bash
+alias avatar="python3 /workspaces/greatsun-dev/avatar/avatar"
+EOF
+
+# Make the setup script executable
+chmod +x /usr/local/bin/setup-avatar.sh
+
+# Make sure the avatar script is executable
+chmod +x /workspaces/greatsun-dev/avatar/avatar
+
+# Add sourcing of the setup script to .bashrc if it doesn't exist
+grep -qxF 'source /usr/local/bin/setup-avatar.sh' ~/.bashrc || echo 'source /usr/local/bin/setup-avatar.sh' >> ~/.bashrc
+
+# Print a message
+echo "Avatar environment is ready. Please run 'source ~/.bashrc' to use the 'avatar' command."
+</write>
+
+2. Now, let's update the Dockerfile to copy this script:
+
+<write path="/workspaces/greatsun-dev/Dockerfile">
+FROM mcr.microsoft.com/devcontainers/python:3
+
+# Copy the startup script
+COPY startup.sh /usr/local/bin/startup.sh
+
+# Make the startup script executable
+RUN chmod +x /usr/local/bin/startup.sh
+
+# Run the startup script during build
+RUN /usr/local/bin/startup.sh
+
+# Set the entrypoint to run bash
+ENTRYPOINT ["/bin/bash"]
+</write>
+
+3. Update the devcontainer.json file to run the startup script and source .bashrc:
+
+<write path="/workspaces/greatsun-dev/.devcontainer/devcontainer.json">
+{
+    "name": "Greatsun Dev Environment",
+    "build": {
+        "dockerfile": "../Dockerfile"
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "ms-toolsai.jupyter"
+            ]
+        }
+    },
+    "postCreateCommand": "pip install -r requirements.txt && /usr/local/bin/startup.sh && echo 'source ~/.bashrc' >> ~/.bashrc",
+    "remoteUser": "vscode"
+}
+</write>
+
+These changes do the following:
+
+1. The startup script now creates a separate script (`setup-avatar.sh`) that defines the `avatar` alias. This script is then sourced in `.bashrc`.
+
+2. The Dockerfile remains largely the same, running the startup script during the build process.
+
+3. The devcontainer.json file now includes running the startup script in the `postCreateCommand` and adds a command to source `.bashrc` at the end of `.bashrc` itself. This ensures that the alias is set up when a new shell session starts.
+
+To implement these changes:
+
+1. Make sure you have a `requirements.txt` file in your project root with all necessary Python dependencies.
+2. Rebuild your Codespace after making these changes.
+
+After rebuilding, when you open a new terminal in your Codespace, the `avatar` command should be available. If it's not immediately available, try running `source ~/.bashrc` manually.
+
+<request_developer_action=true>
+Please review these changes, rebuild your Codespace, and try running the `avatar up` command again. If you still encounter any issues, please let me know the exact steps you're taking and any error messages you see, and we'll continue to troubleshoot.
+
+*** OPERATION RESULTS ***
+
+File written: /workspaces/greatsun-dev/startup.sh
+File written: /workspaces/greatsun-dev/Dockerfile
+File written: /workspaces/greatsun-dev/.devcontainer/devcontainer.json
