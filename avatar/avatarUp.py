@@ -27,19 +27,14 @@ logger = logging.getLogger(__name__)
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
 
-# Diagnostic information
-print(f"Python version: {sys.version}")
-print(f"Python executable: {sys.executable}")
-print(f"User site-packages: {user_site_packages}")
-print(f"Python path: {sys.path}")
-
 
 def install_package(package_name: str) -> bool:
     try:
         subprocess.check_call(
             [sys.executable, "-m", "pip", "install", package_name])
         print(f"Successfully installed {package_name}")
-        return True
+        print("Exiting to reset. Run avatar up again to launch.")
+        sys.exit(1)
     except subprocess.CalledProcessError as e:
         print(f"Failed to install {package_name}: {e}")
         return False
@@ -54,7 +49,6 @@ if importlib.util.find_spec("anthropic") is None:
 
 # Now try to import anthropic
 try:
-    time.sleep(2) # to give it time to recognize the new installation above
     print("Attempting to import anthropic...")
     import anthropic
     print(f"anthropic module found at: {anthropic.__file__}")
