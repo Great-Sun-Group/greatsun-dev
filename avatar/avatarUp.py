@@ -17,7 +17,7 @@ def main():
     MODEL_NAME = "claude-3-sonnet-20240229"
     GH_USERNAME = os.environ.get('GH_USERNAME')
 
-    print("@greatsun-dev: I read you loud and clear on")
+    print("@greatsun-dev: I read you loud and clear")
 
     get_off_dev_branch()
     conversation_thread = load_initial_context()
@@ -32,18 +32,23 @@ def main():
             write_file("avatar/context/conversation_thread.txt",
                        conversation_thread)
             print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
+            continue
 
         if terminal_input.lower() == "avatar load":
             avatar_load_dev_git()
+            continue
 
         if terminal_input.lower() == "avatar engage":
             print("engaged placeholder")
+            continue
 
         if terminal_input.lower() == "avatar commit":
             avatar_commit_git()
+            continue
 
         if terminal_input.lower() == "avatar submit":
             avatar_submit_git()
+            continue
 
         if terminal_input.lower() == "avatar down":
             print("greatsun-dev, signing off")
@@ -61,7 +66,7 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                print(f"avatar iteration {iteration + 1})")
+                print(f"avatar iteration {iteration + 1} of up to {MAX_LLM_ITERATIONS}")
 
                 llm_call = LARGE_LANGUAGE_MODEL.messages.create(
                     model=MODEL_NAME,
