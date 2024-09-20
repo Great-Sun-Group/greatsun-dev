@@ -1,6 +1,7 @@
 from utils.file_operations import read_file, write_file, get_directory_tree, install_package
-from utils.git_operations import execute_git_command, create_branches, checkout_branches, push_changes, merge_to_dev
+from utils.git_operations import create_branches, checkout_branches, push_changes, merge_to_dev
 from utils.responseParser import parse_llm_response
+import utils.branch_on_avatar_up
 import sys
 import logging
 import os
@@ -53,8 +54,6 @@ except ImportError as e:
 def clear_screen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
-# Git operation functions
-
 def main():
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
     GH_USERNAME = os.environ.get('GH_USERNAME')
@@ -63,6 +62,7 @@ def main():
     SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
 
     try:
+        utils.branch_on_avatar_up.main()
         logger.info("Starting avatar environment")
         large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
         greatsun_developer = GH_USERNAME
