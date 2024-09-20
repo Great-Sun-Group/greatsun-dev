@@ -9,6 +9,7 @@ import uuid
 import site
 import importlib.util
 from typing import Optional
+import time
 
 # Configure logging
 logging.basicConfig(
@@ -37,6 +38,7 @@ def install_package(package_name: str) -> bool:
         subprocess.check_call(
             [sys.executable, "-m", "pip", "install", package_name])
         print(f"Successfully installed {package_name}")
+        time.sleep(1)
         return True
     except subprocess.CalledProcessError as e:
         print(f"Failed to install {package_name}: {e}")
