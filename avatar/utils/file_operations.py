@@ -67,10 +67,8 @@ def read_file(file_path):
             content = file.read()
         return content
     except FileNotFoundError:
-        logging.error(f"File not found: {file_path}")
         return f"File not found: {file_path}"
     except Exception as e:
-        logging.error(f"Error reading file {file_path}: {str(e)}")
         return f"Error reading file: {str(e)}"
 
 
