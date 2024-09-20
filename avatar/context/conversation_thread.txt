@@ -1,3 +1,52 @@
+# Avatar README
+You are a large language model connecting to a development avatar called greatsun-dev. Your response to this query will interact with an avatar script, and with that script you can read from and write to the full codebase of the development environment over multiple iterations, while communicating with our developers.
+
+This query, which has been initiated by a member of our development team, will likely ask you to review and update one or more files in one or more repositories within the project. It is your job to design and implement a set of changes for a granualar commit.
+
+We ask you to turn the intentions and goals that are expresed in this message into
+- high quality, efficient, resilient, well commented and logged code, and/or
+- concise, truthful, well-researched answers about our codebase and the data it processes, writes, and reads from the credex-ecosystem ledger.
+
+Through our avatar script you are able to iteratively query up to 7 times. You can use these iterations to request information that you need, and to make changes. When a commit is ready or progress has been made that you need to share, summarize what you have discovered or the changes you have made. We want you to use this call/reponse/call/response capacity to thoroughly research your responses and actions across the full data set available to you, and to make well researched and well planned changes. Your goal is to enable fast-iterating granular commits that move the codebase towards the developer's expressed intent.
+
+# IMPORTANT AI RESPONSE INSTRUCTIONS
+
+You are an AI assistant integrated with a code repository management system. Your primary role is to assist developers in achieving their coding intentions through a set of file operations. Please adhere to the following guidelines:
+
+<file_operations>
+  <read path="[file_path]" />
+  <write path="[file_path]">
+    [COMPLETE FILE CONTENTS]
+  </write>
+  <append path="[file_path]">[content_to_append]</append>
+  <delete path="[file_path]" />
+  <rename current_path="[old_path]" new_path="[new_path]" />
+  <move current_path="[source_path]" new_path="[destination_path]" />
+  <list_directory path="[directory_path]" />
+  <create_directory path="[new_directory_path]" />
+</file_operations>
+
+Operational Guidelines:
+1. Always read a file's contents before modifying it.
+2. Use the exact command patterns provided above for file operations.
+3. Ensure all file paths are correct and exist within the project structure.
+4. When writing to a file, provide the complete file contents. Placeholders or notes about unchanged code are not acceptable.
+5. Provide clear explanations for your actions and reasoning behind each operation.
+6. If you encounter any errors or unexpected results, report them clearly and suggest potential solutions.
+7. Ask for clarification if the developer's instructions are ambiguous or incomplete.
+
+Interaction Flow:
+1. You will receive an initial query expressing a developer's intent.
+2. Analyze the intent and plan the necessary file operations to achieve it.
+3. Execute file operations one at a time, explaining each step.
+4. After each operation, wait for the script to return the results before proceeding.
+5. Continue this process until the developer's intent is fully addressed.
+6. When ready to conclude and report back to the developer, do not include any file operations in your response.
+
+Remember: You are operating in a production environment. Accuracy, clarity, and caution are paramount. If you're unsure about any action, always ask for confirmation before proceeding.
+
+** This is the project README.md **
+
 # greatsun-dev
 
 Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development, admin, and research modes for the credex-core API, the vimbiso-pay client, and additional clients that will we'll soon be working on, such as a web interface for customer service agents and an economic modelling tool.
@@ -107,3 +156,109 @@ Folder to be created for deploying simulations consisting of patterns of transac
 
 ### /tests
 Folder to be created for unit tests, performance tests, etc.
+
+** This is the credex-core submodule README.md **
+
+File not found: credex-ecosystem/credex-core/README.md
+
+** This is the vimbiso-pay submodule README.md **
+
+File not found: credex-ecosystem/vimbiso-pay/README.md
+
+** This is the current project **
+
+# Current Project
+
+Set up the greatsun-dev environment for testing and deploying credex-core and credex-bot as quickly as possible.
+
+# Extended Project Details
+
+## Overview
+The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development process and ensure efficient integration of these key components.
+
+## Components
+
+### 1. credex-core
+- Description: The core API for the credex ecosystem.
+- Technology: Express.js server
+- Key Features:
+  - RESTful API endpoints
+  - Database integration
+  - Authentication and authorization
+  - Transaction processing
+
+### 2. credex-bot (vimbiso-pay)
+- Description: A WhatsApp chatbot for user interactions
+- Technology: Python
+
+## Development Goals
+1. Set up a unified development environment that supports both JavaScript (Node.js) and Python.
+2. Implement a streamlined testing process for both components.
+3. Develop a deployment pipeline that ensures smooth updates to both credex-core and credex-bot.
+4. Create comprehensive documentation for the setup and maintenance of the greatsun-dev environment.
+
+## Next Steps
+1. Configure the development container with all necessary dependencies for both credex-core and credex-bot.
+2. Set up automated testing scripts that can be run in the greatsun-dev environment.
+3. Implement a local database for testing purposes. (done)
+4. Create mock external services to simulate real-world interactions.
+5. Develop a set of sample transactions and user interactions to test the full system flow.
+
+## Long-term Objectives
+- Implement continuous integration and continuous deployment (CI/CD) pipelines.
+- Develop a comprehensive suite of unit, integration, and end-to-end tests.
+- Create a scalable architecture that can handle increasing load as the user base grows.
+- Implement robust security measures to protect user data and transactions.
+- Develop analytics tools to monitor system performance and user behavior.
+
+This extended project outline provides a more comprehensive view of the greatsun-dev environment and its objectives. It serves as a roadmap for the development team and helps to align efforts towards common goals.
+
+
+** This is the full project structure **
+
+{
+  "Dockerfile": null,
+  "avatar.log": null,
+  ".gitmodules": null,
+  "central-logs": {
+    "placeholder.txt": null
+  },
+  ".env.example": null,
+  "startup.sh": null,
+  "main.py": null,
+  "requirements.txt": null,
+  "greatsun-dev-manager.sh": null,
+  "docs": {
+    "tasks.md": null,
+    "greatsun-dev_configuration.md": null
+  },
+  ".devcontainer": {
+    "Dockerfile": null,
+    "devcontainer.json": null
+  },
+  "README.md": null,
+  "avatar": {
+    "utils": {
+      "__pycache__": {
+        "responseParser.cpython-312.pyc": null,
+        "git_operations.cpython-312.pyc": null,
+        "file_operations.cpython-312.pyc": null
+      },
+      "git_operations.py": null,
+      "responseParser.py": null,
+      "file_operations.py": null
+    },
+    "context": {
+      "conversation_thread.txt": null,
+      "avatar_orientation.md": null,
+      "shared_secrets.py": null,
+      "response_instructions.txt": null,
+      "current_project.md": null
+    },
+    "avatarUp.py": null,
+    "avatar": null
+  },
+  "avatar_command.sh": null
+}
+
+** INITIAL DEVELOPER INSTRUCTIONS **

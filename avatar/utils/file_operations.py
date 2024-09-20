@@ -65,9 +65,10 @@ def write_file(file_path, file_content):
         logging.error(f"Error writing to file {file_path}: {str(e)}")
         return False
     
+
 def get_directory_tree(path):
     """
-    Recursively get the directory structure as a dictionary, excluding irrelevant files and folders.
+    Recursively get the directory structure as a dictionary, excluding only specific system and hidden files.
 
     Args:
     path (str): Path to the directory
@@ -76,23 +77,20 @@ def get_directory_tree(path):
     dict: Directory structure
     """
     tree = {}
-    excluded_dirs = {'node_modules', '__pycache__',
-                     '.git', '.vscode', 'venv', 'env', 'build', 'dist'}
-    excluded_files = {'.DS_Store', 'Thumbs.db',
-                      '*.pyc', '*.pyo', '*.pyd', '*.log'}
+    excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes'}
 
     try:
         for entry in os.scandir(path):
-            if entry.is_dir() and entry.name not in excluded_dirs:
+            if entry.is_dir():
+                # Exclude .git directory
+                if entry.name == '.git':
+                    continue
                 subtree = get_directory_tree(entry.path)
-                if subtree:  # Only add non-empty directories
-                    tree[entry.name] = subtree
+                tree[entry.name] = subtree
             elif entry.is_file():
-                # Check if the file should be included
-                if not any(entry.name.endswith(ext) for ext in excluded_files):
-                    # Include only relevant file types
-                    if entry.name.endswith(('.py', '.ts', '.js', '.json', '.yml', '.yaml', '.md', '.txt')):
-                        tree[entry.name] = None
+                # Exclude specific files
+                if entry.name not in excluded_files:
+                    tree[entry.name] = None
     except Exception as e:
         logging.error(f"Error getting directory tree for {path}: {str(e)}")
 
