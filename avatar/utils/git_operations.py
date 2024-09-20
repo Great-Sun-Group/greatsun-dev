@@ -13,18 +13,14 @@ SUBMODULES = [
     'vimbiso-pay'
 ]
 
-
 def run_command(command):
     return subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-
 
 def get_current_branch():
     return run_command("git rev-parse --abbrev-ref HEAD").stdout.strip()
 
-
 def create_random_branch():
     return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
-
 
 def avatar_up_git():
     current_branch = get_current_branch()
@@ -35,20 +31,18 @@ def avatar_up_git():
     else:
         print(f"Currently on branch: {current_branch}. No action taken.")
 
-
-def clone_or_pull_submodule(submodule):
+def add_submodule(submodule):
+    submodule_url = f"https://{GH_USERNAME}:{GH_PAT}@github.com/Great-Sun-Group/{submodule}"
     submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
-    if not os.path.exists(submodule_path):
-        run_command(f"git clone https://{GH_USERNAME}:{
-                    GH_PAT}@github.com/Great-Sun-Group/{submodule} {submodule_path}")
-    else:
-        os.makedirs(submodule_path, exist_ok=True)
-        os.chdir(submodule_path)
-        run_command("git fetch origin")
-        run_command("git checkout dev")
-        run_command("git pull origin dev")
-        os.chdir('..')
+    run_command(f"git submodule add {submodule_url} {submodule_path}")
 
+def update_submodule(submodule):
+    submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
+    os.chdir(submodule_path)
+    run_command("git fetch origin")
+    run_command("git checkout dev")
+    run_command("git pull origin dev")
+    os.chdir('..')
 
 def avatar_load_git():
     current_branch = get_current_branch()
@@ -57,24 +51,23 @@ def avatar_load_git():
         return
 
     for submodule in SUBMODULES:
-        clone_or_pull_submodule(submodule)
-        submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{
-            submodule}"
-        os.makedirs(submodule_path, exist_ok=True)
+        submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
+        if not os.path.exists(submodule_path):
+            add_submodule(submodule)
+        else:
+            update_submodule(submodule)
+
         os.chdir(submodule_path)
-        run_command(f"git checkout {
-                    current_branch} 2>/dev/null || git checkout -b {current_branch}")
+        run_command(f"git checkout {current_branch} 2>/dev/null || git checkout -b {current_branch}")
         os.chdir('..')
 
     print(f"Submodules loaded and checked out to branch: {current_branch}")
-
 
 def has_changes(repo_path):
     os.chdir(repo_path)
     status = run_command("git status --porcelain").stdout
     os.chdir('..')
     return bool(status.strip())
-
 
 def avatar_commit_git():
     current_branch = get_current_branch()
@@ -99,7 +92,6 @@ def avatar_commit_git():
     else:
         print("No changes to commit.")
 
-
 def create_pull_request(repo, branch, title, body):
     url = f"https://api.github.com/repos/Great-Sun-Group/{repo}/pulls"
     headers = {
@@ -118,7 +110,6 @@ def create_pull_request(repo, branch, title, body):
     else:
         print(f"Failed to create PR for {repo}: {response.text}")
         return None
-
 
 def avatar_submit_git():
     current_branch = get_current_branch()
@@ -163,3 +154,4 @@ def avatar_submit_git():
         print("Pull request descriptions updated with cross-references.")
     else:
         print("No changes to submit in any repository.")
+        
