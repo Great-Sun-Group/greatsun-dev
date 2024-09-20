@@ -1,3 +1,4 @@
+from subprocess import run, PIPE, CalledProcessError
 import os
 import subprocess
 import random
@@ -78,29 +79,62 @@ def has_changes(repo_path):
     return bool(status.strip())
 
 
+def run_command(command):
+    try:
+        result = run(command, shell=True, check=True,
+                     stdout=PIPE, stderr=PIPE, text=True)
+        return result
+    except CalledProcessError as e:
+        print(f"Command failed: {e}")
+        return None
+
+
+def has_changes(repo_path):
+    os.chdir(repo_path)
+    result = run_command("git status --porcelain")
+    os.chdir('..')
+    return result is not None and result.stdout.strip() != ""
+
+
 def avatar_commit_git():
     current_branch = get_current_branch()
     commit_message = input("Enter commit message: ")
     commit_hashes = []
+    changes_found = False
 
-    for repo in [MODULE_FOLDER] + SUBMODULES:
-        repo_path = f"/{MODULE_FOLDER}/{repo}"
+    ## Commit greatsun-dev
+    if has_changes(MODULE_FOLDER):
+        changes_found = True
+        os.chdir(MODULE_FOLDER)
+        commit_result = run_command(f"git commit -m '{commit_message}'")
+        if commit_result:
+            commit_hash = commit_result.stdout.split()[1]
+            push_result = run_command(f"git push origin {current_branch}")
+            if push_result:
+                commit_hashes.append((repo, commit_hash))
+
+    for repo in SUBMODULES:
+        repo_path = f"credex-ecosystem/{repo}"
         if has_changes(repo_path):
+            changes_found = True
             os.chdir(repo_path)
-            run_command("git add .")
-            commit_output = run_command(f"git commit -m '{commit_message}'")
-            commit_hash = commit_output.stdout.split()[1]
-            run_command(f"git push origin {current_branch}")
-            commit_hashes.append((repo, commit_hash))
-            os.chdir('..')
+            commit_result = run_command(f"git commit -m '{commit_message}'")
+            if commit_result:
+                commit_hash = commit_result.stdout.split()[1]
+                push_result = run_command(f"git push origin {current_branch}")
+                if push_result:
+                    commit_hashes.append((repo, commit_hash))
+            os.chdir(MODULE_FOLDER)
+
 
     if commit_hashes:
         print("Commits pushed to remote branches:")
         for repo, commit_hash in commit_hashes:
             print(f"{repo}: {commit_hash}")
+    elif changes_found:
+        print("Changes were found, but commits failed. Check the error messages above.")
     else:
-        print("No changes to commit.")
-
+        print("No changes to commit in any repository.")
 
 def create_pull_request(repo, branch, title, body):
     url = f"https://api.github.com/repos/Great-Sun-Group/{repo}/pulls"
