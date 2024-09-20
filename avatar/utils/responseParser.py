@@ -10,7 +10,6 @@ logger = logging.getLogger(__name__)
 def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str, bool, str]:
     file_op_queue = FileOperationQueue()
     file_operation_performed = False
-    developer_input_required = False
     processed_response = []
     terminal_output = []
 
@@ -25,16 +24,13 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
         'rename': r'<rename current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
         'move': r'<move current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
         'list_directory': r'<list_directory path=(?:")?([^">]+)(?:")? />',
-        'create_directory': r'<create_directory path=(?:")?([^">]+)(?:")? />',
-        'request_developer_action': r'<request_developer_action=true>'
+        'create_directory': r'<create_directory path=(?:")?([^">]+)(?:")? />'
     }
 
     # Process file operations
     for operation, pattern in patterns.items():
-        llm_response, dev_action = process_operation(
+        llm_response = process_operation(
             pattern, operation, file_op_queue, terminal_output, llm_response)
-        if dev_action:
-            developer_input_required = True
 
     # Process all queued operations
     results = file_op_queue.process_queue()
@@ -56,15 +52,14 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
     terminal_output = '\n'.join(terminal_output)
 
     logger.info(f"File operation performed: {file_operation_performed}")
-    logger.info(f"Developer input required: {developer_input_required}")
     logger.debug(f"Processed response:\n{processed_response}")
     logger.debug(f"Terminal output:\n{terminal_output}")
 
-    return conversation_thread, developer_input_required, terminal_output
+    return conversation_thread, file_operation_performed, terminal_output
 
 
 def process_operation(pattern: str, operation: str, file_op_queue: FileOperationQueue,
-                      terminal_output: List[str], llm_response: str) -> Tuple[str, bool]:
+                      terminal_output: List[str], llm_response: str) -> str:
     def replace_func(match):
         if operation == 'read':
             path = os.path.abspath(match.group(1))
@@ -79,13 +74,13 @@ def process_operation(pattern: str, operation: str, file_op_queue: FileOperation
             path = os.path.abspath(path)
             file_op_queue.add_operation('write', path, content)
             terminal_output.append(f"File written: {path}")
-            return f"<write path=\"{path}\">[File contents not displayed]</write>"
+            return f"<write path=\"{path}\">{content}</write>"
         elif operation == 'append':
             path, content = match.groups()
             path = os.path.abspath(path)
             file_op_queue.add_operation('append', path, content)
             terminal_output.append(f"Content appended to: {path}")
-            return f"<append path=\"{path}\">[Appended contents not displayed]</append>"
+            return f"<append path=\"{path}\">{content}</append>"
         elif operation == 'delete':
             path = os.path.abspath(match.group(1))
             file_op_queue.add_operation('delete', path)
@@ -96,37 +91,32 @@ def process_operation(pattern: str, operation: str, file_op_queue: FileOperation
             current_path = os.path.abspath(current_path)
             new_path = os.path.abspath(new_path)
             file_op_queue.add_operation(operation, current_path, new_path)
-            terminal_output.append(f"File {operation}d from {
-                                   current_path} to {new_path}")
+            terminal_output.append(f"File {operation}d from {current_path} to {new_path}")
             return f"<{operation} current_path=\"{current_path}\" new_path=\"{new_path}\" />"
         elif operation == 'list_directory':
             path = os.path.abspath(match.group(1))
             file_op_queue.add_operation('list_directory', path)
             terminal_output.append(f"Listing directory: {path}")
-            return f"<list_directory path=\"{path}\">[Directory contents not displayed]</list_directory>"
+            return f"<list_directory path=\"{path}\" />"
         elif operation == 'create_directory':
             path = os.path.abspath(match.group(1))
             file_op_queue.add_operation('create_directory', path)
             terminal_output.append(f"Directory created: {path}")
             return f"<create_directory path=\"{path}\" />"
-        elif operation == 'request_developer_action':
-            terminal_output.append("Developer action requested")
-            return "<request_developer_action=true>"
         else:
             return match.group(0)
 
     new_response = re.sub(pattern, replace_func, llm_response)
-    dev_action_requested = operation == 'request_developer_action' and new_response != llm_response
-    return new_response, dev_action_requested
+    return new_response
 
 
 def format_operation_result(op: FileOperation, result: str) -> str:
     if op.operation == 'read':
         return f"Content of {op.args[0]}:\n{result}"
     elif op.operation == 'write':
-        return f"File written: {op.args[0]}"
+        return f"File written: {op.args[0]}\nContent:\n{op.args[1]}"
     elif op.operation == 'append':
-        return f"Content appended to: {op.args[0]}"
+        return f"Content appended to: {op.args[0]}\nAppended content:\n{op.args[1]}"
     elif op.operation == 'delete':
         return f"File deleted: {op.args[0]}"
     elif op.operation in ['rename', 'move']:
@@ -166,5 +156,6 @@ def validate_file_operation(operation: str, path: str, new_path: str = None) -> 
             return False
 
     return True
+
 
 logger.info("responseParser module initialized")
