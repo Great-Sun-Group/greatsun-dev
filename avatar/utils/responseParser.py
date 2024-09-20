@@ -11,8 +11,8 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
     file_op_queue = FileOperationQueue()
     file_operation_performed = False
     developer_input_required = False
-    processed_response: List[str] = []
-    terminal_output: List[str] = []
+    processed_response = []
+    terminal_output = []
 
     logger.info("Starting to process LLM response")
     logger.debug(f"Raw LLM response:\n{llm_response}")
@@ -45,26 +45,26 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
             processed_response.append(format_operation_result(op, result))
 
     # Save action results to conversation thread
-    processed_response_str = '\n'.join(processed_response)
+    processed_response = '\n'.join(processed_response)
     conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
-        llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response_str}"
+        llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response}"
 
     # Add the modified LLM response (with placeholders) to terminal output
     terminal_output.append(llm_response)
 
     # Prepare terminal output
-    terminal_output_str = '\n'.join(terminal_output)
+    terminal_output = '\n'.join(terminal_output)
 
     logger.info(f"File operation performed: {file_operation_performed}")
     logger.info(f"Developer input required: {developer_input_required}")
-    logger.debug(f"Processed response:\n{processed_response_str}")
-    logger.debug(f"Terminal output:\n{terminal_output_str}")
+    logger.debug(f"Processed response:\n{processed_response}")
+    logger.debug(f"Terminal output:\n{terminal_output}")
 
-    # Return the updated conversation thread, whether developer input is required, and the terminal output
-    return conversation_thread, developer_input_required, terminal_output_str
+    return conversation_thread, developer_input_required, terminal_output
 
 
-def process_operation(pattern: str, operation: str, file_op_queue: FileOperationQueue, terminal_output: List[str], llm_response: str) -> Tuple[str, bool]:
+def process_operation(pattern: str, operation: str, file_op_queue: FileOperationQueue,
+                      terminal_output: List[str], llm_response: str) -> Tuple[str, bool]:
     def replace_func(match):
         if operation == 'read':
             path = os.path.abspath(match.group(1))
@@ -115,13 +115,12 @@ def process_operation(pattern: str, operation: str, file_op_queue: FileOperation
         else:
             return match.group(0)
 
-
     new_response = re.sub(pattern, replace_func, llm_response)
     dev_action_requested = operation == 'request_developer_action' and new_response != llm_response
     return new_response, dev_action_requested
 
 
-def format_operation_result(op: FileOperation, result: any) -> str:
+def format_operation_result(op: FileOperation, result: str) -> str:
     if op.operation == 'read':
         return f"Content of {op.args[0]}:\n{result}"
     elif op.operation == 'write':
@@ -147,42 +146,25 @@ def sanitize_path(path: str) -> str:
 
 def is_path_allowed(path: str) -> bool:
     """Check if the given path is within the allowed directory."""
-    allowed_directory = "/workspaces/greatsun-dev"
-    return os.path.commonpath([path, allowed_directory]) == allowed_directory
+    allowed_dir = '/workspaces/greatsun-dev'
+    return os.path.commonpath([path, allowed_dir]) == allowed_dir
 
 
-def validate_file_operation(operation: str, path: str, *args) -> bool:
-    """Validate file operations to ensure they're safe and allowed."""
-    sanitized_path = sanitize_path(path)
-    if not is_path_allowed(sanitized_path):
-        logger.warning(f"Attempted operation outside allowed directory: {
-                       sanitized_path}")
+def validate_file_operation(operation: str, path: str, new_path: str = None) -> bool:
+    """Validate file operations to ensure they're within allowed directories."""
+    path = sanitize_path(path)
+    if not is_path_allowed(path):
+        logger.warning(
+            f"Attempted operation outside allowed directory: {path}")
         return False
 
-    if operation in ['read', 'write', 'append']:
-        if not os.path.exists(os.path.dirname(sanitized_path)):
-            logger.warning(f"Parent directory does not exist for: {
-                           sanitized_path}")
-            return False
-    elif operation in ['delete', 'rename', 'move', 'list_directory']:
-        if not os.path.exists(sanitized_path):
-            logger.warning(f"Path does not exist: {sanitized_path}")
-            return False
-    elif operation == 'create_directory':
-        if os.path.exists(sanitized_path):
-            logger.warning(f"Directory already exists: {sanitized_path}")
+    if new_path:
+        new_path = sanitize_path(new_path)
+        if not is_path_allowed(new_path):
+            logger.warning(
+                f"Attempted operation outside allowed directory: {new_path}")
             return False
 
     return True
 
-# Add this function to the FileOperationQueue class in file_operations.py
-
-
-def add_operation(self, operation: str, *args) -> FileOperation:
-    if validate_file_operation(operation, args[0], *args[1:]):
-        op = FileOperation(operation, args)
-        self.queue.append(op)
-        return op
-    else:
-        logger.warning(f"Invalid file operation: {operation} {args}")
-        return None
+logger.info("responseParser module initialized")

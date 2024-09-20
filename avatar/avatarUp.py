@@ -8,7 +8,7 @@ import subprocess
 import uuid
 import site
 import importlib.util
-from typing import Tuple, List
+from typing import Optional
 
 # Configure logging
 logging.basicConfig(
@@ -158,46 +158,11 @@ def merge_to_dev() -> bool:
     return True
 
 
-def process_llm_response(conversation_thread: str, llm_response: str, max_iterations: int = 5) -> Tuple[str, bool, str]:
-    for iteration in range(max_iterations):
-        conversation_thread, developer_input_required, terminal_output = parse_llm_response(
-            conversation_thread, llm_response)
-
-        if developer_input_required or not terminal_output.strip():
-            return conversation_thread, developer_input_required, terminal_output
-
-        # If there are more actions to perform, continue to the next iteration
-        conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}"
-        write_file("avatar/context/conversation_thread.txt",
-                   conversation_thread)
-
-        try:
-            llm_call = large_language_model.messages.create(
-                model=MODEL_NAME,
-                max_tokens=4096,
-                temperature=0,
-                system=SYSTEM_PROMPT,
-                messages=[
-                    {"role": "user", "content": conversation_thread}
-                ]
-            )
-            llm_response = llm_call.content[0].text
-        except Exception as e:
-            logger.error(f"Error in LLM call: {str(e)}")
-            return conversation_thread, True, f"An error occurred: {str(e)}"
-
-    # If we've reached this point, we've hit the maximum number of iterations
-    final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
-    logger.warning("LLM reached maximum iterations without completion")
-    conversation_thread += f"\n\n{final_response}"
-    return conversation_thread, True, final_response
-
-
 def main():
     ANTHROPIC_API_KEY = os.environ.get('CLAUDE')
     GH_USERNAME = os.environ.get('GH_USERNAME')
     MAX_LLM_ITERATIONS = 14
-    MODEL_NAME = "claude-3-5-sonnet-20240620"
+    MODEL_NAME = "claude-3-sonnet-20240229"
 
     response_instructions_path = "avatar/context/response_instructions.txt"
     if not os.path.exists(response_instructions_path):
@@ -217,7 +182,7 @@ def main():
         print(f"Error initializing Anthropic client: {e}")
         return
 
-    # Prepare the initial context
+# Prepare the initial context
     avatarUp_content = [
         read_file("avatar/context/avatar_orientation.md"),
         read_file("avatar/context/response_instructions.txt"),
@@ -263,7 +228,6 @@ def main():
                 print("Failed to perform commit. Check logs for details.")
                 continue
 
-
         if terminal_input.lower().startswith("avatar create branch"):
             branch_name = terminal_input.split(
                 "avatar create branch", 1)[1].strip()
@@ -280,7 +244,8 @@ def main():
             if checkout_branches(branch_name):
                 print(f"Checked out branch '{branch_name}' in all repos")
             else:
-                print(f"Failed to checkout branch '{branch_name}'. Check logs for details.")
+                print(f"Failed to checkout branch '{
+                      branch_name}'. Check logs for details.")
             continue
 
         if terminal_input.lower() == "avatar merge to dev":
@@ -292,50 +257,103 @@ def main():
 
         if terminal_input.lower() == "avatar clear":
             conversation_thread = "\n\n".join(avatarUp_content)
-            write_file("avatar/context/conversation_thread.txt", conversation_thread)
-            logger.info("Avatar conversation cleared and reset to initial context")
+            write_file("avatar/context/conversation_thread.txt",
+                       conversation_thread)
+            logger.info(
+                "Avatar conversation cleared and reset to initial context")
             clear_screen()
             print("Conversation cleared and reset to initial context")
             continue
 
         # Add new terminal message to conversation
-        conversation_thread = read_file("avatar/context/conversation_thread.txt")
-        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{terminal_input}"
-        write_file("avatar/context/conversation_thread.txt", conversation_thread)
+        conversation_thread = read_file(
+            "avatar/context/conversation_thread.txt")
+        conversation_thread += f"\n\n*** DEVELOPER INPUT ***\n\n{
+            terminal_input}"
+        write_file("avatar/context/conversation_thread.txt",
+                   conversation_thread)
 
-        # Process LLM response
-        try:
-            llm_call = large_language_model.messages.create(
-                model=MODEL_NAME,
-                max_tokens=4096,
-                temperature=0,
-                system=SYSTEM_PROMPT,
-                messages=[
-                    {"role": "user", "content": conversation_thread}
-                ]
-            )
-            llm_response = llm_call.content[0].text
-            logger.info("Received initial response from LLM")
+# START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
+        for iteration in range(MAX_LLM_ITERATIONS):
+            try:
+                llm_message = conversation_thread
+                logger.info(
+                    f"Sending message to LLM (iteration {iteration + 1})")
+                print(f"Sending message to LLM (iteration {iteration + 1})")
 
-            conversation_thread, developer_input_required, terminal_output = process_llm_response(
-                conversation_thread, llm_response, MAX_LLM_ITERATIONS)
-            
-            write_file("avatar/context/conversation_thread.txt", conversation_thread)
-            print(terminal_output)
+                llm_call = large_language_model.messages.create(
+                    model=MODEL_NAME,
+                    max_tokens=4096,
+                    temperature=0,
+                    system=SYSTEM_PROMPT,
+                    messages=[
+                        {"role": "user", "content": llm_message}
+                    ]
+                )
+                llm_response = llm_call.content[0].text
+                conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
+                    llm_response}"
+                logger.info("Received response from LLM")
 
-            if developer_input_required:
-                logger.info("Developer input required. Waiting for response.")
-                print("\nDeveloper input required. Please provide your next instruction.")
+                # Process the LLM response
+                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
+                    conversation_thread, llm_response)
+                write_file("avatar/context/conversation_thread.txt",
+                           conversation_thread)
 
-        except Exception as e:
-            logger.error(f"Error in LLM processing: {str(e)}")
-            print(f"An error occurred while processing the request:")
-            print(str(e))
-            print("Please check the logs for more details.")
+                print(terminal_output)
+
+                if developer_input_required:
+                    logger.info(
+                        "Developer input required. Waiting for response.")
+                    print(
+                        "\nDeveloper input required. Please provide your next instruction.")
+                    break
+
+                # If no developer input is required, but there's no more to do, also break
+                if not terminal_output.strip():
+                    logger.info(
+                        "No more actions to perform. Waiting for next instruction.")
+                    print(
+                        "\nNo more actions to perform. Please provide your next instruction.")
+                    break
+
+                # If there are more actions to perform, continue to the next iteration
+                print("Continuing to next iteration")
+                logger.info("Continuing to next iteration")
+
+            except anthropic.APIError as e:
+                logger.error(f"Anthropic API error in LLM iteration {
+                             iteration + 1}: {str(e)}")
+                print(f"An error occurred with the Anthropic API in LLM iteration {
+                      iteration + 1}:")
+                print(str(e))
+                print("Please check the logs for more details.")
+                break
+            except Exception as e:
+                logger.error(f"Error in LLM iteration {
+                             iteration + 1}: {str(e)}")
+                print(f"An unexpected error occurred in LLM iteration {
+                      iteration + 1}:")
+                print(str(e))
+                print("Please check the logs for more details.")
+                break
+
+        else:
+            # This block executes if the for loop completes without breaking
+            final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
+            logger.warning("LLM reached maximum iterations without completion")
+            conversation_thread += f"\n\n{final_response}"
+            write_file("avatar/context/conversation_thread.txt",
+                       conversation_thread)
+            print(final_response)
+
 
 if __name__ == "__main__":
     try:
         main()
+    except KeyboardInterrupt:
+        print("\nOperation interrupted by user. Exiting gracefully.")
     except Exception as e:
         logger.critical(f"Critical error in main execution: {str(e)}")
         print("A critical error occurred in the main execution:")
