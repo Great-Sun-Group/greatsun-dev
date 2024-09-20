@@ -1,0 +1,7 @@
+#!/bin/bash
+
+# Set up the development environment and start services
+source setup.sh
+
+# Launch the AI avatar
+python3 avatarUp.py
