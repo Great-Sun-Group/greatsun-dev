@@ -3,7 +3,7 @@ from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar
 from utils.responseParser import parse_llm_response
 import sys
 import os
-import anthropic
+from anthropic import Anthropic
 import site
 
 # Add user site-packages to Python path
