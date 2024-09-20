@@ -1,7 +1,6 @@
 from utils.file_operations import read_file, write_file, get_directory_tree, install_package
-from utils.git_operations import create_branches, checkout_branches, push_changes, merge_to_dev
+from utils.git_operations import avatar_up_git, avatar_load_git, avatar_commit_git, avatar_submit_git
 from utils.responseParser import parse_llm_response
-import utils.branch_on_avatar_up
 import sys
 import logging
 import os
@@ -62,7 +61,9 @@ def main():
     SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
 
     try:
-        utils.branch_on_avatar_up.main()
+        # clone or pull latest from dev in submodules and checkout to current branch
+        avatar_up_git()
+
         logger.info("Starting avatar environment")
         large_language_model = Anthropic(api_key=ANTHROPIC_API_KEY)
         greatsun_developer = GH_USERNAME
@@ -97,62 +98,24 @@ def main():
     while True:
         terminal_input = input(f"@{greatsun_developer}: ").strip()
 
+        if terminal_input.lower() == "avatar up":
+            avatar_up_git()
+
+        if terminal_input.lower() == "avatar load":
+            avatar_load_git()
+
+        if terminal_input.lower() == "avatar engage":
+            print("engaged placeholder")
+
+        if terminal_input.lower() == "avatar commit":
+            avatar_commit_git()
+
+        if terminal_input.lower() == "avatar submit":
+            avatar_submit_git()
+
         if terminal_input.lower() == "avatar down":
             print("greatsun-dev avatar, signing off")
             break
-
-        if terminal_input.lower() == "avatar commit":
-            try:
-                commit_message = input("Enter commit message: ")
-                if push_changes(commit_message):
-                    write_file("avatar/context/conversation_thread.txt",
-                               "ready for conversation")
-                    logger.info(f"Commit made and avatar cleared")
-                    print(f"Commit made and avatar cleared")
-                else:
-                    print("Failed to perform commit. Check logs for details.")
-                continue
-            except Exception as e:
-                logger.error(f"Failed to perform cross-repo commit: {str(e)}")
-                print("Failed to perform commit. Check logs for details.")
-                continue
-
-        if terminal_input.lower().startswith("avatar create branch"):
-            branch_name = terminal_input.split(
-                "avatar create branch", 1)[1].strip()
-            if create_branches(branch_name):
-                print(f"Created and checked out new branch '{
-                      branch_name}' in all repos")
-            else:
-                print(f"Failed to create branch '{
-                      branch_name}'. Check logs for details.")
-            continue
-
-        if terminal_input.lower().startswith("avatar checkout"):
-            branch_name = terminal_input.split("avatar checkout", 1)[1].strip()
-            if checkout_branches(branch_name):
-                print(f"Checked out branch '{branch_name}' in all repos")
-            else:
-                print(f"Failed to checkout branch '{
-                      branch_name}'. Check logs for details.")
-            continue
-
-        if terminal_input.lower() == "avatar merge to dev":
-            if merge_to_dev():
-                print("Successfully merged changes to dev branch in all repos")
-            else:
-                print("Failed to merge changes to dev. Check logs for details.")
-            continue
-
-        if terminal_input.lower() == "avatar clear":
-            conversation_thread = "\n\n".join(avatarUp_content)
-            write_file("avatar/context/conversation_thread.txt",
-                       conversation_thread)
-            logger.info(
-                "Avatar conversation cleared and reset to initial context")
-            clear_screen()
-            print("Conversation cleared and reset to initial context")
-            continue
 
         # Add new terminal message to conversation
         conversation_thread = read_file(
