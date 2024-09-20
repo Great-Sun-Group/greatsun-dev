@@ -7,7 +7,7 @@ import requests
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
 GH_PAT = os.environ.get('GH_PAT')
-MAIN_REPO = 'credex-ecosystem'
+MODULE_FOLDER = 'credex-ecosystem'
 SUBMODULES = [
     'credex-core',
     'vimbiso-pay'
@@ -33,11 +33,11 @@ def avatar_up_git():
 
 def add_submodule(submodule):
     submodule_url = f"https://{GH_USERNAME}:{GH_PAT}@github.com/Great-Sun-Group/{submodule}"
-    submodule_path = f"{MAIN_REPO}/{submodule}"
+    submodule_path = f"{MODULE_FOLDER}/{submodule}"
     run_command(f"git submodule add {submodule_url} {submodule_path}")
 
 def update_submodule(submodule):
-    submodule_path = f"{MAIN_REPO}/{submodule}"
+    submodule_path = f"{MODULE_FOLDER}/{submodule}"
     os.chdir(submodule_path)
     run_command("git fetch origin")
     run_command("git checkout dev")
@@ -51,7 +51,7 @@ def avatar_load_git():
         return
 
     for submodule in SUBMODULES:
-        submodule_path = f"{MAIN_REPO}/{submodule}"
+        submodule_path = f"{MODULE_FOLDER}/{submodule}"
         if not os.path.exists(submodule_path):
             add_submodule(submodule)
         else:
@@ -74,8 +74,8 @@ def avatar_commit_git():
     commit_message = input("Enter commit message: ")
     commit_hashes = []
 
-    for repo in [MAIN_REPO] + SUBMODULES:
-        repo_path = f"/credex-ecosystem/{repo}"
+    for repo in [MODULE_FOLDER] + SUBMODULES:
+        repo_path = f"/{MODULE_FOLDER}/{repo}"
         if has_changes(repo_path):
             os.chdir(repo_path)
             run_command("git add .")
@@ -122,8 +122,8 @@ def avatar_submit_git():
 
     pr_urls = []
 
-    for repo in [MAIN_REPO] + SUBMODULES:
-        repo_path = f"/credex-ecosystem/{repo}"
+    for repo in [MODULE_FOLDER] + SUBMODULES:
+        repo_path = f"/{MODULE_FOLDER}/{repo}"
         os.chdir(repo_path)
 
         # Check if there are any commits to push
