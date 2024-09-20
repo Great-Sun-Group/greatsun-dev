@@ -254,8 +254,7 @@ This extended project outline provides a more comprehensive view of the greatsun
     },
     "avatarUp.py": null,
     "avatar": null
-  },
-  "avatar_command.sh": null
+  }
 }
 
 ** INITIAL DEVELOPER INSTRUCTIONS **

@@ -151,7 +151,7 @@ def install_package(package_name: str) -> bool:
         subprocess.check_call(
             [sys.executable, "-m", "pip", "install", package_name])
         print(f"Successfully installed {package_name}")
-        print("Exiting to reset. Run avatar up again to launch.")
+        print("Exiting to reset. Run `avatar up` again to launch.")
         sys.exit(1)
     except subprocess.CalledProcessError as e:
         print(f"Failed to install {package_name}: {e}")
