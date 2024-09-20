@@ -54,7 +54,7 @@ if importlib.util.find_spec("anthropic") is None:
 
 # Now try to import anthropic
 try:
-    time.sleep(1) # to give it time to recognize the new installation above
+    time.sleep(2) # to give it time to recognize the new installation above
     print("Attempting to import anthropic...")
     import anthropic
     print(f"anthropic module found at: {anthropic.__file__}")
