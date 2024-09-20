@@ -25,9 +25,10 @@ Orient myself to the greatsun-dev environment and the credex-ecosystem submodule
 
 #### Getting Started
 To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then with a Codespace opened on `dev` or the repository cloned locally, launch the avatar.
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev, generates the avatar context.
+  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem. Creates and checks out branches matching your current branch name in greatsun-dev.
- - `avatar reset`: Reloads the context, including the readme files from the submodules.
+
+You'll need to `avatar up` again after you load in order to refresh the context with the READMEs imported from the submodules.
 
 ### Developer Intent #2: Developer Instructions
 The second place to express your intent is in the Developer Instructions. There are two places you can do this. First launch with `avatar up`, then:
@@ -59,6 +60,10 @@ The avatar unifies and links your commits across all repositories, including thi
 
 Stage and/or commit before every avatar command. The avatar may behave unpredictably and make destructive changes. If changes that appear to be solid from the prior query are staged or committed, new changes can be reviewed and easily discarded without losing anything else. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one.
 
+## Running services
+Greatsun-dev, credex-core, and all imported clients are brought online in dev mode with:
+  - `avatar engage`: fires up the servers across the container and submodules.
+
 ## Intent Achieved
 Once you have acheived your intent and tested your code to satsifaction for a feature or a fix:
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
@@ -73,9 +78,9 @@ Continue your work with a new branch off dev.
 
 ## All Commands
 Everything listed above in one place for reference:
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev.
+  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem, creating and checking out branches matching your current branch name in greatsun-dev.
-  - `avatar reset`: Reloads the context, including the updated Current Project file.
+  - `avatar engage`: fires up the servers across the container and submodules.
   - `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
   - `avatar down` exits back to the terminal.

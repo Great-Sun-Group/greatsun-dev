@@ -12,10 +12,6 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
     file_operation_performed = False
     processed_response = []
     terminal_output = []
-
-    logger.info("Starting to process LLM response")
-    logger.debug(f"Raw LLM response:\n{llm_response}")
-
     patterns = {
         'read': r'<read path=(?:")?([^">]+)(?:")? />',
         'write': r'<write path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</write>',
@@ -39,15 +35,13 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
         if result is not False:
             file_operation_performed = True
             if op.operation == 'read':
-                conversation_thread += f"\n\nContent of {
-                    op.args[0]}:\n{result}"
+                conversation_thread += f"\n\n*** CONTENT OF {op.args[0]}: ***\n{result}"
             else:
                 processed_response.append(format_operation_result(op, result))
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
-    conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
-        llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response}"
+    conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response}"
 
     # Add the modified LLM response (with placeholders) to terminal output
     terminal_output.append(llm_response)
@@ -159,6 +153,3 @@ def validate_file_operation(operation: str, path: str, new_path: str = None) -> 
             return False
 
     return True
-
-
-logger.info("responseParser module initialized")

@@ -9,9 +9,7 @@ We ask you to turn the intentions and goals that are expresed in this message in
 
 Through our avatar script you are able to iteratively query up to 7 times. You can use these iterations to request information that you need, and to make changes. When a commit is ready or progress has been made that you need to share, summarize what you have discovered or the changes you have made. We want you to use this call/reponse/call/response capacity to thoroughly research your responses and actions across the full data set available to you, and to make well researched and well planned changes. Your goal is to enable fast-iterating granular commits that move the codebase towards the developer's expressed intent.
 
-# IMPORTANT AI RESPONSE INSTRUCTIONS
-
-You are an AI assistant integrated with a code repository management system. Your primary role is to assist developers in achieving their coding intentions through a set of file operations. Please adhere to the following guidelines:
+# IMPORTANT AI RESPONSE INSTRUCTIONSYou are an AI assistant integrated with a code repository management system. Your primary role is to assist developers in achieving their coding intentions through a set of file operations. Please adhere to the following guidelines:
 
 <file_operations>
   <read path="[file_path]" />
@@ -43,11 +41,7 @@ Interaction Flow:
 5. Continue this process until the developer's intent is fully addressed.
 6. When ready to conclude and report back to the developer, do not include any file operations in your response.
 
-Remember: You are operating in a production environment. Accuracy, clarity, and caution are paramount. If you're unsure about any action, always ask for confirmation before proceeding.
-
-** This is the project README.md **
-
-# greatsun-dev
+Remember: You are operating in a production environment. Accuracy, clarity, and caution are paramount. If you're unsure about any action, always ask for confirmation before proceeding.*** README.md ***# greatsun-dev
 
 Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development, admin, and research modes for the credex-core API, the vimbiso-pay client, and additional clients that will we'll soon be working on, such as a web interface for customer service agents and an economic modelling tool.
 
@@ -74,9 +68,10 @@ Orient myself to the greatsun-dev environment and the credex-ecosystem submodule
 
 #### Getting Started
 To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then with a Codespace opened on `dev` or the repository cloned locally, launch the avatar.
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev, generates the avatar context.
+  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem. Creates and checks out branches matching your current branch name in greatsun-dev.
- - `avatar reset`: Reloads the context, including the readme files from the submodules.
+
+You'll need to `avatar up` again after you load in order to refresh the context with the READMEs imported from the submodules.
 
 ### Developer Intent #2: Developer Instructions
 The second place to express your intent is in the Developer Instructions. There are two places you can do this. First launch with `avatar up`, then:
@@ -108,6 +103,10 @@ The avatar unifies and links your commits across all repositories, including thi
 
 Stage and/or commit before every avatar command. The avatar may behave unpredictably and make destructive changes. If changes that appear to be solid from the prior query are staged or committed, new changes can be reviewed and easily discarded without losing anything else. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one.
 
+## Running services
+Greatsun-dev, credex-core, and all imported clients are brought online in dev mode with:
+  - `avatar engage`: fires up the servers across the container and submodules.
+
 ## Intent Achieved
 Once you have acheived your intent and tested your code to satsifaction for a feature or a fix:
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
@@ -122,9 +121,9 @@ Continue your work with a new branch off dev.
 
 ## All Commands
 Everything listed above in one place for reference:
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev.
+  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem, creating and checking out branches matching your current branch name in greatsun-dev.
-  - `avatar reset`: Reloads the context, including the updated Current Project file.
+  - `avatar engage`: fires up the servers across the container and submodules.
   - `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
   - `avatar down` exits back to the terminal.
@@ -155,23 +154,49 @@ Documentation for the greatsun-dev environment.
 Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
 
 ### /tests
-Folder to be created for unit tests, performance tests, etc.
+Folder to be created for unit tests, performance tests, etc.*** credex-core/README.md ***File not found: credex-ecosystem/credex-core/README.md*** credex-ecosystem/vimbiso-pay/README.md ***File not found: credex-ecosystem/vimbiso-pay/README.md*** FULL DIRECTORY TREE ***{
+  "Dockerfile": null,
+  ".gitmodules": null,
+  "central-logs": {
+    "placeholder.txt": null
+  },
+  ".env.example": null,
+  "main.py": null,
+  "requirements.txt": null,
+  "docs": {
+    "tasks.md": null,
+    "greatsun-dev_configuration.md": null
+  },
+  ".devcontainer": {
+    "Dockerfile": null,
+    "devcontainer.json": null
+  },
+  "README.md": null,
+  "avatar": {
+    "utils": {
+      "__pycache__": {
+        "responseParser.cpython-312.pyc": null,
+        "git_operations.cpython-312.pyc": null,
+        "file_operations.cpython-312.pyc": null
+      },
+      "git_operations.py": null,
+      "responseParser.py": null,
+      "file_operations.py": null
+    },
+    "context": {
+      "conversation_thread.txt": null,
+      "avatar_orientation.md": null,
+      "shared_secrets.py": null,
+      "response_instructions.txt": null,
+      "current_project.md": null
+    },
+    "avatarUp.py": null,
+    "avatar": null
+  },
+  "avatar_command.sh": null
+}*** avatar/context/current_project.md ***# Current Project
 
-** This is the credex-core submodule README.md **
-
-File not found: credex-ecosystem/credex-core/README.md
-
-** This is the vimbiso-pay submodule README.md **
-
-File not found: credex-ecosystem/vimbiso-pay/README.md
-
-** This is the current project **
-
-# Current Project
-
-Set up the greatsun-dev environment for testing and deploying credex-core and credex-bot as quickly as possible.
-
-# Extended Project Details
+Set up the greatsun-dev environment for testing and deploying credex-core and credex-bot
 
 ## Overview
 The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development process and ensure efficient integration of these key components.
@@ -187,7 +212,7 @@ The greatsun-dev environment is designed to facilitate rapid testing and deploym
   - Authentication and authorization
   - Transaction processing
 
-### 2. credex-bot (vimbiso-pay)
+### 2. vimbiso-pay
 - Description: A WhatsApp chatbot for user interactions
 - Technology: Python
 
@@ -197,67 +222,4 @@ The greatsun-dev environment is designed to facilitate rapid testing and deploym
 3. Develop a deployment pipeline that ensures smooth updates to both credex-core and credex-bot.
 4. Create comprehensive documentation for the setup and maintenance of the greatsun-dev environment.
 
-## Next Steps
-1. Configure the development container with all necessary dependencies for both credex-core and credex-bot.
-2. Set up automated testing scripts that can be run in the greatsun-dev environment.
-3. Implement a local database for testing purposes. (done)
-4. Create mock external services to simulate real-world interactions.
-5. Develop a set of sample transactions and user interactions to test the full system flow.
-
-## Long-term Objectives
-- Implement continuous integration and continuous deployment (CI/CD) pipelines.
-- Develop a comprehensive suite of unit, integration, and end-to-end tests.
-- Create a scalable architecture that can handle increasing load as the user base grows.
-- Implement robust security measures to protect user data and transactions.
-- Develop analytics tools to monitor system performance and user behavior.
-
-This extended project outline provides a more comprehensive view of the greatsun-dev environment and its objectives. It serves as a roadmap for the development team and helps to align efforts towards common goals.
-
-
-** This is the full project structure **
-
-{
-  "Dockerfile": null,
-  "avatar.log": null,
-  ".gitmodules": null,
-  "central-logs": {
-    "placeholder.txt": null
-  },
-  ".env.example": null,
-  "main.py": null,
-  "docs": {
-    "tasks.md": null,
-    "greatsun-dev_configuration.md": null
-  },
-  ".devcontainer": {
-    "Dockerfile": null,
-    "devcontainer.json": null
-  },
-  "README.md": null,
-  "avatar": {
-    "utils": {
-      "__pycache__": {
-        "branch_on_avatar_up.cpython-312.pyc": null,
-        "responseParser.cpython-312.pyc": null,
-        "git_operations.cpython-312.pyc": null,
-        "file_operations.cpython-312.pyc": null
-      },
-      "git_operations.py": null,
-      "responseParser.py": null,
-      "branch_on_avatar_up.py": null,
-      "file_operations.py": null
-    },
-    "context": {
-      "conversation_thread.txt": null,
-      "avatar_orientation.md": null,
-      "shared_secrets.py": null,
-      "response_instructions.txt": null,
-      "current_project.md": null
-    },
-    "avatarUp.py": null,
-    "avatar": null
-  },
-  "avatar_command.sh": null
-}
-
-** INITIAL DEVELOPER INSTRUCTIONS **
+*** MESSAGE FROM DEVELOPER @ryanlukewatson ***
