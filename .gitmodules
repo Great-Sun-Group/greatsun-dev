@@ -1,6 +1,0 @@
-[submodule "credex-core"]
-	path = credex-ecosystem/credex-core
-	url = https://ryanlukewatson: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@github.com/Great-Sun-Group/credex-core
-[submodule "vimbiso-pay"]
-	path = credex-ecosystem/vimbiso-pay
-	url = https://ryanlukewatson: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@github.com/Great-Sun-Group/vimbiso-pay

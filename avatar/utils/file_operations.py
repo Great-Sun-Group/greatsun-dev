@@ -3,16 +3,15 @@ import logging
 import time
 import subprocess
 import sys
-
-logger = logging.getLogger(__name__)
-
 from collections import deque
+
 
 class FileOperation:
     def __init__(self, operation, *args):
         self.operation = operation
         self.args = args
         self.dependencies = set()
+
 
 class FileOperationQueue:
     def __init__(self):
@@ -37,7 +36,30 @@ class FileOperationQueue:
             else:
                 self.queue.append(op)
         return self.results
-    
+
+
+def clear_screen():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+
+def load_initial_context():
+    return [
+        read_file("avatar/context/avatar_orientation.md"),
+        read_file("avatar/context/response_instructions.txt"),
+        "*** README.md ***",
+        read_file("README.md"),
+        "*** credex-core/README.md ***",
+        read_file("credex-ecosystem/credex-core/README.md"),
+        "*** credex-ecosystem/vimbiso-pay/README.md ***",
+        read_file("credex-ecosystem/vimbiso-pay/README.md"),
+        "*** FULL DIRECTORY TREE ***",
+        json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
+        "*** avatar/context/current_project.md ***",
+        read_file("avatar/context/current_project.md"),
+        f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
+    ]
+
+
 def read_file(file_path):
     """
     Function to read and return contents of a file, with solid error handling.
@@ -52,7 +74,8 @@ def read_file(file_path):
     except Exception as e:
         logging.error(f"Error reading file {file_path}: {str(e)}")
         return f"Error reading file: {str(e)}"
-    
+
+
 def write_file(file_path, file_content):
     """
     Function that will create the file if it doesn't exist and write over what is there if it does exist,
@@ -66,7 +89,7 @@ def write_file(file_path, file_content):
     except Exception as e:
         logging.error(f"Error writing to file {file_path}: {str(e)}")
         return False
-    
+
 
 def get_directory_tree(path):
     """
@@ -97,6 +120,7 @@ def get_directory_tree(path):
         logging.error(f"Error getting directory tree for {path}: {str(e)}")
 
     return tree
+
 
 def perform_file_operation(operation, *args):
     """
