@@ -3,26 +3,12 @@ from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar
 from utils.responseParser import parse_llm_response
 import sys
 import os
-import json
+import anthropic
 import site
-import importlib.util
 
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
-
-# Check if anthropic is installed, if not, install it, then import it
-if importlib.util.find_spec("anthropic") is None:
-    if not install_package("anthropic"):
-        print("Failed to install anthropic. Please install it manually and try again.")
-        sys.exit(1)
-try:
-    import anthropic
-    from anthropic import Anthropic
-except ImportError as e:
-    print(f"Error importing Anthropic: {e}")
-    sys.exit(1)
-
 
 def main():
     SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
@@ -31,7 +17,7 @@ def main():
     MODEL_NAME = "claude-3-sonnet-20240229"
     GH_USERNAME = os.environ.get('GH_USERNAME')
 
-    print("greatsun-dev, signing on")
+    print("@greatsun-dev: I read you loud and clear on")
 
     get_off_dev_branch()
     conversation_thread = load_initial_context()
