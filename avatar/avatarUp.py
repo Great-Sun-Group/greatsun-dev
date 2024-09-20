@@ -7,11 +7,10 @@ import os
 import json
 import site
 import importlib.util
-from typing import Optional
 
 # Configure logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.ERROR,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         logging.FileHandler("avatar.log"),
