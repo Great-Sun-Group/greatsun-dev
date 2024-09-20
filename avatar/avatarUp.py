@@ -1,4 +1,4 @@
-from utils.file_operations import read_file, write_file, get_directory_tree
+from utils.file_operations import read_file, write_file, get_directory_tree, install_package
 from utils.git_operations import execute_git_command, create_branches, checkout_branches, push_changes, merge_to_dev
 from utils.responseParser import parse_llm_response
 import sys
@@ -26,19 +26,6 @@ logger = logging.getLogger(__name__)
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
-
-
-def install_package(package_name: str) -> bool:
-    try:
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package_name])
-        print(f"Successfully installed {package_name}")
-        print("Exiting to reset. Run avatar up again to launch.")
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to install {package_name}: {e}")
-        return False
-
 
 # Check if anthropic is installed, if not, install it
 if importlib.util.find_spec("anthropic") is None:
@@ -77,15 +64,7 @@ def main():
     GH_USERNAME = os.environ.get('GH_USERNAME')
     MAX_LLM_ITERATIONS = 14
     MODEL_NAME = "claude-3-sonnet-20240229"
-
-    response_instructions_path = "avatar/context/response_instructions.txt"
-    if not os.path.exists(response_instructions_path):
-        default_instructions = "You are an AI assistant helping with development tasks."
-        with open(response_instructions_path, "w") as f:
-            f.write(default_instructions)
-        print(f"Created default {response_instructions_path}")
-
-    SYSTEM_PROMPT = read_file(response_instructions_path)
+    SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
 
     try:
         logger.info("Starting avatar environment")
