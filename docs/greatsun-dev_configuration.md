@@ -1,6 +1,6 @@
 # greatsun-dev config
 
-Here's what you need to get set up in greatsun-dev:
+Here's what you need to get set up in greatsun-dev.
 
 ## Prerequisites
 ### For all:
@@ -73,10 +73,10 @@ Refer to the `.env.example` file in the root directory for a template of these e
    - Go to your personal GitHub Settings->Codespaces and Add New Secret for each, giving it access to the greatsun-dev repository.
 
 2. Create a new Codespace:
-   - Go to the main page of the greatsun-dev repository
+   - Go to the main page of the greatsun-dev repository (dev branch)
    - Click on the "Code" button
    - Select the "Codespaces" tab
-   - Click "Create codespace on main"
+   - Click "Create codespace on dev"
 
 3. The Codespace will automatically set up the environment.
 
@@ -97,89 +97,6 @@ Refer to the `.env.example` file in the root directory for a template of these e
 
 4. Attach VS Code to the running container or use `docker exec` to access the container's shell.
 
+## Modules to Import
 
-### Starting Services and Managing Git
-
-To start all services (credex-core, vimbiso-pay, and greatsun-dev) and manage Git operations across all repositories, follow these steps:
-
-1. Start the services:
-   ```bash
-   bash /workspaces/greatsun-dev/start-services.sh
-   ```
-   This will start all services and display their logs.
-
-2. For Git management, use `git_manager.sh` to help manage Git operations across all three repositories (vimbiso-pay, credex-core, and greatsun-dev) simultaneously:
-
-   a. Make the script executable (if not already):
-      ```bash
-      chmod +x /workspaces/greatsun-dev/git_manager.sh
-      ```
-
-   b. Run the script:
-      ```bash
-      ./git_manager.sh
-      ```
-
-   d. After that, you'll see a menu with the following options:
-      - Create new branches
-      - Checkout branches
-      - Push changes
-      - Exit
-
-   e. When pushing changes, you'll be prompted for a commit message. The script will automatically generate a UUID and append it to your commit message. It will then stage, commit, and push changes in all repositories that have modifications.
-
-This script streamlines the process of managing branches and commits across the Credex ecosystem, ensuring consistency across all repositories.
-
-### Running Tests
-
-To run automated tests:
-
-```bash
-python -m pytest tests/
-```
-
-### Analyzing Data
-
-Data analysis functionality can be accessed through the `CredexDev` class in `main.py`. Refer to the class methods for specific analysis capabilities.
-
-### Simulating Transactions
-
-Transaction simulation is also available through the `CredexDev` class in `main.py`.
-
-## Project Structure
-
-- `credex-core/`: Submodule containing the Credex Core API
-- `vimbiso-pay/`: Submodule containing the Credex Bot
-- `.devcontainer/`: Configuration files for the development container
-- `tests/`: Automated tests for the development environment
-- `main.py`: Main Python script for greatsun-dev functionality
-- `requirements.txt`: Python dependencies for greatsun-dev
-- `init-environment.sh`: Script to set up the submodules and environment
-- `start-services.sh`: Script to start all services
-- `git_manager.sh`: Script to manage Git operations across all repositories
-
-## Contributing
-
-Please refer to the individual submodule repositories for contribution guidelines specific to credex-core and vimbiso-pay.
-
-For changes to the development environment itself, please create a pull request in this repository.
-
-## Troubleshooting
-
-If you encounter any issues during setup or usage, please check the following:
-
-1. Ensure all required environment variables are set correctly.
-2. Check the logs of individual services in case of startup failures.
-3. Verify that your GitHub Personal Access Token has the necessary permissions.
-4. If you encounter issues with the Python virtual environment, try rebuilding the container or manually creating the venv:
-   ```
-   python3 -m venv /home/vscode/venv
-   source /home/vscode/venv/bin/activate
-   pip install -r requirements.txt
-   ```
-
-For more detailed troubleshooting, refer to the documentation in each submodule.
-
-## Support
-
-If you need assistance or have any questions, please open an issue in this repository or contact the Credex development team.
+These are currently hardcoded in a few places, but will soon be updated to be configurable in a single place.

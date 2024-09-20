@@ -1,53 +1,88 @@
 # greatsun-dev
 
-Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development mode for the credex-core API and the vimbiso-pay client. This container is managed by an AI avatar called greatsun-dev. The avatar *is* the development environment, launched with `avatar up` in your terminal. Once launched, you can can communicate through the avatar script with an underlying large language model (LLM) by typing into the terminal or at the bottom of the [conversation_thread](/workspaces/greatsun-dev/avatar/context/conversation_thread.txt). 
+Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development, admin, and research modes for the credex-core API, the vimbiso-pay client, and additional clients that will we'll soon be working on, such as a web interface for customer service agents and an economic modelling tool.
 
-The avatar script gives the LLM iterative access to the project code bases.
+This container is managed by an AI "avatar" interface called greatsun-dev. The avatar *is* the development environment, launched in your terminal to communicate through our avatar scripts with large language model (LLM) artificial intelligences.
 
+We are currently connected to Anthropic's latest version of Claude 3.5 Sonnet, which has impressive "agentic" coding abilities. But the avatar script is not tied to a single LLM. In fact, the intention is to eventually integrate several models and send queries wherever is appropriate, or even to more than one LLM to compare responses. We will also be able to use this integrated LLM interface in the apps we are building, giving our members, clients, and customers direct access to this approach within their own context.
 
+The avatar script gives the LLM iterative access to the project code bases to read, write, etc. As a developer working in the greatsun-dev environment, your role is to express intent to the avatar, check the code it delivers, make manual edits or request changes, confirm commits, and test functionality.
 
-It has access to:
-  - the full scope of multiple underlying LLMs,
-  - our current codebases and commit histories,
-  - and the logged conversations that members of the dev team have had with the LLMs.
+With the avatar scripts providing an interface between you, the artificial intelligence, and the code base, you are able to rapidly deliver high quality code into our review, testing and deployment process. Your interface with the greatsun-dev avatar is at the heart of our CI/CD pipeline.
 
-As a developer in this environment, your job is to express your intent to LLMs, do quality control and verify that the results embody your intent, and submit pull requests when you feel the code is ready to go to the next step of review. Your commits are logged granularly, and so are the conversations with AI models that co-create those commits. With a call/response dialogue with LLMs, you can produce high quality code at an incredibly rapid rate, and this process is the heart of the CI/CD pipeline of the credex ecosystem and also at the heart of our engine for economic modeling.
+## Implementing Your Intention
+You express your intention, and the LLM uses the avatar to carry it out. Claude and the other LLMs we will use have potent and rapidly increasing capacities to handle higher level abstractions and multi-step logic. When we share a purpose at a high level, it can assist at that level. It is not limited to instructions to create specific lines of code, functions, or even full files. You can describe entire feature branches and use the generated workplans to step through complex, multi step tasks quickly and efficiently.
 
-An LLM is an underlying model, to which every query is a fresh query. This means every query needs to include full context. When you query the LLMs underneath greatsun-dev, we assemble a context and response instructions for the LLM, including your message and optionally a linked file. If the LLM wants to request more context, it informs the codebase, which resends the entire original query, with the requested files attached.
+### Developer Intent #1: Current Project
+The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/context/current_project.md) file. Clear the contents and put a couple of sentences here about what you are trying to accomplish over the coming hours or days. When you first enter the greatsun-dev environment, try a current project like:
+```
+# Current Project
 
-When the LLM responds with recommended code changes, its response is parsed and its recommendations executed as a proposed commit. Review the commit and see if it moves you in the direction that you want to go. Query again if you want changes, or make small edits manually if that's most efficient.
+Orient myself to the greatsun-dev environment and the credex-ecosystem submodules. Understand the most important features and functions of all repos, and how they are linked together by greatsun-dev.
+```
 
-### Commits
-As a developer on the Great Sun dev team, you use commits to closely monitor the actions of the avatar and ensure it is proceeding towards your intent. The avatar will overwrite files when you query it, so every commit becomes a reference point for checking the next steps. Commit often, so that every query to the LLM can be checked against a prior commit without an overwhelming number of changes accumulating.
+#### Getting Started
+To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then with a Codespace opened on `dev` or the repository cloned locally, launch the avatar.
+  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev, generates the avatar context.
+  - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem. Creates and checks out branches matching your current branch name in greatsun-dev.
+ - `avatar reset`: Reloads the context, including the readme files from the submodules.
 
-Commits are done in a commonly named and identified commit across all affected repos with the `avatar commit` command to the avatar.
+### Developer Intent #2: Developer Instructions
+The second place to express your intent is in the Developer Instructions. There are two places you can do this. First launch with `avatar up`, then:
+  1. Enter simple queries or instructions in the terminal, and/or
+  2. Enter more complex queries or instructions that require formatting or editing at the bottom of the [conversation_thread](avatar/context/conversation_thread.txt) file, under Initial Developer Instructions or Developer Response.
 
-#### Undo
-If since the last commit you've made changes that you don't want to lose, and the avatar messes with your code, the undo command works on each file changed to undo the last changes made by the avatar.
+Press enter in the terminal. Whatever is in the terminal will be appended to the conversation thread and sent to the LLM. Take a look through [conversation_thread](avatar/context/conversation_thread.txt) to see what is being sent to the LLM.
 
-### Command line interface
-You will communicate with the avatar through a terminal. Responses are logged and recommended actions are saved immediately to files.
-- `avatar up` launches the avatar.
+### Stepping Towards Your Goal
+When you launch `avatar up`, the current context of the repo and project is assembled. You then add your overall intention for this specific exchange with the avatar and LLM into the Developer Instructions as above. The LLM will get confused if the conversation_thread gets too long, so the Initial Developer Intention should be something that can be acheived within the context of a single exchange. Experience will guide this, and models will continue to improve.
 
-#### LLM commands
-To send a query to the LLM, which is currently hardcoded to Claude 3.5 Sonnet, simply type your message in the terminal and press Enter. The avatar will process your input and interact with the LLM.
+Larger projects are handled piece by piece and tracked in the [Current Project](avatar/context/current_project.md) file. To get started, use a Developer Instruction like:
+```
+review avatar/context/current_project.md and append a full workplan
+```
+Review the results, stage, commit, and `avatar reset` to reload the context including the updated Current Project file.
 
-#### Shell commands
-Specific commands to the avatar will not go to an LLM, but will be processed in-context by code within greatsun-dev. These commands are:
-- `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message description, and clears the avatar context.
-- `avatar clear`: Clears the avatar context and resets it to the initial state.
-- `avatar create branch [branch_name]`: Creates a new branch with the specified name across all repositories.
-- `avatar checkout [branch_name]`: Checks out the specified branch across all repositories.
-- `avatar merge to dev`: Merges the current branch into the dev branch across all repositories.
+Now use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
+```
+execute step 2 in the current project and mark it complete
+```
 
-Exit
-- `avatar down` exits the avatar back to the shell. Ctrl-C does the same, more forcefully.
+When the avatar pauses to await your response or next instructions, you can continue the conversation with another Developer Instruction in the terminal and/or at the bottom of the [conversation_thread](/workspaces/greatsun-dev/avatar/context/conversation_thread.txt).
+
+## Branches and Commits
+The avatar unifies and links your commits across all repositories, including this one. If you launch the avatar from the dev branch, a new branch will be created for you. If you launch from another branch, that branch will be maintained into the avatar. On launch, branches of the same name as your branch in greatsun-dev will be created (if necessary) and checked out in all the submodule repos.
+
+- `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
+
+Stage and/or commit before every avatar command. The avatar may behave unpredictably and make destructive changes. If changes that appear to be solid from the prior query are staged or committed, new changes can be reviewed and easily discarded without losing anything else. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one.
+
+## Intent Achieved
+Once you have acheived your intent and tested your code to satsifaction for a feature or a fix:
+  - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
+
+Merges into dev will be tested in greatsun-dev for quality assurance, but the merges themselves will be approved in each individual repository. The branches and any codespaces still on it will be deleted after the merge is approved, so do not continue to work on a branch after the merge has been submitted
+
+Continue your work with a new branch off dev.
+  - `avatar down` exits back to the terminal.
+
+**On codespaces:** close the window and create a new codespace on dev.
+**On local:** switch branches on greatsun-dev with `git checkout dev` and pull the latest with `git pull origin dev` then relaunch with `avatar up`.
+
+## All Commands
+Everything listed above in one place for reference:
+  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev.
+  - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem, creating and checking out branches matching your current branch name in greatsun-dev.
+  - `avatar reset`: Reloads the context, including the updated Current Project file.
+  - `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
+  - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
+  - `avatar down` exits back to the terminal.
 
 ## Project Structure
 Our project consists of the following top level directories:
 
 ### /avatar
-Processing queries to LLMs and their results for developer approval and implementation. LLM instructions and management files, as well as logs.
+Processing queries to LLMs and their results for developer approval and implementation. LLM instructions and context, management files, and conversation logs.
 
 ### /central-logs
 Folder to be created for compiling and monitoring logs from the projects in credex-ecosystem and from greatsun-dev.
@@ -70,52 +105,3 @@ Folder to be created for deploying simulations consisting of patterns of transac
 
 ### /tests
 Folder to be created for unit tests, performance tests, etc.
-
-## Getting started
-If you've already set your configuration, just type `avatar up` in the terminal to get started.
-
-## Developer resources
-- To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md)
-
-## Current Functions and Features
-
-### LLM Interaction
-- The avatar uses Claude 3.5 Sonnet as the underlying LLM.
-- Each interaction with the LLM includes the full context of the conversation and project structure.
-- The LLM can request additional context if needed, which is automatically provided by the avatar.
-
-### File Operations
-- The avatar can read, write, append, delete, rename, and move files based on LLM recommendations.
-- File contents are not displayed in the terminal output for security reasons, but are logged in the conversation thread.
-- Directory listings can be performed and new directories can be created.
-
-### Git Operations
-- Cross-repository commits: Changes can be committed across all affected repositories with a single command.
-- Branch management: Create new branches or checkout existing ones across all repositories simultaneously.
-- Merging: Merge changes from the current branch to the dev branch across all repositories.
-
-### Conversation Management
-- The avatar maintains a conversation thread that includes the full context of interactions.
-- The conversation can be cleared and reset to its initial state using the `avatar clear` command.
-- All interactions are logged for future reference and analysis.
-
-### Error Handling and Logging
-- Comprehensive error handling and logging are implemented throughout the system.
-- Critical errors are caught, logged, and displayed to the user.
-- Detailed logs are maintained for debugging and auditing purposes.
-
-### Developer Input Handling
-- The avatar can recognize when developer input is required and prompt the user accordingly.
-- Special commands are processed directly by the avatar without involving the LLM.
-
-### Security Considerations
-- Sensitive file contents are not displayed in the terminal output.
-- The avatar uses placeholders to indicate file operations without revealing content.
-
-## Future Enhancements
-- Implementation of the undo functionality for reverting avatar changes.
-- Creation and population of the central-logs, data-analysis, simulations, and tests directories.
-- Integration with additional LLMs for diverse AI capabilities.
-- Enhanced project management features and reporting tools.
-
-Remember to regularly check for updates to the greatsun-dev environment, as new features and improvements are continuously being added to enhance your development experience.
