@@ -37,11 +37,12 @@ def avatar_up_git():
 
 
 def clone_or_pull_submodule(submodule):
-    submodule_path = f"/credex-ecosystem/{submodule}"
+    submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
     if not os.path.exists(submodule_path):
         run_command(f"git clone https://{GH_USERNAME}:{
                     GH_PAT}@github.com/Great-Sun-Group/{submodule} {submodule_path}")
     else:
+        os.makedirs(submodule_path, exist_ok=True)
         os.chdir(submodule_path)
         run_command("git fetch origin")
         run_command("git checkout dev")
@@ -57,8 +58,12 @@ def avatar_load_git():
 
     for submodule in SUBMODULES:
         clone_or_pull_submodule(submodule)
-        os.chdir(f"/credex-ecosystem/{submodule}")
-        run_command(f"git checkout -b {current_branch}")
+        submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{
+            submodule}"
+        os.makedirs(submodule_path, exist_ok=True)
+        os.chdir(submodule_path)
+        run_command(f"git checkout {
+                    current_branch} 2>/dev/null || git checkout -b {current_branch}")
         os.chdir('..')
 
     print(f"Submodules loaded and checked out to branch: {current_branch}")

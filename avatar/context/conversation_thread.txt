@@ -74,9 +74,10 @@ Orient myself to the greatsun-dev environment and the credex-ecosystem submodule
 
 #### Getting Started
 To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then with a Codespace opened on `dev` or the repository cloned locally, launch the avatar.
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev, generates the avatar context.
+  - `avatar up`: installs anthropic dependency if not found, creates and checks out a new branch if you are on dev, generates the avatar context.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem. Creates and checks out branches matching your current branch name in greatsun-dev.
- - `avatar reset`: Reloads the context, including the readme files from the submodules.
+
+You'll need to `avatar up` again after you load in order to refresh the context with the READMEs imported from the submodules.
 
 ### Developer Intent #2: Developer Instructions
 The second place to express your intent is in the Developer Instructions. There are two places you can do this. First launch with `avatar up`, then:
@@ -108,6 +109,10 @@ The avatar unifies and links your commits across all repositories, including thi
 
 Stage and/or commit before every avatar command. The avatar may behave unpredictably and make destructive changes. If changes that appear to be solid from the prior query are staged or committed, new changes can be reviewed and easily discarded without losing anything else. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one.
 
+## Running services
+Greatsun-dev, credex-core, and all imported clients are brought online in dev mode with:
+  - `avatar engage`: fires up the servers across the container and submodules.
+
 ## Intent Achieved
 Once you have acheived your intent and tested your code to satsifaction for a feature or a fix:
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
@@ -122,9 +127,9 @@ Continue your work with a new branch off dev.
 
 ## All Commands
 Everything listed above in one place for reference:
-  - `avatar up`: installs anthropic dependency if not found, and creates and checks out a new branch if you are on dev.
+  - `avatar up`: installs anthropic dependency if not found, creates and checks out a new branch if you are on dev, generates the avatar context.
   - `avatar load`: installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem, creating and checking out branches matching your current branch name in greatsun-dev.
-  - `avatar reset`: Reloads the context, including the updated Current Project file.
+  - `avatar engage`: fires up the servers across the container and submodules.
   - `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
   - `avatar down` exits back to the terminal.
@@ -223,6 +228,255 @@ This extended project outline provides a more comprehensive view of the greatsun
   "central-logs": {
     "placeholder.txt": null
   },
+  "workspaces": {
+    "greatsun-dev": {
+      "credex-ecosystem": {
+        "workspaces": {
+          "greatsun-dev": {
+            "credex-ecosystem": {
+              "credex-core": {}
+            }
+          }
+        },
+        "credex-core": {
+          "tsconfig.json": null,
+          "Dockerfile": null,
+          "package-lock.json": null,
+          "jest.config.js": null,
+          "tasks.md": null,
+          "config": {
+            "neo4j.ts": null,
+            "authenticate.ts": null,
+            "config.ts": null,
+            "swagger.ts": null
+          },
+          ".env.example": null,
+          "compose.yaml": null,
+          "src": {
+            "utils": {
+              "digitalSignature.ts": null,
+              "validators.ts": null,
+              "serverSetup.ts": null,
+              "errorUtils.ts": null,
+              "updateImports.ts": null,
+              "configUtils.ts": null,
+              "logger.ts": null,
+              "denomUtils.ts": null,
+              "update_code_summary.sh": null,
+              "inputSanitizer.ts": null
+            },
+            "constants": {
+              "credspan.ts": null,
+              "denominations.ts": null,
+              "accountTypes.ts": null,
+              "credexTypes.ts": null
+            },
+            "tests": {
+              "services": {
+                "CreateRandomFloatingCredexes.ts": null,
+                "SellSecuredCredexes.ts": null,
+                "InEcosystemSecuredCredexes.ts": null,
+                "ClearDevDb.ts": null,
+                "GrowthTest.ts": null,
+                "CreateTestLoop.ts": null,
+                "CheckLedgerVsSearchBalances.ts": null,
+                "CreateTestMembersAndAccounts.ts": null,
+                "PurchaseSecuredCredexes.ts": null
+              },
+              "utils": {
+                "denomUtils.test.ts": null,
+                "validators.test.ts": null
+              },
+              "triggerDCO.ts": null,
+              "integration": {
+                "account.test.ts": null
+              },
+              "controllers": {
+                "growthTest.ts": null,
+                "clearDevDb.ts": null,
+                "createTestMembersAndAccounts.ts": null,
+                "offerAndAcceptCredex.ts": null,
+                "forceDCO.ts": null,
+                "createRandomFloatingCredexes.ts": null,
+                "forceMTQ.ts": null,
+                "checkLedgerVsSearchBalances.ts": null,
+                "createTestLoop.ts": null
+              }
+            },
+            "core-cron": {
+              "DCO": {
+                "DCOsnapshots": {
+                  "2021-01-02_ledgerSpace_dev_end.json": null,
+                  "placeholder.ts": null
+                },
+                "DCOexecute.ts": null,
+                "DBbackup.ts": null,
+                "DCOavatars.ts": null,
+                "fetchZwgRate.ts": null,
+                "DBinitialization.ts": null,
+                "DailyCredcoinOffering.ts": null
+              },
+              "cronJobs.ts": null,
+              "MTQ": {
+                "MinuteTransactionQueue.ts": null,
+                "LoopFinder.ts": null
+              }
+            },
+            "middleware": {
+              "validateRequest.ts": null,
+              "rateLimiter.ts": null,
+              "authMiddleware.ts": null,
+              "errorHandler.ts": null,
+              "securityConfig.ts": null
+            },
+            "index.ts": null,
+            "api": {
+              "Avatar": {
+                "services": {
+                  "CancelRecurring.ts": null,
+                  "AcceptRecurring.ts": null,
+                  "RequestRecurring.ts": null
+                },
+                "avatarValidationSchemas.ts": null,
+                "recurringRoutes.ts": null,
+                "controllers": {
+                  "acceptRecurring.ts": null,
+                  "cancelRecurring.ts": null,
+                  "requestRecurring.ts": null
+                }
+              },
+              "AdminDashboard": {
+                "services": {
+                  "UpdateMemberTierService.ts": null,
+                  "GetMemberService.ts": null,
+                  "GetMemberAccountsOwnerByMemberSevice.ts": null,
+                  "GetAccountService.ts": null,
+                  "GetAccountReceivedCredexOffers.ts": null,
+                  "GetCredexService.ts": null,
+                  "ServicesList.md": null,
+                  "GetAccountSentCredexOffers.ts": null
+                },
+                "adminDashboardValidationSchemas.ts": null,
+                "controllers": {
+                  "MemberController.ts": null,
+                  "CredexController.ts": null,
+                  "ControllerList.md": null,
+                  "AccountController.ts": null
+                },
+                "adminDashboardRoutes.ts": null
+              },
+              "Account": {
+                "services": {
+                  "UpdateSendOffersTo.ts": null,
+                  "UnauthorizeForAccount.ts": null,
+                  "UpdateAccount.ts": null,
+                  "GetBalances.ts": null,
+                  "CreateAccount.ts": null,
+                  "GetAccountByHandle.ts": null,
+                  "GetAccountDashboard.ts": null,
+                  "AuthorizeForAccount.ts": null
+                },
+                "accountValidationSchemas.ts": null,
+                "controllers": {
+                  "unauthorizeForAccount.ts": null,
+                  "createAccount.ts": null,
+                  "updateAccount.ts": null,
+                  "updateSendOffersTo.ts": null,
+                  "getAccountDashboard.ts": null,
+                  "authorizeForAccount.ts": null,
+                  "getAccountByHandle.ts": null
+                },
+                "accountRoutes.ts": null
+              },
+              "Credex": {
+                "services": {
+                  "CreateCredex.ts": null,
+                  "GetLedger.ts": null,
+                  "CancelCredex.ts": null,
+                  "GetSecuredAuthorization.ts": null,
+                  "GetPendingOffersIn.ts": null,
+                  "GetCredex.ts": null,
+                  "AcceptCredex.ts": null,
+                  "DeclineCredex.ts": null,
+                  "GetPendingOffersOut.ts": null,
+                  "OfferCredex.ts": null
+                },
+                "credexRoutes.ts": null,
+                "credexValidationSchemas.ts": null,
+                "controllers": {
+                  "offerCredex.ts": null,
+                  "declineCredex.ts": null,
+                  "cancelCredex.ts": null,
+                  "acceptCredex.ts": null,
+                  "acceptCredexBulk.ts": null,
+                  "getCredex.ts": null,
+                  "getLedger.ts": null
+                }
+              },
+              "Member": {
+                "services": {
+                  "UpdateMemberTier.ts": null,
+                  "AuthForTierSpendLimit.ts": null,
+                  "GetMemberByHandle.ts": null,
+                  "OnboardMember.ts": null,
+                  "GetMemberDashboardByPhone.ts": null,
+                  "LoginMember.ts": null
+                },
+                "memberValidationSchemas.ts": null,
+                "memberRoutes.ts": null,
+                "controllers": {
+                  "onboardMember.ts": null,
+                  "getMemberByHandle.ts": null,
+                  "getMemberDashboardByPhone.ts": null,
+                  "authForTierSpendLimit.ts": null,
+                  "updateMemberTier.ts": null,
+                  "loginMember.ts": null
+                }
+              }
+            }
+          },
+          "docs": {
+            "code_summary.md": null,
+            "DevAdmin.md": null,
+            "AdminDashboard.md": null,
+            "Security_and_Authentication.md": null,
+            "searchSpace_schema.md": null,
+            "logging_best_practices.md": null,
+            "Credex.md": null,
+            "MinuteTransactionQueue_(MTQ).md": null,
+            "swagger.md": null,
+            "Daily_Credcoin_Offering_(DCO).md": null,
+            "Account.md": null,
+            "Avatar.md": null,
+            "LoginEndpoint.md": null,
+            "api_validation.md": null,
+            "Member.md": null,
+            "ledgerSpace_schema.md": null
+          },
+          "package.json": null,
+          ".devcontainer": {
+            "devcontainer.json": null
+          },
+          "nodemon.json": null,
+          "README.Docker.md": null,
+          "README.md": null,
+          ".dockerignore": null,
+          ".github": {
+            "dependabot.yml": null,
+            "workflows": {
+              "prod.yml": null,
+              "stage.yml": null
+            }
+          },
+          ".githooks": {
+            "pre-commit": null,
+            "post-commit": null,
+            "post-checkout": null
+          }
+        }
+      }
+    }
+  },
   ".env.example": null,
   "main.py": null,
   "docs": {
@@ -237,14 +491,13 @@ This extended project outline provides a more comprehensive view of the greatsun
   "avatar": {
     "utils": {
       "__pycache__": {
-        "branch_on_avatar_up.cpython-312.pyc": null,
         "responseParser.cpython-312.pyc": null,
+        "git_avatar_up.cpython-312.pyc": null,
         "git_operations.cpython-312.pyc": null,
         "file_operations.cpython-312.pyc": null
       },
       "git_operations.py": null,
       "responseParser.py": null,
-      "branch_on_avatar_up.py": null,
       "file_operations.py": null
     },
     "context": {
@@ -257,7 +510,243 @@ This extended project outline provides a more comprehensive view of the greatsun
     "avatarUp.py": null,
     "avatar": null
   },
-  "avatar_command.sh": null
+  "avatar_command.sh": null,
+  "credex-core": {
+    "tsconfig.json": null,
+    "Dockerfile": null,
+    "package-lock.json": null,
+    "jest.config.js": null,
+    "tasks.md": null,
+    "config": {
+      "neo4j.ts": null,
+      "authenticate.ts": null,
+      "config.ts": null,
+      "swagger.ts": null
+    },
+    ".env.example": null,
+    "compose.yaml": null,
+    "src": {
+      "utils": {
+        "digitalSignature.ts": null,
+        "validators.ts": null,
+        "serverSetup.ts": null,
+        "errorUtils.ts": null,
+        "updateImports.ts": null,
+        "configUtils.ts": null,
+        "logger.ts": null,
+        "denomUtils.ts": null,
+        "update_code_summary.sh": null,
+        "inputSanitizer.ts": null
+      },
+      "constants": {
+        "credspan.ts": null,
+        "denominations.ts": null,
+        "accountTypes.ts": null,
+        "credexTypes.ts": null
+      },
+      "tests": {
+        "services": {
+          "CreateRandomFloatingCredexes.ts": null,
+          "SellSecuredCredexes.ts": null,
+          "InEcosystemSecuredCredexes.ts": null,
+          "ClearDevDb.ts": null,
+          "GrowthTest.ts": null,
+          "CreateTestLoop.ts": null,
+          "CheckLedgerVsSearchBalances.ts": null,
+          "CreateTestMembersAndAccounts.ts": null,
+          "PurchaseSecuredCredexes.ts": null
+        },
+        "utils": {
+          "denomUtils.test.ts": null,
+          "validators.test.ts": null
+        },
+        "triggerDCO.ts": null,
+        "integration": {
+          "account.test.ts": null
+        },
+        "controllers": {
+          "growthTest.ts": null,
+          "clearDevDb.ts": null,
+          "createTestMembersAndAccounts.ts": null,
+          "offerAndAcceptCredex.ts": null,
+          "forceDCO.ts": null,
+          "createRandomFloatingCredexes.ts": null,
+          "forceMTQ.ts": null,
+          "checkLedgerVsSearchBalances.ts": null,
+          "createTestLoop.ts": null
+        }
+      },
+      "core-cron": {
+        "DCO": {
+          "DCOsnapshots": {
+            "2021-01-02_ledgerSpace_dev_end.json": null,
+            "placeholder.ts": null
+          },
+          "DCOexecute.ts": null,
+          "DBbackup.ts": null,
+          "DCOavatars.ts": null,
+          "fetchZwgRate.ts": null,
+          "DBinitialization.ts": null,
+          "DailyCredcoinOffering.ts": null
+        },
+        "cronJobs.ts": null,
+        "MTQ": {
+          "MinuteTransactionQueue.ts": null,
+          "LoopFinder.ts": null
+        }
+      },
+      "middleware": {
+        "validateRequest.ts": null,
+        "rateLimiter.ts": null,
+        "authMiddleware.ts": null,
+        "errorHandler.ts": null,
+        "securityConfig.ts": null
+      },
+      "index.ts": null,
+      "api": {
+        "Avatar": {
+          "services": {
+            "CancelRecurring.ts": null,
+            "AcceptRecurring.ts": null,
+            "RequestRecurring.ts": null
+          },
+          "avatarValidationSchemas.ts": null,
+          "recurringRoutes.ts": null,
+          "controllers": {
+            "acceptRecurring.ts": null,
+            "cancelRecurring.ts": null,
+            "requestRecurring.ts": null
+          }
+        },
+        "AdminDashboard": {
+          "services": {
+            "UpdateMemberTierService.ts": null,
+            "GetMemberService.ts": null,
+            "GetMemberAccountsOwnerByMemberSevice.ts": null,
+            "GetAccountService.ts": null,
+            "GetAccountReceivedCredexOffers.ts": null,
+            "GetCredexService.ts": null,
+            "ServicesList.md": null,
+            "GetAccountSentCredexOffers.ts": null
+          },
+          "adminDashboardValidationSchemas.ts": null,
+          "controllers": {
+            "MemberController.ts": null,
+            "CredexController.ts": null,
+            "ControllerList.md": null,
+            "AccountController.ts": null
+          },
+          "adminDashboardRoutes.ts": null
+        },
+        "Account": {
+          "services": {
+            "UpdateSendOffersTo.ts": null,
+            "UnauthorizeForAccount.ts": null,
+            "UpdateAccount.ts": null,
+            "GetBalances.ts": null,
+            "CreateAccount.ts": null,
+            "GetAccountByHandle.ts": null,
+            "GetAccountDashboard.ts": null,
+            "AuthorizeForAccount.ts": null
+          },
+          "accountValidationSchemas.ts": null,
+          "controllers": {
+            "unauthorizeForAccount.ts": null,
+            "createAccount.ts": null,
+            "updateAccount.ts": null,
+            "updateSendOffersTo.ts": null,
+            "getAccountDashboard.ts": null,
+            "authorizeForAccount.ts": null,
+            "getAccountByHandle.ts": null
+          },
+          "accountRoutes.ts": null
+        },
+        "Credex": {
+          "services": {
+            "CreateCredex.ts": null,
+            "GetLedger.ts": null,
+            "CancelCredex.ts": null,
+            "GetSecuredAuthorization.ts": null,
+            "GetPendingOffersIn.ts": null,
+            "GetCredex.ts": null,
+            "AcceptCredex.ts": null,
+            "DeclineCredex.ts": null,
+            "GetPendingOffersOut.ts": null,
+            "OfferCredex.ts": null
+          },
+          "credexRoutes.ts": null,
+          "credexValidationSchemas.ts": null,
+          "controllers": {
+            "offerCredex.ts": null,
+            "declineCredex.ts": null,
+            "cancelCredex.ts": null,
+            "acceptCredex.ts": null,
+            "acceptCredexBulk.ts": null,
+            "getCredex.ts": null,
+            "getLedger.ts": null
+          }
+        },
+        "Member": {
+          "services": {
+            "UpdateMemberTier.ts": null,
+            "AuthForTierSpendLimit.ts": null,
+            "GetMemberByHandle.ts": null,
+            "OnboardMember.ts": null,
+            "GetMemberDashboardByPhone.ts": null,
+            "LoginMember.ts": null
+          },
+          "memberValidationSchemas.ts": null,
+          "memberRoutes.ts": null,
+          "controllers": {
+            "onboardMember.ts": null,
+            "getMemberByHandle.ts": null,
+            "getMemberDashboardByPhone.ts": null,
+            "authForTierSpendLimit.ts": null,
+            "updateMemberTier.ts": null,
+            "loginMember.ts": null
+          }
+        }
+      }
+    },
+    "docs": {
+      "code_summary.md": null,
+      "DevAdmin.md": null,
+      "AdminDashboard.md": null,
+      "Security_and_Authentication.md": null,
+      "searchSpace_schema.md": null,
+      "logging_best_practices.md": null,
+      "Credex.md": null,
+      "MinuteTransactionQueue_(MTQ).md": null,
+      "swagger.md": null,
+      "Daily_Credcoin_Offering_(DCO).md": null,
+      "Account.md": null,
+      "Avatar.md": null,
+      "LoginEndpoint.md": null,
+      "api_validation.md": null,
+      "Member.md": null,
+      "ledgerSpace_schema.md": null
+    },
+    "package.json": null,
+    ".devcontainer": {
+      "devcontainer.json": null
+    },
+    "nodemon.json": null,
+    "README.Docker.md": null,
+    "README.md": null,
+    ".dockerignore": null,
+    ".github": {
+      "dependabot.yml": null,
+      "workflows": {
+        "prod.yml": null,
+        "stage.yml": null
+      }
+    },
+    ".githooks": {
+      "pre-commit": null,
+      "post-commit": null,
+      "post-checkout": null
+    }
+  }
 }
 
 ** INITIAL DEVELOPER INSTRUCTIONS **
