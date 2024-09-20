@@ -33,11 +33,11 @@ def avatar_up_git():
 
 def add_submodule(submodule):
     submodule_url = f"https://{GH_USERNAME}:{GH_PAT}@github.com/Great-Sun-Group/{submodule}"
-    submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
+    submodule_path = f"{MAIN_REPO}/{submodule}"
     run_command(f"git submodule add {submodule_url} {submodule_path}")
 
 def update_submodule(submodule):
-    submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
+    submodule_path = f"{MAIN_REPO}/{submodule}"
     os.chdir(submodule_path)
     run_command("git fetch origin")
     run_command("git checkout dev")
@@ -51,7 +51,7 @@ def avatar_load_git():
         return
 
     for submodule in SUBMODULES:
-        submodule_path = f"workspaces/greatsun-dev/credex-ecosystem/{submodule}"
+        submodule_path = f"{MAIN_REPO}/{submodule}"
         if not os.path.exists(submodule_path):
             add_submodule(submodule)
         else:
