@@ -1,5 +1,5 @@
 {
-    "name": "Greatsun Dev Environment",
+    "name": "greatsun-dev avatar environment",
     "build": {
         "dockerfile": "../Dockerfile"
     },

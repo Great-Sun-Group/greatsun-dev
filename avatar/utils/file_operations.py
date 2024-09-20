@@ -1,6 +1,8 @@
 import os
 import logging
 import time
+import subprocess
+import sys
 
 logger = logging.getLogger(__name__)
 
@@ -142,3 +144,15 @@ def perform_file_operation(operation, *args):
                 return False
 
     return False  # This line should never be reached, but it's here for completeness
+
+
+def install_package(package_name: str) -> bool:
+    try:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", package_name])
+        print(f"Successfully installed {package_name}")
+        print("Exiting to reset. Run `avatar up` again to launch.")
+        sys.exit(1)
+    except subprocess.CalledProcessError as e:
+        print(f"Failed to install {package_name}: {e}")
+        return False

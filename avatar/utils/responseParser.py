@@ -38,7 +38,11 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
     for op, result in results.items():
         if result is not False:
             file_operation_performed = True
-            processed_response.append(format_operation_result(op, result))
+            if op.operation == 'read':
+                conversation_thread += f"\n\nContent of {
+                    op.args[0]}:\n{result}"
+            else:
+                processed_response.append(format_operation_result(op, result))
 
     # Save action results to conversation thread
     processed_response = '\n'.join(processed_response)
@@ -56,7 +60,6 @@ def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str
     logger.debug(f"Terminal output:\n{terminal_output}")
 
     return conversation_thread, file_operation_performed, terminal_output
-
 
 def process_operation(pattern: str, operation: str, file_op_queue: FileOperationQueue,
                       terminal_output: List[str], llm_response: str) -> str:
