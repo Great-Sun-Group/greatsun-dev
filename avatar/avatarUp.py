@@ -1,4 +1,4 @@
-from utils.file_operations import load_initial_context, read_file, write_file, get_directory_tree, install_package, clear_screen
+from utils.file_operations import load_initial_context, read_file, write_file, install_package
 from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_submit_git
 from utils.responseParser import parse_llm_response
 import sys
@@ -36,11 +36,10 @@ def main():
     get_off_dev_branch()
     conversation_thread = load_initial_context()
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
-    clear_screen()
     print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
 
     while True:
-        terminal_input = input(f"@{GH_USERNAME}: ").strip()
+        terminal_input = input().strip()
 
         if terminal_input.lower() == "avatar up":
             conversation_thread = load_initial_context()
@@ -61,7 +60,7 @@ def main():
             avatar_submit_git()
 
         if terminal_input.lower() == "avatar down":
-            logger.info("greatsun-dev, signing off")
+            print("greatsun-dev, signing off")
             break
 
         # Add new terminal message to conversation
@@ -76,7 +75,7 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                logger.info(f"avatar iteration {iteration + 1})")
+                print(f"avatar iteration {iteration + 1})")
 
                 llm_call = LARGE_LANGUAGE_MODEL.messages.create(
                     model=MODEL_NAME,
@@ -112,7 +111,7 @@ def main():
                 # logger.info("Continuing to next iteration")
 
             except anthropic.APIError as e:
-                logger.error(f"Anthropic API error in LLM iteration {
+                print(f"Anthropic API error in LLM iteration {
                              iteration + 1}: {str(e)}")
                 print(f"An error occurred with the Anthropic API in LLM iteration {
                       iteration + 1}:")
@@ -120,7 +119,7 @@ def main():
                 print("Please check the logs for more details.")
                 break
             except Exception as e:
-                logger.error(f"Error in LLM iteration {
+                print(f"Error in LLM iteration {
                              iteration + 1}: {str(e)}")
                 print(f"An unexpected error occurred in LLM iteration {
                       iteration + 1}:")
@@ -131,7 +130,7 @@ def main():
         else:
             # This block executes if the for loop completes without breaking
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
-            logger.warning("LLM reached maximum iterations without completion")
+            print("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
             write_file("avatar/context/conversation_thread.txt",
                        conversation_thread)
@@ -144,7 +143,7 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("\nOperation interrupted by user. Exiting gracefully.")
     except Exception as e:
-        logger.critical(f"Critical error in main execution: {str(e)}")
+        print(f"Critical error in main execution: {str(e)}")
         print("A critical error occurred in the main execution:")
         print(str(e))
         print("Please check the logs for more details.")

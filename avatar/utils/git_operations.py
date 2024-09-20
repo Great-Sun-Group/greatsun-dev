@@ -31,9 +31,9 @@ def get_off_dev_branch():
     if current_branch == 'dev':
         new_branch = create_random_branch()
         run_command(f"git checkout -b {new_branch}")
-        print(f"Created and checked out new branch: {new_branch}")
+        print(f"Branch: {new_branch}")
     else:
-        print(f"Currently on branch: {current_branch}. No action taken.")
+        print(f"Branch: {current_branch}")
 
 
 def add_submodule(submodule):

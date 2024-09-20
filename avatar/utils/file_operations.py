@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 import time
 import subprocess
@@ -38,12 +39,8 @@ class FileOperationQueue:
         return self.results
 
 
-def clear_screen():
-    os.system('cls' if os.name == 'nt' else 'clear')
-
-
 def load_initial_context():
-    return [
+    initial_context = [
         read_file("avatar/context/avatar_orientation.md"),
         read_file("avatar/context/response_instructions.txt"),
         "*** README.md ***",
@@ -58,6 +55,7 @@ def load_initial_context():
         read_file("avatar/context/current_project.md"),
         f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
     ]
+    return ''.join(initial_context)
 
 
 def read_file(file_path):
