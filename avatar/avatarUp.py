@@ -46,7 +46,6 @@ def install_package(package_name: str) -> bool:
 
 
 # Check if anthropic is installed, if not, install it
-time.sleep(1)
 if importlib.util.find_spec("anthropic") is None:
     print("anthropic package not found. Attempting to install...")
     if not install_package("anthropic"):
@@ -55,6 +54,7 @@ if importlib.util.find_spec("anthropic") is None:
 
 # Now try to import anthropic
 try:
+    time.sleep(1) # to give it time to recognize the new installation above
     print("Attempting to import anthropic...")
     import anthropic
     print(f"anthropic module found at: {anthropic.__file__}")
