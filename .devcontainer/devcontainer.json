@@ -11,7 +11,7 @@
             ]
         }
     },
-    "postCreateCommand": "pip3 install --no-cache-dir -r requirements.txt",
-    "postStartCommand": "pip3 show anthropic && python -c 'import anthropic; print(anthropic.__version__)'",
+    "postCreateCommand": "pip install requirements.txt",
+    // "postStartCommand": "pip3 show anthropic && python -c 'import anthropic; print(anthropic.__version__)'",
     "remoteUser": "vscode"
 }

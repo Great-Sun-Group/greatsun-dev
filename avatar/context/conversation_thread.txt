@@ -62,6 +62,8 @@ With the avatar scripts providing an interface between you, the artificial intel
 ## Implementing Your Intention
 You express your intention, and the LLM uses the avatar to carry it out. Claude and the other LLMs we will use have potent and rapidly increasing capacities to handle higher level abstractions and multi-step logic. When we share a purpose at a high level, it can assist at that level. It is not limited to instructions to create specific lines of code, functions, or even full files. You can describe entire feature branches and use the generated workplans to step through complex, multi step tasks quickly and efficiently.
 
+A developer will succeed in this container by being able to clearly and specifically communicate high level intent, direct research, analyze options, approve specific tasks, and review results. Every dev here is a project manager. Even if you don't know the language being used, the avatar will orient you as you go if you ask the right questions, and you'll soon be up to speed.
+
 ### Developer Intent #1: Current Project
 The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/context/current_project.md) file. Clear the contents and put a couple of sentences here about what you are trying to accomplish over the coming hours or days. When you first enter the greatsun-dev environment, try a current project like:
 ```
