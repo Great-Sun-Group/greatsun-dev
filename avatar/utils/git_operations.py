@@ -1,7 +1,5 @@
 import os
-import random
-import string
-import base64
+import subprocess
 from github import Github
 from coolname import generate_slug
 
@@ -18,10 +16,6 @@ SUBMODULES = [
 g = Github(GH_PAT)
 
 
-def create_random_branch():
-    return generate_slug(4)
-
-
 def get_repo(repo_name):
     return g.get_repo(f"Great-Sun-Group/{repo_name}")
 
@@ -32,26 +26,48 @@ def get_current_branch(repo):
     try:
         return repo.get_branch(repo.default_branch).name
     except:
-        return 'dev'  # Default to 'main' if we can't determine the default branch
+        return 'dev'  # Default to 'dev' if we can't determine the default branch
 
 
-def get_off_dev_branch(repo):
-    if isinstance(repo, str):
-        repo = get_repo(repo)
-    current_branch = get_current_branch(repo)
+def get_off_dev_branch():
+    # Get the current branch name using Git command
+    try:
+        current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                                                 stderr=subprocess.DEVNULL).decode().strip()
+    except subprocess.CalledProcessError:
+        print("Failed to get current branch. Are you in a Git repository?")
+        return None
+
     if current_branch == 'dev':
-        new_branch = create_random_branch()
-        repo.create_git_ref(
-            f"refs/heads/{new_branch}", repo.get_branch("dev").commit.sha)
-        print(f"Created and switched to branch {new_branch}")
+        new_slug = generate_slug(2)
+        new_branch = f"avatar-of-{new_slug}"
+
+        # Create and checkout new branch
+        try:
+            subprocess.run(['git', 'checkout', '-b', new_branch],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            print(f"on branch {new_branch}")
+        except subprocess.CalledProcessError:
+            print(f"Failed to create and switch to new branch: {new_branch}")
+            return current_branch
+
+        # Update the branch in the GitHub repo
+        repo = get_repo('greatsun-dev')
+        try:
+            repo.create_git_ref(
+                f"refs/heads/{new_branch}", repo.get_branch("dev").commit.sha)
+            # print(f"Created new branch in GitHub repo: {new_branch}")
+        except Exception as e:
+            print(f"Failed to create new branch in GitHub repo: {str(e)}")
+
         return new_branch
     else:
-        print(f"On branch {current_branch}")
+        print(f"on branch {current_branch}")
         return current_branch
 
 
 def avatar_load_dev_git():
-    main_repo = get_repo(".")
+    main_repo = get_repo([MODULE_FOLDER])
     current_branch = get_off_dev_branch(main_repo)
 
     for submodule in SUBMODULES:

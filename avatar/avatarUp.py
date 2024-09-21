@@ -19,8 +19,7 @@ def main():
     GH_USERNAME = os.environ.get('GH_USERNAME')
 
     print("@greatsun-dev: I read you loud and clear")
-
-    get_off_dev_branch('greatsun-dev')
+    get_off_dev_branch()
     conversation_thread = load_initial_context()
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
     print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
