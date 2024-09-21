@@ -41,18 +41,18 @@ class FileOperationQueue:
 
 def load_initial_context():
     initial_context = [
-        read_file("./context/avatar_orientation.md"),
-        read_file("./context/response_instructions.txt"),
+        read_file("avatar/context/avatar_orientation.md"),
+        read_file("avatar/context/response_instructions.txt"),
         "*** README.md ***",
-        read_file("././README.md"),
+        read_file("README.md"),
         "*** credex-core/README.md ***",
-        read_file("././credex-ecosystem/credex-core/README.md"),
+        read_file("credex-ecosystem/credex-core/README.md"),
         "*** credex-ecosystem/vimbiso-pay/README.md ***",
-        read_file("././credex-ecosystem/vimbiso-pay/README.md"),
+        read_file("credex-ecosystem/vimbiso-pay/README.md"),
         "*** FULL DIRECTORY TREE ***",
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "*** avatar/context/current_project.md ***",
-        read_file("./context/current_project.md"),
+        read_file(".avatar/context/current_project.md"),
         f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
     ]
     return ''.join(initial_context)
