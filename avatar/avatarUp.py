@@ -1,5 +1,5 @@
 from utils.file_operations import load_initial_context, read_file, write_file, install_package
-from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_commit_git
+from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_push_git
 from utils.responseParser import parse_llm_response
 import sys
 import os
@@ -46,8 +46,8 @@ def main():
             avatar_commit_git()
             continue
 
-        if terminal_input.lower() == "avatar submit":
-            avatar_commit_git()
+        if terminal_input.lower() == "avatar push":
+            avatar_push_git()
             continue
 
         if terminal_input.lower() == "avatar down":

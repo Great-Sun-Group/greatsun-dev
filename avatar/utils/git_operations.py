@@ -1,5 +1,7 @@
+import uuid
 import os
 import subprocess
+import time
 from github import Github, InputGitTreeElement, GithubException
 from coolname import generate_slug
 from utils.file_operations import load_initial_context, write_file
@@ -131,95 +133,66 @@ def has_staged_changes(repo_path):
 def avatar_commit_git():
     commit_message = input("Enter commit message: ")
     changes_found = False
+    commit_id = str(uuid.uuid4())
+    full_commit_message = f"{commit_message}\n\nCommit-ID: {commit_id}"
 
     repos = [ROOT_REPO] + SUBMODULES
+    repo_changes = {}
 
+    current_branch = get_current_branch(ROOT_PATH)
+
+    # First, check for changes and store them
     for repo_name in repos:
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
             MODULE_PATH, repo_name)
+        os.chdir(repo_path)
 
-        try:
-            # Change to the repository directory
-            os.chdir(repo_path)
+        if has_staged_changes(repo_path):
+            changes_found = True
+            repo_changes[repo_name] = repo_path
 
-            # Check if there are staged changes
-            result = subprocess.run(
-                ['git', 'diff', '--staged', '--quiet'], capture_output=True)
+            # If it's a submodule, check if the branch exists and create it if it doesn't
+            if repo_name != ROOT_REPO:
+                try:
+                    subprocess.run(['git', 'rev-parse', '--verify', current_branch],
+                                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                except subprocess.CalledProcessError:
+                    # Branch doesn't exist, so create it
+                    subprocess.run(
+                        ['git', 'checkout', '-b', current_branch], check=True)
+                    print(f"Created and switched to branch {
+                          current_branch} in {repo_name}")
+                else:
+                    # Branch exists, so just switch to it
+                    subprocess.run(
+                        ['git', 'checkout', current_branch], check=True)
+                    print(f"Switched to existing branch {
+                          current_branch} in {repo_name}")
 
-            if result.returncode == 1:  # There are staged changes
-                changes_found = True
-
-                # Commit the changes
-                subprocess.run(
-                    ['git', 'commit', '-m', commit_message], check=True)
-
-                # Push the changes
-                current_branch = get_current_branch(repo_path)
-                subprocess.run(
-                    ['git', 'push', 'origin', current_branch], check=True)
-
-                print(f"Changes committed and pushed in {repo_name}")
-            else:
-                print(f"No staged changes in {repo_name}")
-
-        except subprocess.CalledProcessError as e:
-            print(f"Error in {repo_name}: {e}")
-        finally:
-            # Always return to the root directory
-            os.chdir(ROOT_PATH)
-
-    if changes_found:
-        print("Commits pushed to remote branches.")
-    else:
+    if not changes_found:
         print("No changes to commit in any repository.")
-
-
-def create_pull_request(repo, branch, title, body):
-    try:
-        pr = repo.create_pull(title=title, body=body, head=branch, base='dev')
-        return pr.html_url
-    except Exception as e:
-        print(f"Failed to create PR for {repo.name}: {str(e)}")
-        return None
-
-
-def avatar_submit_git():
-    current_branch = get_current_branch(ROOT_PATH)
-    if current_branch == 'dev':
-        print("Cannot submit PRs from dev branch.")
         return
 
-    title = input("Enter PR title: ")
-    body = input("Enter PR description: ")
+    # If changes are found, commit them with the same message and timestamp
+    commit_timestamp = int(time.time())
+    for repo_name, repo_path in repo_changes.items():
+        os.chdir(repo_path)
 
-    pr_urls = []
+        # Set the commit timestamp
+        os.environ['GIT_AUTHOR_DATE'] = str(commit_timestamp)
+        os.environ['GIT_COMMITTER_DATE'] = str(commit_timestamp)
 
-    repos = [ROOT_REPO] + SUBMODULES
+        try:
+            # Commit the changes
+            subprocess.run(
+                ['git', 'commit', '-m', full_commit_message], check=True, env=os.environ)
 
-    for repo_name in repos:
-        repo = get_repo(repo_name)
-        repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
-            MODULE_PATH, repo_name)
-        if has_staged_changes(repo_path):
-            pr_url = create_pull_request(repo, current_branch, title, body)
-            if pr_url:
-                pr_urls.append((repo_name, pr_url))
+            print(f"Changes committed in {repo_name} on {current_branch}")
+        except subprocess.CalledProcessError as e:
+            print(f"Error in {repo_name}: {e}")
 
-    if pr_urls:
-        print("Pull requests created:")
-        for repo, url in pr_urls:
-            print(f"{repo}: {url}")
+    os.chdir(ROOT_PATH)
 
-        # Update PR descriptions with cross-references
-        for repo_name, url in pr_urls:
-            repo = get_repo(repo_name)
-            pr_number = int(url.split('/')[-1])
-            pr = repo.get_pull(pr_number)
-            updated_body = body + "\n\nRelated PRs:\n" + \
-                "\n".join([f"- [{r}]({u})" for r,
-                          u in pr_urls if r != repo_name])
-            pr.edit(body=updated_body)
 
-        print("Pull request descriptions updated with cross-references.")
-    else:
-        print("No changes to submit in any repository.")
+def avatar_push_git():
+    print(f"changes pushed in {repo_name} on branch {branch_name}")
