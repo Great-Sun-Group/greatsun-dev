@@ -73,12 +73,8 @@ def get_off_dev_branch():
         return current_branch
 
 
-def avatar_load_dev_git():
+def load_project_git(load_branch):
     current_branch = get_current_branch()
-    if current_branch == 'dev':
-        print("You are currently on the dev branch")
-        return
-
     os.makedirs(MODULE_PATH, exist_ok=True)
     os.chdir(MODULE_PATH)
 
@@ -91,11 +87,11 @@ def avatar_load_dev_git():
         if os.path.exists(submodule_dir):
             os.chdir(submodule_dir)
             subprocess.run(['git', 'fetch', 'origin'], check=True)
-            subprocess.run(['git', 'checkout', 'dev'], check=True)
-            subprocess.run(['git', 'pull', 'origin', 'dev'], check=True)
+            subprocess.run(['git', 'checkout', load_branch], check=True)
+            subprocess.run(['git', 'pull', 'origin', load_branch], check=True)
             os.chdir(MODULE_PATH)
         else:
-            subprocess.run(['git', 'clone', '-b', 'dev',
+            subprocess.run(['git', 'clone', '-b', load_branch,
                            clone_url, submodule], check=True)
 
         print(f"Updated {submodule}")
@@ -110,7 +106,7 @@ def avatar_load_dev_git():
 
     conversation_thread = load_initial_context()
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
-    print(f"{current_branch} synced to `dev` branches")
+    print(f"{current_branch} synced to {load_branch} across repos")
 
 
 def has_staged_changes(repo_path):
@@ -194,5 +190,6 @@ def avatar_commit_git():
     os.chdir(ROOT_PATH)
 
 
-def avatar_push_git():
+def avatar_push_git(project_branch):
+    print(project_branch)
     print(f"changes pushed in {repo_name} on branch {branch_name}")

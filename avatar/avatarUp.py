@@ -1,24 +1,29 @@
 from utils.file_operations import load_initial_context, read_file, write_file, install_package
-from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_push_git
+from utils.git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_push_git
 from utils.responseParser import parse_llm_response
 import sys
 import os
 from anthropic import Anthropic
 import site
 
+SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
+MAX_LLM_ITERATIONS = 14
+LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
+MODEL_NAME = "claude-3-sonnet-20240229"
+GH_USERNAME = os.environ.get('GH_USERNAME')
+
+
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
 
+print(user_site_packages)
+print(os.listdir(user_site_packages))
+
 
 def main():
-    SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
-    MAX_LLM_ITERATIONS = 14
-    LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
-    MODEL_NAME = "claude-3-sonnet-20240229"
-    GH_USERNAME = os.environ.get('GH_USERNAME')
 
-    print("@greatsun-dev: I read you loud and clear")
+    print("@greatsun-dev reading you loud and clear")
     get_off_dev_branch()
     conversation_thread = load_initial_context()
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
@@ -35,7 +40,8 @@ def main():
             continue
 
         if terminal_input.lower() == "avatar load":
-            avatar_load_dev_git()
+            load_branch = input("Project branch or `dev`: ")
+            load_project_git(load_branch)
             continue
 
         if terminal_input.lower() == "avatar engage":
@@ -47,7 +53,8 @@ def main():
             continue
 
         if terminal_input.lower() == "avatar push":
-            avatar_push_git()
+            project_branch = input("Project branch: ")
+            avatar_push_git(project_branch)
             continue
 
         if terminal_input.lower() == "avatar down":
