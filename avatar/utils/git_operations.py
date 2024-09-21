@@ -1,9 +1,9 @@
-from subprocess import run, PIPE, CalledProcessError
 import os
-import subprocess
 import random
 import string
-import requests
+import base64
+from github import Github
+from coolname import generate_slug
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
@@ -14,121 +14,110 @@ SUBMODULES = [
     'vimbiso-pay'
 ]
 
-
-def run_command(command):
-    return subprocess.run(command, shell=True, check=True, capture_output=True, text=True)
-
-
-def get_current_branch():
-    return run_command("git rev-parse --abbrev-ref HEAD").stdout.strip()
+# Initialize Github client
+g = Github(GH_PAT)
 
 
 def create_random_branch():
-    return ''.join(random.choices(string.ascii_lowercase + string.digits, k=10))
+    return generate_slug(4)
 
 
-def get_off_dev_branch():
-    current_branch = get_current_branch()
+def get_repo(repo_name):
+    return g.get_repo(f"Great-Sun-Group/{repo_name}")
+
+
+def get_current_branch(repo):
+    if isinstance(repo, str):
+        repo = get_repo(repo)
+    try:
+        return repo.get_branch(repo.default_branch).name
+    except:
+        return 'dev'  # Default to 'main' if we can't determine the default branch
+
+
+def get_off_dev_branch(repo):
+    if isinstance(repo, str):
+        repo = get_repo(repo)
+    current_branch = get_current_branch(repo)
     if current_branch == 'dev':
         new_branch = create_random_branch()
-        run_command(f"git checkout -b {new_branch}")
-        print(f"on branch {new_branch}")
+        repo.create_git_ref(
+            f"refs/heads/{new_branch}", repo.get_branch("dev").commit.sha)
+        print(f"Created and switched to branch {new_branch}")
+        return new_branch
     else:
-        print(f"on branch {current_branch}")
-
-
-def add_submodule(submodule):
-    submodule_url = f"https://{GH_USERNAME}:{
-        GH_PAT}@github.com/Great-Sun-Group/{submodule}"
-    submodule_path = f"{MODULE_FOLDER}/{submodule}"
-    run_command(f"git submodule add {submodule_url} {submodule_path}")
-
-
-def update_submodule(submodule):
-    submodule_path = f"{MODULE_FOLDER}/{submodule}"
-    os.chdir(submodule_path)
-    run_command("git fetch origin")
-    run_command("git checkout dev")
-    run_command("git pull origin dev")
+        print(f"On branch {current_branch}")
+        return current_branch
 
 
 def avatar_load_dev_git():
-    get_off_dev_branch()
-    current_branch = get_current_branch()
+    main_repo = get_repo(".")
+    current_branch = get_off_dev_branch(main_repo)
 
     for submodule in SUBMODULES:
-        submodule_path = f"{MODULE_FOLDER}/{submodule}"
-        if not os.path.exists(submodule_path):
-            add_submodule(submodule)
-        else:
-            update_submodule(submodule)
+        submodule_repo = get_repo(submodule)
+        submodule_branch = current_branch
 
-        os.chdir(submodule_path)
-        run_command(f"git checkout {
-                    current_branch} 2>/dev/null || git checkout -b {current_branch}")
-        os.chdir('..')
+        # Update submodule reference in main repo
+        try:
+            submodule_content = main_repo.get_contents(
+                f"{MODULE_FOLDER}/{submodule}")
+            main_repo.update_file(
+                submodule_content.path,
+                f"Update {submodule} submodule",
+                submodule_repo.get_branch(submodule_branch).commit.sha,
+                submodule_content.sha,
+                branch=current_branch
+            )
+        except:
+            main_repo.create_file(
+                f"{MODULE_FOLDER}/{submodule}",
+                f"Add {submodule} submodule",
+                submodule_repo.get_branch(submodule_branch).commit.sha,
+                branch=current_branch
+            )
 
-    print(f"Submodules loaded from dev and checked out to branch: {current_branch}")
+    print(f"Submodules loaded from dev and checked out to branch: {
+          current_branch}")
     print("`avatar up` to refresh with any new context")
 
 
-def has_changes(repo_path):
-    os.chdir(repo_path)
-    status = run_command("git status --porcelain").stdout
-    os.chdir('..')
-    return bool(status.strip())
-
-
-def run_command(command):
-    try:
-        result = run(command, shell=True, check=True,
-                     stdout=PIPE, stderr=PIPE, text=True)
-        return result
-    except CalledProcessError as e:
-        print(f"Command failed: {e}")
-        return None
-
-
-def has_changes(repo_path):
-    os.chdir(repo_path)
-    result = run_command("git status --porcelain")
-    os.chdir('..')
-    return result is not None and result.stdout.strip() != ""
+def has_changes(repo, branch):
+    if isinstance(repo, str):
+        repo = get_repo(repo)
+    # Compare the branch with its base (usually 'dev')
+    comparison = repo.compare('dev', branch)
+    return len(comparison.files) > 0
 
 
 def avatar_commit_git():
-    current_branch = get_current_branch()
     commit_message = input("Enter commit message: ")
     commit_hashes = []
     changes_found = False
 
-    ## Commit greatsun-dev
-    if has_changes(MODULE_FOLDER):
-        changes_found = True
-        os.chdir(MODULE_FOLDER)
-        commit_result = run_command(f"git commit -m '{commit_message}'")
-        if commit_result:
-            commit_hash = commit_result.stdout.split()[1]
-            push_result = run_command(f"git push origin {current_branch}")
-            if push_result:
-                commit_hashes.append((repo, commit_hash))
+    repos = [MODULE_FOLDER] + SUBMODULES
 
-    for repo in SUBMODULES:
-        repo_path = f"credex-ecosystem/{repo}"
-        if has_changes(repo_path):
-            changes_found = True
-            os.chdir(repo_path)
-            commit_result = run_command(f"git commit -m '{commit_message}'")
-            if commit_result:
-                commit_hash = commit_result.stdout.split()[1]
-                push_result = run_command(f"git push origin {current_branch}")
-                if push_result:
-                    commit_hashes.append((repo, commit_hash))
-            os.chdir(MODULE_FOLDER)
-
+    for repo_name in repos:
+        try:
+            repo = get_repo(repo_name)
+            branch = get_current_branch(repo)
+            if has_changes(repo, branch):
+                changes_found = True
+                # Create a new commit
+                ref = repo.get_git_ref(f"heads/{branch}")
+                tree = repo.get_git_tree(ref.object.sha)
+                new_commit = repo.create_git_commit(
+                    commit_message, tree, [ref.object])
+                ref.edit(new_commit.sha)
+                commit_hashes.append((repo_name, new_commit.sha))
+                print(f"Commit pushed to {repo_name}: {new_commit.sha}")
+            else:
+                print(f"No changes detected in {repo_name}")
+        except Exception as e:
+            print(f"Error processing repository {repo_name}: {str(e)}")
 
     if commit_hashes:
-        print("Commits pushed to remote branches:")
+        print("\nCommits pushed to remote branches:")
         for repo, commit_hash in commit_hashes:
             print(f"{repo}: {commit_hash}")
     elif changes_found:
@@ -136,28 +125,19 @@ def avatar_commit_git():
     else:
         print("No changes to commit in any repository.")
 
+
 def create_pull_request(repo, branch, title, body):
-    url = f"https://api.github.com/repos/Great-Sun-Group/{repo}/pulls"
-    headers = {
-        "Authorization": f"token {GH_PAT}",
-        "Accept": "application/vnd.github.v3+json"
-    }
-    data = {
-        "title": title,
-        "body": body,
-        "head": branch,
-        "base": "dev"
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 201:
-        return response.json()["html_url"]
-    else:
-        print(f"Failed to create PR for {repo}: {response.text}")
+    try:
+        pr = repo.create_pull(title=title, body=body, head=branch, base='dev')
+        return pr.html_url
+    except Exception as e:
+        print(f"Failed to create PR for {repo.name}: {str(e)}")
         return None
 
 
 def avatar_submit_git():
-    current_branch = get_current_branch()
+    main_repo = get_repo(MODULE_FOLDER)
+    current_branch = get_current_branch(main_repo)
     if current_branch == 'dev':
         print("Cannot submit PRs from dev branch.")
         return
@@ -167,21 +147,14 @@ def avatar_submit_git():
 
     pr_urls = []
 
-    for repo in [MODULE_FOLDER] + SUBMODULES:
-        repo_path = f"/{MODULE_FOLDER}/{repo}"
-        os.chdir(repo_path)
+    repos = [MODULE_FOLDER] + SUBMODULES
 
-        # Check if there are any commits to push
-        if run_command(f"git log origin/dev..{current_branch}").stdout.strip():
-            # Push any remaining changes
-            run_command(f"git push origin {current_branch}")
-
-            # Create pull request
+    for repo_name in repos:
+        repo = get_repo(repo_name)
+        if has_changes(repo, current_branch):
             pr_url = create_pull_request(repo, current_branch, title, body)
             if pr_url:
-                pr_urls.append((repo, pr_url))
-
-        os.chdir('..')
+                pr_urls.append((repo_name, pr_url))
 
     if pr_urls:
         print("Pull requests created:")
@@ -189,12 +162,14 @@ def avatar_submit_git():
             print(f"{repo}: {url}")
 
         # Update PR descriptions with cross-references
-        for repo, url in pr_urls:
+        for repo_name, url in pr_urls:
+            repo = get_repo(repo_name)
+            pr_number = int(url.split('/')[-1])
+            pr = repo.get_pull(pr_number)
             updated_body = body + "\n\nRelated PRs:\n" + \
-                "\n".join([f"- [{r}]({u})" for r, u in pr_urls if r != repo])
-            update_pr_url = url.replace(
-                "github.com", "api.github.com/repos") + "?access_token=" + GH_PAT
-            requests.patch(update_pr_url, json={"body": updated_body})
+                "\n".join([f"- [{r}]({u})" for r,
+                          u in pr_urls if r != repo_name])
+            pr.edit(body=updated_body)
 
         print("Pull request descriptions updated with cross-references.")
     else:

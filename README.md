@@ -65,7 +65,7 @@ When the avatar pauses to await your response or next instructions, you can cont
 ## Branches and Commits
 The avatar unifies and links your commits across all repositories, including this one. If you launch the avatar from the dev branch, a new branch will be created for you. If you launch from another branch, that branch will be maintained into the avatar. On launch, branches of the same name as your branch in greatsun-dev will be created (if necessary) and checked out in all the submodule repos.
 
-- `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
+  - `avatar commit`: Commits and pushes current code to all affected repos with a unified branch name and commit message.
 
 Don't hesitate to commit regularly. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one. Staging changes can also be very helpful. You want to be able to lock in every step, and if too many changes build up you can lose it all when a wobble develops in the LLM's capacity. Don't save your progress in the short term memory of the avatar, save it in a trail of granular commits. You want to be able to refresh the context any time without significant loss of progress.
 
@@ -95,7 +95,7 @@ Everything listed above in one place for reference:
   - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: pulls from remote dev to an existing or new branch in all the repos in the container, and installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem.
   - `avatar engage`: fires up the servers across the container and submodules.
-  - `avatar commit`: Stages, commits, and pushes current code to all repos with a unified commit message.
+  - `avatar commit`: Commits and pushes current code to all affected repos with a unified commit message.
   - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
   - `avatar down` exits back to the terminal.
 
