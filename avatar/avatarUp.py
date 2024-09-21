@@ -1,14 +1,15 @@
 from utils.file_operations import load_initial_context, read_file, write_file, install_package
-from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_submit_git
+from utils.git_operations import get_off_dev_branch, avatar_load_dev_git, avatar_commit_git, avatar_commit_git
 from utils.responseParser import parse_llm_response
 import sys
 import os
-import anthropic
+from anthropic import Anthropic
 import site
 
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
+
 
 def main():
     SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
@@ -17,9 +18,9 @@ def main():
     MODEL_NAME = "claude-3-sonnet-20240229"
     GH_USERNAME = os.environ.get('GH_USERNAME')
 
-    print("@greatsun-dev: I read you loud and clear on")
+    print("@greatsun-dev: I read you loud and clear")
 
-    get_off_dev_branch()
+    get_off_dev_branch('greatsun-dev')
     conversation_thread = load_initial_context()
     write_file("avatar/context/conversation_thread.txt", conversation_thread)
     print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
@@ -32,18 +33,23 @@ def main():
             write_file("avatar/context/conversation_thread.txt",
                        conversation_thread)
             print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
+            continue
 
         if terminal_input.lower() == "avatar load":
             avatar_load_dev_git()
+            continue
 
         if terminal_input.lower() == "avatar engage":
             print("engaged placeholder")
+            continue
 
         if terminal_input.lower() == "avatar commit":
             avatar_commit_git()
+            continue
 
         if terminal_input.lower() == "avatar submit":
-            avatar_submit_git()
+            avatar_commit_git()
+            continue
 
         if terminal_input.lower() == "avatar down":
             print("greatsun-dev, signing off")
@@ -61,7 +67,8 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                print(f"avatar iteration {iteration + 1})")
+                print(f"avatar iteration {
+                      iteration + 1} of up to {MAX_LLM_ITERATIONS}")
 
                 llm_call = LARGE_LANGUAGE_MODEL.messages.create(
                     model=MODEL_NAME,
@@ -98,7 +105,7 @@ def main():
 
             except anthropic.APIError as e:
                 print(f"Anthropic API error in LLM iteration {
-                             iteration + 1}: {str(e)}")
+                    iteration + 1}: {str(e)}")
                 print(f"An error occurred with the Anthropic API in LLM iteration {
                       iteration + 1}:")
                 print(str(e))
@@ -106,7 +113,7 @@ def main():
                 break
             except Exception as e:
                 print(f"Error in LLM iteration {
-                             iteration + 1}: {str(e)}")
+                    iteration + 1}: {str(e)}")
                 print(f"An unexpected error occurred in LLM iteration {
                       iteration + 1}:")
                 print(str(e))

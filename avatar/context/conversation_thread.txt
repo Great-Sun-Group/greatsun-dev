@@ -168,7 +168,6 @@ Folder to be created for unit tests, performance tests, etc.*** credex-core/READ
     "greatsun-dev_configuration.md": null
   },
   ".devcontainer": {
-    "Dockerfile": null,
     "devcontainer.json": null
   },
   "README.md": null,
