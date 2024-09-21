@@ -1,5 +1,5 @@
 from utils.file_operations import load_initial_context, read_file, write_file, install_package
-from utils.git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_push_git
+from utils.git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_submit_git
 from utils.responseParser import parse_llm_response
 import sys
 import os
@@ -12,13 +12,9 @@ LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
 MODEL_NAME = "claude-3-sonnet-20240229"
 GH_USERNAME = os.environ.get('GH_USERNAME')
 
-
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
-
-print(user_site_packages)
-print(os.listdir(user_site_packages))
 
 
 def main():
@@ -52,9 +48,9 @@ def main():
             avatar_commit_git()
             continue
 
-        if terminal_input.lower() == "avatar push":
+        if terminal_input.lower() == "avatar submit":
             project_branch = input("Project branch: ")
-            avatar_push_git(project_branch)
+            avatar_submit_git(project_branch)
             continue
 
         if terminal_input.lower() == "avatar down":

@@ -88,7 +88,7 @@ def write_file(file_path, file_content):
 
 def get_directory_tree(path):
     """
-    Recursively get the directory structure as a dictionary, excluding only specific system and hidden files.
+    Recursively get the directory structure as a dictionary, excluding unnecessary files and directories.
 
     Args:
     path (str): Path to the directory
@@ -97,25 +97,35 @@ def get_directory_tree(path):
     dict: Directory structure
     """
     tree = {}
-    excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes'}
+    excluded_files = {
+        '.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes',
+        '.env', '.coverage', '*.pyc', '*.pyo', '*.whl', '*.egg',
+        '*.log', '*.zip', '*.tar.gz', '*.rar', '*.db', '*.sqlite'
+    }
+    excluded_dirs = {
+        '__pycache__', '.git', '.svn', '.hg', 'node_modules',
+        'venv', 'env', 'build', 'dist', '.vscode', '.idea',
+        'tmp', 'temp', 'htmlcov'
+    }
 
     try:
         for entry in os.scandir(path):
             if entry.is_dir():
-                # Exclude .git directory
-                if entry.name == '.git':
+                if entry.name in excluded_dirs:
+                    continue
+                if entry.name.endswith('.egg-info'):
                     continue
                 subtree = get_directory_tree(entry.path)
-                tree[entry.name] = subtree
+                if subtree:  # Only add non-empty directories
+                    tree[entry.name] = subtree
             elif entry.is_file():
-                # Exclude specific files
-                if entry.name not in excluded_files:
-                    tree[entry.name] = None
+                if any(entry.name.endswith(ext) for ext in excluded_files):
+                    continue
+                tree[entry.name] = None
     except Exception as e:
         print(f"Error getting directory tree for {path}: {str(e)}")
 
     return tree
-
 
 def perform_file_operation(operation, *args):
     """

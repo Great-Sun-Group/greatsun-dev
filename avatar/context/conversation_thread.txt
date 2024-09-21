@@ -719,10 +719,12 @@ This approach allows for community engagement and experimentation while ensuring
   "avatar": {
     "utils": {
       "__pycache__": {
+        "constants.cpython-312.pyc": null,
         "responseParser.cpython-312.pyc": null,
         "git_operations.cpython-312.pyc": null,
         "file_operations.cpython-312.pyc": null
       },
+      "constants.py": null,
       "git_operations.py": null,
       "responseParser.py": null,
       "file_operations.py": null
@@ -730,7 +732,6 @@ This approach allows for community engagement and experimentation while ensuring
     "context": {
       "conversation_thread.txt": null,
       "avatar_orientation.md": null,
-      "shared_secrets.py": null,
       "response_instructions.txt": null,
       "current_project.md": null
     },
