@@ -52,7 +52,7 @@ def load_initial_context():
         "*** FULL DIRECTORY TREE ***",
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "*** avatar/context/current_project.md ***",
-        read_file(".avatar/context/current_project.md"),
+        read_file("avatar/context/current_project.md"),
         f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
     ]
     return ''.join(initial_context)
