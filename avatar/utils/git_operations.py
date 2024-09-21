@@ -1,3 +1,4 @@
+from utils.constants import GH_ORGANIZATION, ROOT_REPO, MODULE_FOLDER, SUBMODULES
 import uuid
 import os
 import subprocess
@@ -10,14 +11,6 @@ from utils.file_operations import load_initial_context, write_file
 GH_USERNAME = os.environ.get('GH_USERNAME')
 GH_PAT = os.environ.get('GH_PAT')
 
-# Repository structure
-ROOT_REPO = 'greatsun-dev'
-MODULE_FOLDER = 'credex-ecosystem'
-SUBMODULES = [
-    'credex-core',
-    'vimbiso-pay'
-]
-
 # Paths
 ROOT_PATH = os.getcwd()
 MODULE_PATH = os.path.join(ROOT_PATH, MODULE_FOLDER)
@@ -27,7 +20,7 @@ g = Github(GH_PAT)
 
 
 def get_repo(repo_name):
-    return g.get_repo(f"Great-Sun-Group/{repo_name}")
+    return g.get_repo(f"{GH_ORGANIZATION}/{repo_name}")
 
 
 def get_current_branch(repo_path=None):
@@ -183,13 +176,65 @@ def avatar_commit_git():
             subprocess.run(
                 ['git', 'commit', '-m', full_commit_message], check=True, env=os.environ)
 
-            print(f"Changes committed in {repo_name} on {current_branch}")
+            print(f"Changes committed locally in {repo_name} on {current_branch}")
         except subprocess.CalledProcessError as e:
             print(f"Error in {repo_name}: {e}")
 
     os.chdir(ROOT_PATH)
 
 
-def avatar_push_git(project_branch):
-    print(project_branch)
-    print(f"changes pushed in {repo_name} on branch {branch_name}")
+def avatar_submit_git(project_branch):
+    repos = [ROOT_REPO] + SUBMODULES
+    current_branch = get_current_branch(ROOT_PATH)
+
+    for repo_name in repos:
+        repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
+            MODULE_PATH, repo_name)
+        os.chdir(repo_path)
+
+        # 1. Push local changes to remote
+        try:
+            subprocess.run(
+                ['git', 'push', 'origin', current_branch], check=True)
+            print(f"Changes pushed in {repo_name} on branch {current_branch}")
+        except subprocess.CalledProcessError as e:
+            print(f"Error pushing changes in {repo_name}: {e}")
+            continue
+
+        # Get the GitHub repo object
+        gh_repo = get_repo(repo_name)
+
+        # 2. Check if remote branch project_branch exists
+        try:
+            gh_repo.get_branch(project_branch)
+            branch_exists = True
+        except GithubException:
+            branch_exists = False
+
+        if not branch_exists:
+            # 2a. If no, create and merge local_branch into project_branch
+            try:
+                # Create the new branch
+                sb = gh_repo.get_branch(current_branch)
+                gh_repo.create_git_ref(
+                    ref=f'refs/heads/{project_branch}', sha=sb.commit.sha)
+
+                # Merge local_branch into project_branch
+                gh_repo.merge(project_branch, current_branch, f"Merging {
+                              current_branch} into {project_branch}")
+                print(f"{current_branch} opens {project_branch} project in {repo_name}")
+            except GithubException as e:
+                print(f"Error creating/merging branch in {repo_name}: {e}")
+        else:
+            # 2b. If yes, create a pull request to merge local_branch to project branch
+            try:
+                pr_title = f"Merge {current_branch} into {project_branch}"
+                pr_body = f"Automated pull request to merge changes from {
+                    current_branch} into {project_branch}"
+                gh_repo.create_pull(
+                    title=pr_title, body=pr_body, head=current_branch, base=project_branch)
+                print(f"{current_branch} submitted to {project_branch} project in {repo_name}")
+            except GithubException as e:
+                print(f"Error creating pull request in {repo_name}: {e}")
+
+    os.chdir(ROOT_PATH)
