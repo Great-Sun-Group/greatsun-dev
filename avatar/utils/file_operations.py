@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 import time
 import subprocess
 import sys
@@ -41,18 +40,18 @@ class FileOperationQueue:
 
 def load_initial_context():
     initial_context = [
-        read_file("./context/avatar_orientation.md"),
-        read_file("./context/response_instructions.txt"),
+        read_file("avatar/context/avatar_orientation.md"),
+        read_file("avatar/context/response_instructions.txt"),
         "*** README.md ***",
-        read_file("././README.md"),
+        read_file("README.md"),
         "*** credex-core/README.md ***",
-        read_file("././credex-ecosystem/credex-core/README.md"),
+        read_file("credex-ecosystem/credex-core/README.md"),
         "*** credex-ecosystem/vimbiso-pay/README.md ***",
-        read_file("././credex-ecosystem/vimbiso-pay/README.md"),
+        read_file("credex-ecosystem/vimbiso-pay/README.md"),
         "*** FULL DIRECTORY TREE ***",
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "*** avatar/context/current_project.md ***",
-        read_file("./context/current_project.md"),
+        read_file("avatar/context/current_project.md"),
         f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
     ]
     return ''.join(initial_context)
@@ -83,13 +82,13 @@ def write_file(file_path, file_content):
             file.write(file_content)
         return True
     except Exception as e:
-        logging.error(f"Error writing to file {file_path}: {str(e)}")
+        print(f"Error writing to file {file_path}: {str(e)}")
         return False
 
 
 def get_directory_tree(path):
     """
-    Recursively get the directory structure as a dictionary, excluding only specific system and hidden files.
+    Recursively get the directory structure as a dictionary, excluding unnecessary files and directories.
 
     Args:
     path (str): Path to the directory
@@ -98,25 +97,35 @@ def get_directory_tree(path):
     dict: Directory structure
     """
     tree = {}
-    excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes'}
+    excluded_files = {
+        '.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes',
+        '.env', '.coverage', '*.pyc', '*.pyo', '*.whl', '*.egg',
+        '*.log', '*.zip', '*.tar.gz', '*.rar', '*.db', '*.sqlite'
+    }
+    excluded_dirs = {
+        '__pycache__', '.git', '.svn', '.hg', 'node_modules',
+        'venv', 'env', 'build', 'dist', '.vscode', '.idea',
+        'tmp', 'temp', 'htmlcov'
+    }
 
     try:
         for entry in os.scandir(path):
             if entry.is_dir():
-                # Exclude .git directory
-                if entry.name == '.git':
+                if entry.name in excluded_dirs:
+                    continue
+                if entry.name.endswith('.egg-info'):
                     continue
                 subtree = get_directory_tree(entry.path)
-                tree[entry.name] = subtree
+                if subtree:  # Only add non-empty directories
+                    tree[entry.name] = subtree
             elif entry.is_file():
-                # Exclude specific files
-                if entry.name not in excluded_files:
-                    tree[entry.name] = None
+                if any(entry.name.endswith(ext) for ext in excluded_files):
+                    continue
+                tree[entry.name] = None
     except Exception as e:
-        logging.error(f"Error getting directory tree for {path}: {str(e)}")
+        print(f"Error getting directory tree for {path}: {str(e)}")
 
     return tree
-
 
 def perform_file_operation(operation, *args):
     """
@@ -160,7 +169,7 @@ def perform_file_operation(operation, *args):
                 time.sleep(delay)
                 delay *= 2  # Exponential backoff
             else:
-                logging.error(f"Error performing {operation}: {str(e)}")
+                print(f"Error performing {operation}: {str(e)}")
                 return False
 
     return False  # This line should never be reached, but it's here for completeness
