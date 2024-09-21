@@ -2,6 +2,7 @@ import os
 import subprocess
 from github import Github
 from coolname import generate_slug
+from utils.file_operations import load_initial_context, write_file
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
@@ -20,24 +21,27 @@ def get_repo(repo_name):
     return g.get_repo(f"Great-Sun-Group/{repo_name}")
 
 
-def get_current_branch(repo):
-    if isinstance(repo, str):
-        repo = get_repo(repo)
-    try:
-        return repo.get_branch(repo.default_branch).name
-    except:
-        return 'dev'  # Default to 'dev' if we can't determine the default branch
+def get_current_branch(repo=None):
+    if repo is None:
+        # Get the current branch name using Git command
+        try:
+            current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+                                                     stderr=subprocess.DEVNULL).decode().strip()
+            return current_branch
+        except subprocess.CalledProcessError:
+            print("Failed to get current branch. Are you in a Git repository?")
+            return None
+    else:
+        if isinstance(repo, str):
+            repo = get_repo(repo)
+        try:
+            return repo.get_branch(repo.default_branch).name
+        except:
+            return 'dev'  # Default to 'dev' if we can't determine the default branch
 
 
 def get_off_dev_branch():
-    # Get the current branch name using Git command
-    try:
-        current_branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
-                                                 stderr=subprocess.DEVNULL).decode().strip()
-    except subprocess.CalledProcessError:
-        print("Failed to get current branch. Are you in a Git repository?")
-        return None
-
+    current_branch = get_current_branch()
     if current_branch == 'dev':
         new_slug = generate_slug(2)
         new_branch = f"avatar-of-{new_slug}"
@@ -56,7 +60,6 @@ def get_off_dev_branch():
         try:
             repo.create_git_ref(
                 f"refs/heads/{new_branch}", repo.get_branch("dev").commit.sha)
-            # print(f"Created new branch in GitHub repo: {new_branch}")
         except Exception as e:
             print(f"Failed to create new branch in GitHub repo: {str(e)}")
 
@@ -67,8 +70,11 @@ def get_off_dev_branch():
 
 
 def avatar_load_dev_git():
-    main_repo = get_repo([MODULE_FOLDER])
-    current_branch = get_off_dev_branch(main_repo)
+    main_repo = get_repo('greatsun-dev')
+    current_branch = get_current_branch()
+    if current_branch == 'dev':
+        print("you are currently on the dev branch")
+        return
 
     for submodule in SUBMODULES:
         submodule_repo = get_repo(submodule)
@@ -93,9 +99,10 @@ def avatar_load_dev_git():
                 branch=current_branch
             )
 
-    print(f"Submodules loaded from dev and checked out to branch: {
-          current_branch}")
-    print("`avatar up` to refresh with any new context")
+    conversation_thread = load_initial_context()
+    write_file("avatar/context/conversation_thread.txt",
+            conversation_thread)
+    print(f"{current_branch} reloaded")
 
 
 def has_changes(repo, branch):
