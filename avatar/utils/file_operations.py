@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 import time
 import subprocess
 import sys
@@ -83,7 +82,7 @@ def write_file(file_path, file_content):
             file.write(file_content)
         return True
     except Exception as e:
-        logging.error(f"Error writing to file {file_path}: {str(e)}")
+        print(f"Error writing to file {file_path}: {str(e)}")
         return False
 
 
@@ -113,7 +112,7 @@ def get_directory_tree(path):
                 if entry.name not in excluded_files:
                     tree[entry.name] = None
     except Exception as e:
-        logging.error(f"Error getting directory tree for {path}: {str(e)}")
+        print(f"Error getting directory tree for {path}: {str(e)}")
 
     return tree
 
@@ -160,7 +159,7 @@ def perform_file_operation(operation, *args):
                 time.sleep(delay)
                 delay *= 2  # Exponential backoff
             else:
-                logging.error(f"Error performing {operation}: {str(e)}")
+                print(f"Error performing {operation}: {str(e)}")
                 return False
 
     return False  # This line should never be reached, but it's here for completeness
