@@ -1,52 +1,14 @@
 import os
-from pathlib import Path
-import json
 import re
+import json
+from pathlib import Path
 from typing import Tuple, Dict, Any
-from collections import deque
-import time
+import shutil
 
-# Assuming BASE_DIR is defined in constants.py
-from constants import BASE_DIR
-
-
-class FileOperation:
-    def __init__(self, operation: str, *args: str):
-        self.operation = operation
-        self.args = args
-        self.dependencies = set()
-
-
-class FileOperationQueue:
-    def __init__(self):
-        self.queue = deque()
-        self.results: Dict[FileOperation, Any] = {}
-
-    def add_operation(self, operation: str, *args: str) -> FileOperation:
-        op = FileOperation(operation, *args)
-        self.queue.append(op)
-        return op
-
-    def add_dependency(self, operation: FileOperation, dependency: FileOperation) -> None:
-        operation.dependencies.add(dependency)
-
-    def process_queue(self, conversation_thread: str) -> Tuple[Dict[FileOperation, Any], str]:
-        while self.queue:
-            op = self.queue.popleft()
-            if all(dep in self.results for dep in op.dependencies):
-                result = perform_file_operation(op.operation, *op.args)
-                self.results[op] = result
-                conversation_thread += f"Operation: {
-                    op.operation}\nArguments: {op.args}\nResult: {result}\n\n"
-                time.sleep(0.1)  # Small delay to allow file system to update
-            else:
-                self.queue.append(op)
-        return self.results, conversation_thread
+BASE_DIR = Path('/workspaces/greatsun-dev')
 
 
 def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[bool, str]:
-    file_op_queue = FileOperationQueue()
-    file_operation_performed = False
     patterns = {
         'read': r'<read\s+path=(?:")?([^">]+)(?:")?\s*/>',
         'write': r'<write\s+path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</write>',
@@ -58,137 +20,87 @@ def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[boo
         'create_directory': r'<create_directory\s+path=(?:")?([^">]+)(?:")?\s*/>'
     }
 
+    file_operation_performed = False
+
+    for op, pattern in patterns.items():
+        matches = re.findall(pattern, llm_response)
+        for match in matches:
+            file_operation_performed = True
+            if op in ['read', 'delete', 'list_directory', 'create_directory']:
+                path = match if isinstance(match, str) else match[0]
+                result = perform_file_operation(op, path)
+            elif op in ['write', 'append']:
+                path, content = match
+                result = perform_file_operation(op, path, content)
+            elif op in ['rename', 'move']:
+                current_path, new_path = match
+                result = perform_file_operation(
+                    op, current_path, new_path=new_path)
+            conversation_thread += f"Operation: {
+                op}\nArguments: {match}\nResult: {result}\n\n"
+
+    return not file_operation_performed, conversation_thread
+
+
+def perform_file_operation(operation: str, path: str, content: str = None, new_path: str = None) -> str:
+    # If the path is absolute, use it as is. Otherwise, make it relative to BASE_DIR
+    full_path = Path(path) if Path(path).is_absolute() else BASE_DIR / path
+
     try:
-        for op, pattern in patterns.items():
-            matches = re.findall(pattern, llm_response)
-            for match in matches:
-                if op in ['write', 'append']:
-                    path = BASE_DIR / match[0]
-                    file_op_queue.add_operation(op, str(path), match[1])
-                elif op in ['rename', 'move']:
-                    current_path = BASE_DIR / match[0]
-                    new_path = BASE_DIR / match[1] if match[1] else None
-                    file_op_queue.add_operation(
-                        op, str(current_path), str(new_path) if new_path else None)
-                else:
-                    path = BASE_DIR / match[0]
-                    file_op_queue.add_operation(op, str(path))
+        if operation == 'read':
+            with open(full_path, 'r') as file:
+                return f"File contents:\n{file.read()}"
+
+        elif operation == 'write':
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(full_path, 'w') as file:
+                file.write(content)
+            return f"File written successfully: {full_path}"
+
+        elif operation == 'append':
+            with open(full_path, 'a') as file:
+                file.write(content)
+            return f"Content appended successfully to: {full_path}"
 
 
-        results, conversation_thread = file_op_queue.process_queue(conversation_thread)
-
-        # Update conversation_thread with file operation results
-        for op, result in results.items():
-            if result:
-                file_operation_performed = True
-                conversation_thread += f"Operation: {op.operation}\n"
-                conversation_thread += f"Arguments: {op.args}\n"
-                conversation_thread += f"Result: {result}\n\n"
-
-        conversation_thread += "\n\n*** REPLY WITH ANOTHER FILE OPERATION TO RECEIVE AN AUTOMATED RESPONSE, OR RESPOND WITHOUT A FILE OPERATION TO WAIT FOR DEVELOPER RESPONSE ***\n\n"
-
-        # Determine if developer input is required
-        developer_input_required = not file_operation_performed
-
-    except Exception as e:
-        print(f"Error in parse_llm_response: {str(e)}")
-        conversation_thread += f"\nError occurred while parsing LLM response: {str(e)}\n"
-        developer_input_required = True
-
-    return developer_input_required, conversation_thread
-
-
-def perform_file_operation(operation: str, *args: str) -> str:
-    """
-    Perform various file operations with error handling and retries.
-    """
-    max_attempts = 3
-    delay = 0.1
-    conversation_thread = []
-
-    for attempt in range(max_attempts):
-        try:
-            if operation == 'read':
-                content = read_file(args[0])
-                conversation_thread.append(f"Read file: {args[0]}\nContents: {content}")
-            elif operation == 'write':
-                success = write_file(args[0], args[1])
-                conversation_thread.append(f"Write to file: {args[0]}\nSuccess: {success}")
-            elif operation == 'append':
-                with open(args[0], 'a') as f:
-                    f.write(args[1])
-                conversation_thread.append(f"Append to file: {args[0]}\nAppended content: {args[1]}")
-            elif operation == 'delete':
-                Path(args[0]).unlink()
-                conversation_thread.append(f"Delete file: {args[0]}\nSuccess: True")
-            elif operation in ['rename', 'move']:
-                Path(args[0]).rename(args[1])
-                conversation_thread.append(f"{operation.capitalize()} file from {args[0]} to {args[1]}\nSuccess: True")
-            elif operation == 'list_directory':
-                directory_contents = list(Path(args[0]).iterdir())
-                conversation_thread.append(f"List directory: {args[0]}\nContents: {directory_contents}")
-            elif operation == 'create_directory':
-                Path(args[0]).mkdir(parents=True, exist_ok=True)
-                conversation_thread.append(f"Create directory: {args[0]}\nSuccess: True")
+        elif operation == 'delete':
+            if full_path.is_file():
+                os.remove(full_path)
+                return f"File deleted successfully: {full_path}"
+            elif full_path.is_dir():
+                shutil.rmtree(full_path)
+                return f"Directory deleted successfully: {full_path}"
             else:
-                raise ValueError(f"Unknown operation: {operation}")
+                return f"Path not found: {full_path}"
 
-            return '\n'.join(conversation_thread)
-        except Exception as e:
-            if attempt < max_attempts - 1:
-                time.sleep(delay)
-                delay *= 2  # Exponential backoff
+        elif operation == 'rename' or operation == 'move':
+            new_full_path = Path(new_path) if Path(new_path).is_absolute() else BASE_DIR / new_path
+            new_full_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(full_path, new_full_path)
+            return f"{'Renamed' if operation == 'rename' else 'Moved'} successfully: {full_path} -> {new_full_path}"
+        
+        elif operation == 'list_directory':
+            if full_path.is_dir():
+                return f"Directory contents of {full_path}:\n" + "\n".join(str(item) for item in full_path.iterdir())
             else:
-                error_message = f"Error performing {operation} on {args}: {str(e)}"
-                print(error_message)
-                conversation_thread.append(error_message)
-                return '\n'.join(conversation_thread)
+                return f"Not a directory: {full_path}"
+        
+        elif operation == 'create_directory':
+            full_path.mkdir(parents=True, exist_ok=True)
+            return f"Directory created successfully: {full_path}"
+        
+        else:
+            return f"Unknown operation: {operation}"
 
-    # This line should never be reached, but it's here for completeness
-    return '\n'.join(conversation_thread)
-
-def read_file(file_path: str) -> str:
-    """
-    Read and return contents of a file, with error handling.
-    """
-    try:
-        with open(file_path, 'r') as file:
-            return file.read()
-    except FileNotFoundError:
-        return f"File not found: {file_path}"
     except Exception as e:
-        return f"Error reading file: {str(e)}"
-
-def write_file(file_path: str, file_content: str) -> bool:
-    """
-    Create the file if it doesn't exist and write over what is there if it does exist,
-    with error handling.
-    """
-    try:
-        file_path = Path(file_path)
-        file_path.parent.mkdir(parents=True, exist_ok=True)
-        with file_path.open('w') as file:
-            file.write(file_content)
-        return True
-    except Exception as e:
-        print(f"Error writing to file {file_path}: {str(e)}")
-        return False
+        return f"Error performing {operation} on {path}: {str(e)}"
 
 def get_directory_tree(path: Path) -> Dict[str, Any]:
-    """
-    Recursively get the directory structure as a dictionary, excluding unnecessary files and directories.
-    """
     tree = {}
-    excluded_files = {
-        '.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes',
-        '.env', '.coverage', '*.pyc', '*.pyo', '*.whl', '*.egg',
-        '*.log', '*.zip', '*.tar.gz', '*.rar', '*.db', '*.sqlite'
-    }
-    excluded_dirs = {
-        '__pycache__', '.git', '.svn', '.hg', 'node_modules',
-        'venv', 'env', 'build', 'dist', '.vscode', '.idea',
-        'tmp', 'temp', 'htmlcov'
-    }
+    excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes', '.env', '.coverage',
+        '*.pyc', '*.pyo', '*.whl', '*.egg', '*.log', '*.zip', '*.tar.gz', '*.rar', '*.db', '*.sqlite'}
+    excluded_dirs = {'__pycache__', '.git', '.svn', '.hg', 'node_modules', 'venv',
+        'env', 'build', 'dist', '.vscode', '.idea', 'tmp', 'temp', 'htmlcov'}
 
     try:
         for entry in path.iterdir():
@@ -207,6 +119,7 @@ def get_directory_tree(path: Path) -> Dict[str, Any]:
 
     return tree
 
+
 def load_initial_context() -> str:
     initial_context = [
         read_file(BASE_DIR / "avatar/context/avatar_orientation.md"),
@@ -221,20 +134,27 @@ def load_initial_context() -> str:
         json.dumps(get_directory_tree(BASE_DIR), indent=2),
         f"\n\n*** avatar/context/current_project.md ***\n\n",
         read_file(BASE_DIR / "avatar/context/current_project.md"),
-        f"\n\n*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***\n\n",
+        f"\n\n*** MESSAGE FROM DEVELOPER @{
+            os.environ.get('GH_USERNAME')} ***\n\n",
     ]
     return ''.join(initial_context)
 
-# Main execution
-if __name__ == "__main__":
-    # Example usage
-    initial_context = load_initial_context()
-    print("Initial context loaded.")
-    
-    # Example LLM response
-    llm_response = "<read path='README.md' />"
-    developer_input_required, conversation_thread = parse_llm_response(llm_response, "")
-    
-    print(f"Developer input required: {developer_input_required}")
-    print("Conversation thread:")
-    print(conversation_thread)
+
+def read_file(file_path: Path) -> str:
+    try:
+        return file_path.read_text()
+    except FileNotFoundError:
+        return f"File not found: {file_path}"
+    except Exception as e:
+        return f"Error reading file: {str(e)}"
+
+
+def write_file(file_path: Path, file_content: str) -> bool:
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open('w') as file:
+            file.write(file_content)
+        return True
+    except Exception as e:
+        print(f"Error writing to file {file_path}: {str(e)}")
+        return False
