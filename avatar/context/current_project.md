@@ -1,6 +1,6 @@
 # Current Project
 
-Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 25 hours.
+Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 12 hours.
 
 ## Overview
 The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development and deployment of these services.
@@ -30,18 +30,18 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 # Recommended Plan
 
-1. **Finish the core functionality of the greatsun-dev avatar (4 hours)**
+1. **Finish the core functionality of the greatsun-dev avatar**
    - Implement the `avatar engage` command to start the submodule servers in development mode.
    - Implement the `avatar deploy stage` command to deploy the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
    - Implement the `avatar deploy prod` command to deploy the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
 
-2. **Secure and test credex-core API (8 hours)**
+2. **Secure and test credex-core API**
    - Review and implement any necessary security upgrades to the credex-core API.
    - Ensure that the API is responding to authorized calls from vimbiso-pay and other clients.
    - Write and run comprehensive unit tests and integration tests for the API.
    - Perform security testing (e.g., penetration testing, vulnerability scanning) on the API.
 
-3. **Test and integrate vimbiso-pay with credex-core API (8 hours)**
+3. **Test and integrate vimbiso-pay with credex-core API**
    - Update vimbiso-pay to integrate with the latest version of the credex-core API.
    - Test the end-to-end flow of vimbiso-pay interacting with the API (e.g., sending requests, receiving responses, processing transactions).
    - Perform load testing and stress testing on vimbiso-pay to ensure it can handle expected traffic and usage patterns.

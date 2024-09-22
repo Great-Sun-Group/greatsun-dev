@@ -217,7 +217,211 @@ Folder to be created for unit tests, performance tests, etc.
 
 *** credex-core/README.md ***
 
-File not found: /workspaces/greatsun-dev/credex-ecosystem/credex-core/README.md
+# Credex Ecosystem Core API
+
+The credex ecosystem is a shared ledger that enables the efficient circulation of value, accumulation of capital, investment of profits, and giving of gifts. It is a tool for financial inclusion, financial empowerment, and financial sovereignty.
+
+## Credex Principle
+
+**If I owe you,**\
+**and you owe them,**\
+**and they owe me,**\
+**we're square.**
+
+The credex ecosystem actualizes the Credex Principle in the Minute Transaction Queue (MTQ), which tracks payable and receivable invoices for members' accounts, finds loops of value creation, and cancels payable and receivable invoices against each other in "credloops" in which every debt is reduced by an equal value. This is a GAAP-compliant accounting process that any person or business can benefit from.
+
+In accounting terms, a credex is a contingent asset for one party and a contingent liability for the other. These asset/liability pairs are automatically strung together into credloops wherever possible across the credex ecosystem. When a credloop is created and cleared, every account in the loop will have an accounts payable invoice cancelled against an equivalent accounts receivable invoice.
+
+## Credcoin Principle
+
+**Every human is entitled to one equal share of the value of the natural wealth entering the organic economy.**\
+**Every human is responsible to provide value equal to the amount of natural wealth that they consume.**
+
+The ecosystem actualizes the Credcoin Principle in the Daily Credcoin Offering (DCO), which updates exchange rates across the ecosystem daily. Every 24h, the DCO makes this equation true: one credcoin today equals the number of members participating in the DCO today divided by the value of natural wealth entering the organic economy through the DCO today.
+
+The organic economy is a subset of the credex ecosystem, which is a subset of the global economy, which is the human-enhanced subset of the world that is given to us by nature. The organic economy is an economy in which wealth circulates, profit accumulates, investment is made, and gifts are given in alignment and long-term harmony with the biological environment of our habitat and the physical laws that bind us.
+
+The value of the natural wealth processed by the DCO is split into two portions: gift portion and market portion. Currently, in the MVP version we've developed in this repository, only the gift portion of the DCO is implemented. The market portion will be added later.
+
+The credex ecosystem stores values in credcoin (CXX). In order to natively enable multi-denominational accounting, a CXXmultiplier value is stored alongside every CXX value. Both of these values are updated in every DCO so that the credex remains true to the face value in the denomination specified, and to other values stored in the ecosystem. A value expressed in CXX represents that value in relationship to every other value stored in the ecosystem. A value in CXX divided by its CXX multiplier expresses the value in the chosen denomination (face value).
+
+The system manages the balance between local truth (preserving the face value of contracts in their specified denomination) and global truth (adjusting all values relative to credcoin) through the daily rate and value adjustments in the DCO.
+
+## Neo4j databases
+
+Credex-core runs on two neo4j databases. LedgerSpace is the shared ledger containing the full state of the credex ecosystem. SearchSpace contains only unredeemed credexes, and is optimized to find credloops. On every credloop found and cleared, ledgerSpace is updated accordingly.
+
+## Express.js server
+
+The express.js server is initialized in `src/index.ts`, which provides the cronjobs and endpoints that power the ecosystem and enable members and client apps to interact with its ledger.
+
+## Cronjobs
+
+The Core module hosts the cronjobs:
+
+- DailyCredcoinOffering() runs every day at midnight UTC.
+- MinuteTransactionQueue() runs every minute, clearing credloops of value creation across the ecosystem.
+
+## Endpoints
+
+Controllers for the endpoints are imported, and endpoints created for the various modules: Member, Account, Avatar, Credex, and AdminDashboard.
+
+## Development Setup
+
+### Local Development with devcontainer
+
+#### Prerequisites
+
+- Docker and Docker Compose
+- Visual Studio Code with Remote - Containers extension
+
+#### Steps
+
+1. Clone the repository:
+
+   ```bash
+   git clone https://github.com/Credex/credex-core.git
+   ```
+
+2. Open the project in Visual Studio Code.
+
+3. When prompted, click "Reopen in Container" to start the dev container. This will set up a consistent development environment with all necessary dependencies.
+
+4. Once the container is ready, copy the `.env.example` file to `.env` and fill in the necessary environment variables.
+
+5. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+### Codespaces Development
+
+1. Add the secrets to your personal github Settings->Codespaces and assign them to the credex-core repo.
+
+2. Open the project in GitHub Codespaces.
+
+3. The devcontainer will automatically set up a consistent development environment with all necessary dependencies and environment variables.
+
+4. Start the development server:
+   ```bash
+   npm run dev
+   ```
+
+## Environment variables configuration
+
+To set up your development environment, you'll need to configure the following environment variables:
+
+### These have defaults and do not need to be configured in your environment
+
+1. PORT: Set this to 5000 for local development.
+2. NODE_ENV: Set this to 'development' for local development.
+3. DEPLOYMENT: Set this to 'dev' for development deployment.
+
+### These secrets must be added to your environment
+
+4. NEO4J_LEDGER_SPACE_BOLT_URL, NEO4J_LEDGER_SPACE_USER, NEO4J_LEDGER_SPACE_PASS:
+
+   - Sign up for a free Neo4j Aura account at https://neo4j.com/cloud/aura/
+   - Create a new database instance for ledgerSpace
+   - Use the provided connection details to fill in these variables
+
+5. NEO4J_SEARCH_SPACE_BOLT_URL, NEO4J_SEARCH_SPACE_USER, NEO4J_SEARCH_SPACE_PASS:
+
+   - Create a second Neo4j Aura account using a different email address and create a new database instance for searchSpace
+
+6. OPEN_EXCHANGE_RATES_API:
+
+   - Sign up for a free account at https://openexchangerates.org/
+   - Go to your account dashboard and create and copy your API key
+
+7. JWT_SECRET: Create a strong, unique string to use as your secret
+
+8. WHATSAPP_BOT_API_KEY: Create a strong, unique string to use as your secret
+
+## Available Scripts
+
+- `npm run dev`: Start the development server with nodemon
+- `npm run build`: Build the TypeScript project
+- `npm run start`: Start the production server
+- `npm run test`: Run the test suite
+- `npm run lint`: Run ESLint to check for code quality issues
+- `npm run format`: Run Prettier to format the code
+
+## Module Documentation
+
+- [Daily Credcoin Offering (DCO)](<docs/Daily_Credcoin_Offering_(DCO).md>)
+- [Minute Transaction Queue (MTQ)](<docs/MinuteTransactionQueue_(MTQ).md>)
+- [Member](docs/Member.md)
+- [Account](docs/Account.md)
+- [Credex](docs/Credex.md)
+- [Avatar](docs/Avatar.md)
+- [AdminDashboard](docs/AdminDashboard.md)
+
+## Schemas
+
+- [ledgerSpace Schema](docs/ledgerSpace_schema.md)
+- [searchSpace Schema](docs/searchSpace_schema.md)
+
+## Developer Guides
+
+- [Logging Best Practices](docs/logging_best_practices.md)
+- [Security and Authentication](docs/Security_and_Authentication.md)
+- [Security Overview](docs/security.md)
+- [Swagger API Documentation](docs/swagger.md)
+
+## Project structure and code summary
+
+For a detailed overview of the codebase, including function and class definitions, please refer to the [Code Summary](docs/code_summary.md). This summary is particularly useful for AI context and assists in understanding the overall structure and key components of the project.
+
+```
+credex-core/
+├── .githooks/             # Git hooks scripts
+├── .vscode/               # VS Code configuration files
+├── build/                 # Compiled output
+├── config/                # Configuration files
+├── docs/                  # Documentation files
+├── src/                   # Source code
+│   ├── api/               # API-related code
+│   │   ├── Account/       # Account-related endpoints and services
+│   │   ├── AdminDashboard/# Admin dashboard endpoints and services
+│   │   ├── Avatar/        # Avatar-related endpoints and services
+│   │   ├── Credex/        # Credex-related endpoints and services
+│   │   └── Member/        # Member-related endpoints and services
+│   ├── constants/         # Constant values used across the application
+│   ├── core-cron/         # Core cron jobs (DCO and MTQ)
+│   │   ├── DCO/           # Daily Credcoin Offering related code
+│   │   └── MTQ/           # Minute Transaction Queue related code
+│   ├── middleware/        # Express middleware
+│   ├── tests/             # Test files
+│   └── utils/             # Utility functions and helpers
+```
+
+## Contributing
+
+1. Create a branch from the 'dev' branch.
+2. Make your changes and commit them with clear, concise commit messages.
+3. Push your changes and create a pull request against the 'dev' branch.
+4. Follow the [Logging Best Practices](docs/logging_best_practices.md) when adding or modifying code.
+
+## Deployment
+
+1. Contributors branch from `dev` and complete work and testing on an issue, fix, or feature.
+2. Contributor requests review from reviewer on merge to `dev` .
+3. Reviewer tests and merges.
+4. Dev is regularly merged with all recent commits to `stage`, which is auto-deployed to demo deployment.
+5. Demo deployment is tested thoroughly in CI/CD pipeline.
+6. When tests are passed, stage is merged to `prod`, which is auto-deployed to our production branch.
+
+## License
+
+You are welcome to explore, experiment with, and build upon this work for research, development, modelling, testing, demonstrations, and other non-commercial purposes. Please contribute!
+
+The use of this software in any production environment is strictly prohibited. You do not have permission to use this software to track real debts. Real data of past transactions may be used, but only as data input. If you want to transact real value with credex, you are invited to become a member of the credex ecosystem.
+
+If you create something new based on this project, you must use the same license terms and give appropriate credit to the original work. You may not sell the software or any product or service that substantially relies on its functionality.
+
+This approach allows for community engagement and experimentation while ensuring the integrity and unity of the system as a single shared economic network that all can access and benefit from.
+
 
 *** credex-ecosystem/vimbiso-pay/README.md ***
 
@@ -225,6 +429,324 @@ File not found: /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay/README.md*
 
 {
   ".gitmodules": null,
+  "credex-ecosystem": {
+    "vimbiso-pay": {
+      "tasks.md": null,
+      "vimbisopay_terminal_issues.md": null,
+      "nginx.conf": null,
+      "LICENSE": null,
+      ".env.example": null,
+      "app": {
+        "Dockerfile": null,
+        "manage.py": null,
+        "core": {
+          "utils": {
+            "credex_bot_utils.py": null,
+            "exceptions.py": null,
+            "utils.py": null,
+            "audit_logging.py": null,
+            "error_handler.py": null
+          },
+          "message_handling": {
+            "screens.py": null,
+            "router.py": null,
+            "message_handling.py": null,
+            "offer_credex_handler.py": null,
+            "credex_bot_service.py": null,
+            "action_handlers.py": null
+          },
+          "config": {
+            "constants.py": null,
+            "apps.py": null
+          },
+          "__init__.py": null,
+          "migrations": {
+            "0002_message_last_updated.py": null,
+            "__init__.py": null,
+            "0001_initial.py": null
+          },
+          "api": {
+            "views.py": null,
+            "tests": {
+              "VimbisoPay_Terminal.py": null
+            },
+            "models.py": null,
+            "services.py": null,
+            "api_interactions.py": null
+          },
+          "state": {
+            "state_management.py": null
+          }
+        },
+        "serializers": {
+          "offers.py": null,
+          "members.py": null,
+          "company.py": null
+        },
+        "config": {
+          "asgi.py": null,
+          "__init__.py": null,
+          "development.py": null,
+          "settings.py": null,
+          "base.py": null,
+          "production.py": null,
+          "urls.py": null,
+          "wsgi.py": null
+        },
+        "start_app.sh": null,
+        "requirements.txt": null,
+        "compose.yaml": null,
+        "db.sqlite3": null,
+        ".dockerignore": null
+      },
+      "requirements.txt": null,
+      "README.Docker.md": null,
+      ".dockerignore": null,
+      ".github": {
+        "workflows": {
+          "prod.yml": null,
+          "stage.yml": null,
+          "test_secrets.yml": null
+        }
+      }
+    },
+    "credex-core": {
+      "tsconfig.json": null,
+      "Dockerfile": null,
+      "package-lock.json": null,
+      "jest.config.js": null,
+      "tasks.md": null,
+      "config": {
+        "neo4j.ts": null,
+        "authenticate.ts": null,
+        "config.ts": null,
+        "swagger.ts": null
+      },
+      ".env.example": null,
+      "compose.yaml": null,
+      "src": {
+        "utils": {
+          "digitalSignature.ts": null,
+          "validators.ts": null,
+          "serverSetup.ts": null,
+          "errorUtils.ts": null,
+          "updateImports.ts": null,
+          "configUtils.ts": null,
+          "logger.ts": null,
+          "denomUtils.ts": null,
+          "update_code_summary.sh": null,
+          "inputSanitizer.ts": null
+        },
+        "constants": {
+          "credspan.ts": null,
+          "denominations.ts": null,
+          "accountTypes.ts": null,
+          "credexTypes.ts": null
+        },
+        "tests": {
+          "services": {
+            "CreateRandomFloatingCredexes.ts": null,
+            "SellSecuredCredexes.ts": null,
+            "InEcosystemSecuredCredexes.ts": null,
+            "ClearDevDb.ts": null,
+            "GrowthTest.ts": null,
+            "CreateTestLoop.ts": null,
+            "CheckLedgerVsSearchBalances.ts": null,
+            "CreateTestMembersAndAccounts.ts": null,
+            "PurchaseSecuredCredexes.ts": null
+          },
+          "utils": {
+            "denomUtils.test.ts": null,
+            "validators.test.ts": null
+          },
+          "triggerDCO.ts": null,
+          "integration": {
+            "account.test.ts": null
+          },
+          "controllers": {
+            "growthTest.ts": null,
+            "clearDevDb.ts": null,
+            "createTestMembersAndAccounts.ts": null,
+            "offerAndAcceptCredex.ts": null,
+            "forceDCO.ts": null,
+            "createRandomFloatingCredexes.ts": null,
+            "forceMTQ.ts": null,
+            "checkLedgerVsSearchBalances.ts": null,
+            "createTestLoop.ts": null
+          }
+        },
+        "core-cron": {
+          "DCO": {
+            "DCOsnapshots": {
+              "2021-01-02_ledgerSpace_dev_end.json": null,
+              "placeholder.ts": null
+            },
+            "DCOexecute.ts": null,
+            "DBbackup.ts": null,
+            "DCOavatars.ts": null,
+            "fetchZwgRate.ts": null,
+            "DBinitialization.ts": null,
+            "DailyCredcoinOffering.ts": null
+          },
+          "cronJobs.ts": null,
+          "MTQ": {
+            "MinuteTransactionQueue.ts": null,
+            "LoopFinder.ts": null
+          }
+        },
+        "middleware": {
+          "validateRequest.ts": null,
+          "rateLimiter.ts": null,
+          "authMiddleware.ts": null,
+          "errorHandler.ts": null,
+          "securityConfig.ts": null
+        },
+        "index.ts": null,
+        "api": {
+          "Avatar": {
+            "services": {
+              "CancelRecurring.ts": null,
+              "AcceptRecurring.ts": null,
+              "RequestRecurring.ts": null
+            },
+            "avatarValidationSchemas.ts": null,
+            "recurringRoutes.ts": null,
+            "controllers": {
+              "acceptRecurring.ts": null,
+              "cancelRecurring.ts": null,
+              "requestRecurring.ts": null
+            }
+          },
+          "AdminDashboard": {
+            "services": {
+              "UpdateMemberTierService.ts": null,
+              "GetMemberService.ts": null,
+              "GetMemberAccountsOwnerByMemberSevice.ts": null,
+              "GetAccountService.ts": null,
+              "GetAccountReceivedCredexOffers.ts": null,
+              "GetCredexService.ts": null,
+              "ServicesList.md": null,
+              "GetAccountSentCredexOffers.ts": null
+            },
+            "adminDashboardValidationSchemas.ts": null,
+            "controllers": {
+              "MemberController.ts": null,
+              "CredexController.ts": null,
+              "ControllerList.md": null,
+              "AccountController.ts": null
+            },
+            "adminDashboardRoutes.ts": null
+          },
+          "Account": {
+            "services": {
+              "UpdateSendOffersTo.ts": null,
+              "UnauthorizeForAccount.ts": null,
+              "UpdateAccount.ts": null,
+              "GetBalances.ts": null,
+              "CreateAccount.ts": null,
+              "GetAccountByHandle.ts": null,
+              "GetAccountDashboard.ts": null,
+              "AuthorizeForAccount.ts": null
+            },
+            "accountValidationSchemas.ts": null,
+            "controllers": {
+              "unauthorizeForAccount.ts": null,
+              "createAccount.ts": null,
+              "updateAccount.ts": null,
+              "updateSendOffersTo.ts": null,
+              "getAccountDashboard.ts": null,
+              "authorizeForAccount.ts": null,
+              "getAccountByHandle.ts": null
+            },
+            "accountRoutes.ts": null
+          },
+          "Credex": {
+            "services": {
+              "CreateCredex.ts": null,
+              "GetLedger.ts": null,
+              "CancelCredex.ts": null,
+              "GetSecuredAuthorization.ts": null,
+              "GetPendingOffersIn.ts": null,
+              "GetCredex.ts": null,
+              "AcceptCredex.ts": null,
+              "DeclineCredex.ts": null,
+              "GetPendingOffersOut.ts": null,
+              "OfferCredex.ts": null
+            },
+            "credexRoutes.ts": null,
+            "credexValidationSchemas.ts": null,
+            "controllers": {
+              "offerCredex.ts": null,
+              "declineCredex.ts": null,
+              "cancelCredex.ts": null,
+              "acceptCredex.ts": null,
+              "acceptCredexBulk.ts": null,
+              "getCredex.ts": null,
+              "getLedger.ts": null
+            }
+          },
+          "Member": {
+            "services": {
+              "UpdateMemberTier.ts": null,
+              "AuthForTierSpendLimit.ts": null,
+              "GetMemberByHandle.ts": null,
+              "OnboardMember.ts": null,
+              "GetMemberDashboardByPhone.ts": null,
+              "LoginMember.ts": null
+            },
+            "memberValidationSchemas.ts": null,
+            "memberRoutes.ts": null,
+            "controllers": {
+              "onboardMember.ts": null,
+              "getMemberByHandle.ts": null,
+              "getMemberDashboardByPhone.ts": null,
+              "authForTierSpendLimit.ts": null,
+              "updateMemberTier.ts": null,
+              "loginMember.ts": null
+            }
+          }
+        }
+      },
+      "docs": {
+        "code_summary.md": null,
+        "DevAdmin.md": null,
+        "AdminDashboard.md": null,
+        "Security_and_Authentication.md": null,
+        "searchSpace_schema.md": null,
+        "logging_best_practices.md": null,
+        "Credex.md": null,
+        "MinuteTransactionQueue_(MTQ).md": null,
+        "swagger.md": null,
+        "Daily_Credcoin_Offering_(DCO).md": null,
+        "Account.md": null,
+        "Avatar.md": null,
+        "LoginEndpoint.md": null,
+        "api_validation.md": null,
+        "Member.md": null,
+        "ledgerSpace_schema.md": null
+      },
+      "package.json": null,
+      ".devcontainer": {
+        "devcontainer.json": null
+      },
+      "nodemon.json": null,
+      "README.Docker.md": null,
+      "README.md": null,
+      ".dockerignore": null,
+      ".github": {
+        "dependabot.yml": null,
+        "workflows": {
+          "prod.yml": null,
+          "stage.yml": null
+        }
+      },
+      ".githooks": {
+        "pre-commit": null,
+        "post-commit": null,
+        "post-checkout": null
+      }
+    }
+  },
   ".env.example": null,
   "main.py": null,
   "docs": {
@@ -260,7 +782,7 @@ File not found: /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay/README.md*
 
 # Current Project
 
-Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 25 hours.
+Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 12 hours.
 
 ## Overview
 The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development and deployment of these services.
@@ -290,18 +812,18 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 # Recommended Plan
 
-1. **Finish the core functionality of the greatsun-dev avatar (4 hours)**
+1. **Finish the core functionality of the greatsun-dev avatar**
    - Implement the `avatar engage` command to start the submodule servers in development mode.
    - Implement the `avatar deploy stage` command to deploy the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
    - Implement the `avatar deploy prod` command to deploy the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
 
-2. **Secure and test credex-core API (8 hours)**
+2. **Secure and test credex-core API**
    - Review and implement any necessary security upgrades to the credex-core API.
    - Ensure that the API is responding to authorized calls from vimbiso-pay and other clients.
    - Write and run comprehensive unit tests and integration tests for the API.
    - Perform security testing (e.g., penetration testing, vulnerability scanning) on the API.
 
-3. **Test and integrate vimbiso-pay with credex-core API (8 hours)**
+3. **Test and integrate vimbiso-pay with credex-core API**
    - Update vimbiso-pay to integrate with the latest version of the credex-core API.
    - Test the end-to-end flow of vimbiso-pay interacting with the API (e.g., sending requests, receiving responses, processing transactions).
    - Perform load testing and stress testing on vimbiso-pay to ensure it can handle expected traffic and usage patterns.
