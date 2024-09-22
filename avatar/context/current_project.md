@@ -110,3 +110,10 @@ The greatsun-dev environment is designed to facilitate rapid testing and deploym
 - Regularly commit changes and push to the repository
 - Keep all team members updated on progress and any roadblocks
 - Schedule regular check-ins to ensure the project is on track
+
+
+
+
+
+
+Add avatar summary of commit based on diff
