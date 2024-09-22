@@ -27,7 +27,6 @@ class FileOperationQueue:
         operation.dependencies.add(dependency)
 
     def process_queue(self, conversation_thread):
-        conversation_thread += f"\n\n*** AUTOMATED RESPONSE TO FILE OPERATIONS REQUESTED ***\n\n"
         while self.queue:
             op = self.queue.popleft()
             if all(dep in self.results for dep in op.dependencies):

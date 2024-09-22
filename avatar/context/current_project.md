@@ -17,6 +17,7 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 - Finish the core functionality of the greatsun-dev avatar with: `stepback`
 - fix commit errors when branch doesn't exist in some repos.
+- add avatar clear and make avatar up more forgiving.
 - Auto-deploy for prod in the DCO.
 - Unit tests, integration tests, security tests
 - Extended transaction modeling and performance tests.
