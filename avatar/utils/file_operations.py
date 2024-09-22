@@ -41,11 +41,11 @@ class FileOperationQueue:
 def load_initial_context():
     initial_context = [
         read_file("avatar/context/avatar_orientation.md"),
-        read_file("avatar/context/response_instructions.txt"),
+        read_file("avatar/utils/response_instructions.txt"),
         "*** README.md ***",
         read_file("README.md"),
         "*** credex-core/README.md ***",
-        read_file("credex-ecosystem/credex-core/README.md"),
+        read_file("credex-ecosystem/credex-core/README.md"), 
         "*** credex-ecosystem/vimbiso-pay/README.md ***",
         read_file("credex-ecosystem/vimbiso-pay/README.md"),
         "*** FULL DIRECTORY TREE ***",
@@ -127,6 +127,7 @@ def get_directory_tree(path):
 
     return tree
 
+
 def perform_file_operation(operation, *args):
     """
     Function to perform various file operations with error handling and retries.
@@ -173,15 +174,3 @@ def perform_file_operation(operation, *args):
                 return False
 
     return False  # This line should never be reached, but it's here for completeness
-
-
-def install_package(package_name: str) -> bool:
-    try:
-        subprocess.check_call(
-            [sys.executable, "-m", "pip", "install", package_name])
-        print(f"Successfully installed {package_name}")
-        print("Exiting to reset. Run `avatar up` again to launch.")
-        sys.exit(1)
-    except subprocess.CalledProcessError as e:
-        print(f"Failed to install {package_name}: {e}")
-        return False

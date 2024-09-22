@@ -1,12 +1,12 @@
-from utils.file_operations import load_initial_context, read_file, write_file, install_package
-from utils.git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_submit_git
-from utils.responseParser import parse_llm_response
+from file_operations import load_initial_context, read_file, write_file
+from git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_submit_git, get_current_branch
+from responseParser import parse_llm_response
 import sys
 import os
 from anthropic import Anthropic
 import site
 
-SYSTEM_PROMPT = read_file("avatar/context/response_instructions.txt")
+SYSTEM_PROMPT = read_file("avatar/utils/response_instructions.txt")
 MAX_LLM_ITERATIONS = 14
 LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
 MODEL_NAME = "claude-3-sonnet-20240229"
@@ -19,18 +19,18 @@ sys.path.append(user_site_packages)
 
 def main():
 
-    print("@greatsun-dev reading you loud and clear")
+    print(f"\n@greatsun-dev reading you loud and clear")
     get_off_dev_branch()
     conversation_thread = load_initial_context()
-    write_file("avatar/context/conversation_thread.txt", conversation_thread)
-    print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
+    write_file("avatar/conversation_thread.txt", conversation_thread)
+    print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
 
     while True:
         terminal_input = input().strip()
 
         if terminal_input.lower() == "avatar up":
             conversation_thread = load_initial_context()
-            write_file("avatar/context/conversation_thread.txt",
+            write_file("avatar/conversation_thread.txt",
                        conversation_thread)
             print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
             continue
@@ -54,15 +54,16 @@ def main():
             continue
 
         if terminal_input.lower() == "avatar down":
-            print("greatsun-dev, signing off")
+            current_branch = get_current_branch()
+            print(f"\ngreatsun-dev signing off branch {current_branch}")
             break
 
         # Add new terminal message to conversation
         conversation_thread = read_file(
-            "avatar/context/conversation_thread.txt")
+            "avatar/conversation_thread.txt")
         conversation_thread += f"\n\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n\n{
             terminal_input}"
-        write_file("avatar/context/conversation_thread.txt",
+        write_file("avatar/conversation_thread.txt",
                    conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
@@ -86,24 +87,13 @@ def main():
                     llm_response}"
 
                 # Process the LLM response
-                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
-                    conversation_thread, llm_response)
+                conversation_thread, developer_input_required, terminal_output = parse_llm_response(conversation_thread, llm_response)
 
                 print(terminal_output)
 
                 if developer_input_required:
                     print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***")
                     break
-
-                # TESTING REMOVING THIS
-                # If no developer input is required, but there's no more to do, also break
-                # if not terminal_output.strip():
-                    # print("\n*** DEVELOPER REPONSE ***")
-                    # break
-
-                # If there are more actions to perform, continue to the next iteration
-                # print("Continuing to next iteration")
-                # logger.info("Continuing to next iteration")
 
             except anthropic.APIError as e:
                 print(f"Anthropic API error in LLM iteration {
@@ -127,7 +117,7 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             print("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
-            write_file("avatar/context/conversation_thread.txt",
+            write_file("avatar/conversation_thread.txt",
                        conversation_thread)
             print(final_response)
 

@@ -1,11 +1,11 @@
-from utils.constants import GH_ORGANIZATION, ROOT_REPO, MODULE_FOLDER, SUBMODULES
+from constants import GH_ORGANIZATION, ROOT_REPO, MODULE_FOLDER, SUBMODULES
 import uuid
 import os
 import subprocess
 import time
 from github import Github, InputGitTreeElement, GithubException
 from coolname import generate_slug
-from utils.file_operations import load_initial_context, write_file
+from file_operations import load_initial_context, write_file
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
@@ -98,7 +98,7 @@ def load_project_git(load_branch):
     subprocess.run(['git', 'push', 'origin', current_branch], check=True)
 
     conversation_thread = load_initial_context()
-    write_file("avatar/context/conversation_thread.txt", conversation_thread)
+    write_file("avatar/conversation_thread.txt", conversation_thread)
     print(f"{current_branch} synced to {load_branch} across repos")
 
 
@@ -128,7 +128,7 @@ def avatar_commit_git():
     repos = [ROOT_REPO] + SUBMODULES
     repo_changes = {}
 
-    current_branch = get_current_branch(ROOT_PATH)
+    current_branch = get_current_branch()
 
     # First, check for changes and store them
     for repo_name in repos:
@@ -176,7 +176,8 @@ def avatar_commit_git():
             subprocess.run(
                 ['git', 'commit', '-m', full_commit_message], check=True, env=os.environ)
 
-            print(f"Changes committed locally in {repo_name} on {current_branch}")
+            print(f"Changes committed locally in {
+                  repo_name} on {current_branch}")
         except subprocess.CalledProcessError as e:
             print(f"Error in {repo_name}: {e}")
 
@@ -185,7 +186,7 @@ def avatar_commit_git():
 
 def avatar_submit_git(project_branch):
     repos = [ROOT_REPO] + SUBMODULES
-    current_branch = get_current_branch(ROOT_PATH)
+    current_branch = get_current_branch()
 
     for repo_name in repos:
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
@@ -222,7 +223,8 @@ def avatar_submit_git(project_branch):
                 # Merge local_branch into project_branch
                 gh_repo.merge(project_branch, current_branch, f"Merging {
                               current_branch} into {project_branch}")
-                print(f"{current_branch} opens {project_branch} project in {repo_name}")
+                print(f"{current_branch} opens {
+                      project_branch} project in {repo_name}")
             except GithubException as e:
                 print(f"Error creating/merging branch in {repo_name}: {e}")
         else:
@@ -233,7 +235,8 @@ def avatar_submit_git(project_branch):
                     current_branch} into {project_branch}"
                 gh_repo.create_pull(
                     title=pr_title, body=pr_body, head=current_branch, base=project_branch)
-                print(f"{current_branch} submitted to {project_branch} project in {repo_name}")
+                print(f"{current_branch} submitted to {
+                      project_branch} project in {repo_name}")
             except GithubException as e:
                 print(f"Error creating pull request in {repo_name}: {e}")
 
