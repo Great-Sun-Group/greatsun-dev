@@ -2,7 +2,7 @@ import re
 import os
 import logging
 from typing import Tuple, List
-from utils.file_operations import FileOperationQueue, FileOperation
+from file_operations import FileOperationQueue, FileOperation
 
 logger = logging.getLogger(__name__)
 
