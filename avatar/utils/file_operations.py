@@ -1,9 +1,9 @@
 import os
 import json
 import time
-import subprocess
-import sys
 from collections import deque
+from pathlib import Path
+from constants import BASE_DIR
 
 
 class FileOperation:
@@ -39,23 +39,24 @@ class FileOperationQueue:
             else:
                 self.queue.append(op)
         return self.results, conversation_thread
-    
+
 
 def load_initial_context():
     initial_context = [
-        read_file("avatar/context/avatar_orientation.md"),
-        read_file("avatar/utils/response_instructions.txt"),
-        "*** README.md ***",
-        read_file("README.md"),
-        "*** credex-core/README.md ***",
-        read_file("credex-ecosystem/credex-core/README.md"), 
-        "*** credex-ecosystem/vimbiso-pay/README.md ***",
-        read_file("credex-ecosystem/vimbiso-pay/README.md"),
-        "*** FULL DIRECTORY TREE ***",
-        json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
-        "*** avatar/context/current_project.md ***",
-        read_file("avatar/context/current_project.md"),
-        f"\n\n*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
+        read_file(BASE_DIR / "avatar/context/avatar_orientation.md"),
+        read_file(BASE_DIR / "avatar/utils/response_instructions.txt"),
+        f"\n\n*** README.md ***\n\n",
+        read_file(BASE_DIR / "README.md"),
+        f"\n\n*** credex-core/README.md ***\n\n",
+        read_file(BASE_DIR / "credex-ecosystem/credex-core/README.md"),
+        f"\n\n*** credex-ecosystem/vimbiso-pay/README.md ***\n\n",
+        read_file(BASE_DIR / "credex-ecosystem/vimbiso-pay/README.md"),
+        f"*** FULL DIRECTORY TREE ***\n\n",
+        json.dumps(get_directory_tree(BASE_DIR), indent=2),
+        f"\n\n*** avatar/context/current_project.md ***\n\n",
+        read_file(BASE_DIR / "avatar/context/current_project.md"),
+        f"\n\n*** MESSAGE FROM DEVELOPER @{
+            os.environ.get('GH_USERNAME')} ***\n\n",
     ]
     return ''.join(initial_context)
 
@@ -80,8 +81,9 @@ def write_file(file_path, file_content):
     with solid error handling.
     """
     try:
-        os.makedirs(os.path.dirname(file_path), exist_ok=True)
-        with open(file_path, 'w') as file:
+        file_path = Path(file_path)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open('w') as file:
             file.write(file_content)
         return True
     except Exception as e:
@@ -94,7 +96,7 @@ def get_directory_tree(path):
     Recursively get the directory structure as a dictionary, excluding unnecessary files and directories.
 
     Args:
-    path (str): Path to the directory
+    path (Path): Path to the directory
 
     Returns:
     dict: Directory structure
@@ -112,13 +114,11 @@ def get_directory_tree(path):
     }
 
     try:
-        for entry in os.scandir(path):
+        for entry in path.iterdir():
             if entry.is_dir():
-                if entry.name in excluded_dirs:
+                if entry.name in excluded_dirs or entry.name.endswith('.egg-info'):
                     continue
-                if entry.name.endswith('.egg-info'):
-                    continue
-                subtree = get_directory_tree(entry.path)
+                subtree = get_directory_tree(entry)
                 if subtree:  # Only add non-empty directories
                     tree[entry.name] = subtree
             elif entry.is_file():
@@ -162,19 +162,21 @@ def perform_file_operation(operation, *args):
                 conversation_thread.append(
                     f"Append to file: {args[0]}\nAppended content: {args[1]}")
             elif operation == 'delete':
-                os.remove(args[0])
+                Path(args[0]).unlink()
                 conversation_thread.append(
                     f"Delete file: {args[0]}\nSuccess: True")
+
+
             elif operation in ['rename', 'move']:
-                os.rename(args[0], args[1])
+                Path(args[0]).rename(args[1])
                 conversation_thread.append(f"{operation.capitalize()} file from {
                                            args[0]} to {args[1]}\nSuccess: True")
             elif operation == 'list_directory':
-                directory_contents = os.listdir(args[0])
+                directory_contents = list(Path(args[0]).iterdir())
                 conversation_thread.append(
                     f"List directory: {args[0]}\nContents: {directory_contents}")
             elif operation == 'create_directory':
-                os.makedirs(args[0], exist_ok=True)
+                Path(args[0]).mkdir(parents=True, exist_ok=True)
                 conversation_thread.append(
                     f"Create directory: {args[0]}\nSuccess: True")
             else:
@@ -186,10 +188,31 @@ def perform_file_operation(operation, *args):
                 time.sleep(delay)
                 delay *= 2  # Exponential backoff
             else:
-                error_message = f"Error performing {operation}: {str(e)}"
+                error_message = f"Error performing {operation} on {args}: {str(e)}"
                 print(error_message)
                 conversation_thread.append(error_message)
                 return conversation_thread  # Return after all attempts failed
 
     # This line should never be reached, but it's here for completeness
     return conversation_thread
+
+def is_path_allowed(path: str) -> bool:
+    """Check if the given path is within the allowed directory."""
+    try:
+        path = Path(path).resolve()
+        return BASE_DIR in path.parents or path == BASE_DIR
+    except Exception as e:
+        print(f"Error validating path: {e}")
+        return False
+
+def validate_file_operation(operation: str, path: str, new_path: str = None) -> bool:
+    """Validate file operations to ensure they're within allowed directories."""
+    if not is_path_allowed(path):
+        print(f"Attempted operation outside allowed directory: {path}")
+        return False
+
+    if new_path and not is_path_allowed(new_path):
+        print(f"Attempted operation outside allowed directory: {new_path}")
+        return False
+
+    return True
