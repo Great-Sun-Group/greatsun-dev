@@ -97,26 +97,6 @@ def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[boo
 
     return developer_input_required, conversation_thread
 
-def is_path_allowed(path: str) -> bool:
-    """Check if the given path is within the allowed directory."""
-    try:
-        path = Path(path).resolve()
-        return BASE_DIR in path.parents or path == BASE_DIR
-    except Exception as e:
-        print(f"Error validating path: {e}")
-        return False
-
-def validate_file_operation(operation: str, path: str, new_path: str = None) -> bool:
-    """Validate file operations to ensure they're within allowed directories."""
-    if not is_path_allowed(path):
-        print(f"Attempted operation outside allowed directory: {path}")
-        return False
-
-    if new_path and not is_path_allowed(new_path):
-        print(f"Attempted operation outside allowed directory: {new_path}")
-        return False
-
-    return True
 
 def perform_file_operation(operation: str, *args: str) -> str:
     """
@@ -128,9 +108,6 @@ def perform_file_operation(operation: str, *args: str) -> str:
 
     for attempt in range(max_attempts):
         try:
-            if not validate_file_operation(operation, *args):
-                return "Operation not allowed: Invalid path"
-
             if operation == 'read':
                 content = read_file(args[0])
                 conversation_thread.append(f"Read file: {args[0]}\nContents: {content}")
