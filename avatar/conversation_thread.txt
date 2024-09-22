@@ -45,108 +45,133 @@ Remember: You are operating in a production environment. Accuracy, clarity, and 
 
 Welcome to the research and development container of the credex ecosystem. Within the container of this repository are tools for running development, admin, and research modes for the credex-core API, the vimbiso-pay client, and additional clients that will we'll soon be working on, such as a web interface for customer service agents and an economic modelling tool.
 
-This container is managed by an AI "avatar" interface called greatsun-dev. The avatar *is* the development environment, launched in your terminal to communicate through our avatar scripts with large language model (LLM) artificial intelligences.
+This container is managed by an AI "avatar" interface called greatsun-dev. The avatar *is* the development environment. It is launched in your terminal to enable you to communicate through our avatar scripts with large language model (LLM) artificial intelligences.
 
-We are currently connected to Anthropic's latest version of Claude 3.5 Sonnet, which has impressive "agentic" coding abilities. But the avatar script is not tied to a single LLM. In fact, the intention is to eventually integrate several models and send queries wherever is appropriate, or even to more than one LLM to compare responses. We will also be able to use this integrated LLM interface in the apps we are building, giving our members, clients, and customers direct access to this approach within their own context.
+We are currently connecting to Anthropic's latest version of Claude 3.5 Sonnet, which has impressive "agentic" coding abilities. But the avatar script is not tied to a single LLM. In fact, the intention is to eventually integrate several models and send queries wherever is appropriate, or even to more than one LLM to compare responses. We will also be able to use this integrated LLM interface in apps we build, giving our members, clients, and customers direct access to this approach within their own context, for tasks beyond coding.
 
-The avatar script gives the LLM iterative access to the project code bases to read, write, etc. As a developer working in the greatsun-dev environment, your role is to express intent to the avatar, check the code it delivers, make manual edits or request changes, confirm commits, and test functionality.
+GitHub repositories and other data are synced into the greatsun-dev container. Within the container, the avatar script gives the LLM iterative access to code bases, files, and directories to read, write, etc. As a developer working in the greatsun-dev environment, your role is to express intent to the avatar, check the code it delivers and operations it executes, make manual edits or request changes, confirm commits, and test functionality.
 
-With the avatar scripts providing an interface between you, the artificial intelligence, and the code base, you are able to rapidly deliver high quality code into our review, testing and deployment process. Your interface with the greatsun-dev avatar is at the heart of our CI/CD pipeline.
+Your interface with the greatsun-dev avatar is at the heart of our CI/CD pipeline. With the avatar scripts linking you, the artificial intelligence, and the code base directly, you will be able to rapidly deliver high quality code into our review, testing and deployment process.
 
 ## Implementing Your Intention
-You express your intention, and the LLM uses the avatar to carry it out. Claude and the other LLMs we will use have potent and rapidly increasing capacities to handle higher level abstractions and multi-step logic. When we share a purpose at a high level, it can assist at that level. It is not limited to instructions to create specific lines of code, functions, or even full files. You can describe entire feature branches and use the generated workplans to step through complex, multi step tasks quickly and efficiently.
+You express your intention, and the LLM uses the avatar to carry it out. Claude and the other LLMs we will use have potent and rapidly increasing capacities to handle higher level abstractions and multi-step logic. When we share a purpose at a high level, it can assist at that level. The assistance provided is not limited to working with specific lines of code, entire functions, or even single files. You can describe entire feature branches to the avatar, rapidly generate detailed work plans, and use those plans to advance the avatar through complex, multi step tasks quickly and efficiently.
 
-A developer will succeed in this container by being able to clearly and specifically communicate high level intent, direct research, analyze options, approve specific tasks, and review results. Every dev here is a project manager. Even if you don't know the language being used, the avatar will orient you as you go if you ask the right questions, and you'll soon be up to speed.
+To excel as a member of the greatsun-dev team:
+1. stay aware of the current state, and oriented to your goal state,
+2. ask good questions and probe for the most direct path,
+3. use the avatar to research possibilities and help analyze options,
+4. clearly state your high level plan with as many specifics as possible,
+5. initiate and/or approve specific tasks,
+6. review results to ensure that they move you towards your goal,
+7. test.
+
+Every dev in this space is a project manager.
 
 ### Developer Intent #1: Current Project
-The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/context/current_project.md) file. Clear the contents and put a couple of sentences here about what you are trying to accomplish over the coming hours or days. When you first enter the greatsun-dev environment, try a current project like:
+The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/context/current_project.md) file. Clear the contents and put a couple of sentences here about what you are trying to accomplish over the coming hours or days. When you first enter the greatsun-dev environment, instead of grabbing a task off the curent project, create your own at the bottom:
 ```
-# Current Project
-
+# Orienation
 Orient myself to the greatsun-dev environment and the credex-ecosystem submodules. Understand the most important features and functions of all repos, and how they are linked together by greatsun-dev.
 ```
 
 #### Getting Started
-To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then with a Codespace opened on `dev` or the repository cloned locally, launch the avatar.
-  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
-  - `avatar load`: pulls from remote dev to an existing or new branch in all the repos in the container, and installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem.
+To configure your environment, see [Configuration](docs/greatsun-dev_configuration.md). Then either:
+  1. open a Codespace on `dev` or on the main branch of the project you are working on, or
+  2. clone the repository cloned locally, then
+  3. launch the avatar.
 
-You'll need to `avatar up` again after you load in order to refresh the context with the READMEs imported from the submodules.
+  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev or a project branch.
+  - `avatar load`: pulls from remote dev or project branch to your local (or codespace) in all the repos in the container, and installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into /credex-ecosystem.
 
 ### Developer Intent #2: Message From Developer
 The second place to express your intent is in the Message From Developer. The avatar will engage with the first instruction, and you can continue a back and forth with the LLM here through the avatar. There are two ways you can communicate through the avatar. After `avatar up`, then:
   1. Enter simple queries or instructions in the terminal, and/or
   2. Enter more complex queries or instructions at the bottom of the [conversation_thread](avatar/conversation_thread.txt) file, under Message From Developer.
 
-Press enter in the terminal. Whatever is in the terminal will be appended to whatever is in the conversation thread and sent to the LLM. Take a look through [conversation_thread](avatar/conversation_thread.txt) to see the full conversation that you are in with the avatar, including file contents back and forth. A sanitized version is printed to the terminal with the file contents removed for better human readibility.
+Press enter in the terminal.
+
+Whatever is in the terminal will be appended to whatever is in the conversation thread and sent to the LLM. Take a look through [conversation_thread](avatar/conversation_thread.txt) to see the full conversation that you are in with the avatar, including file contents sent back and forth. A sanitized version is printed to the terminal with the file contents removed for better human readibility.
 
 ### Stepping Towards Your Goal
-When you launch `avatar up`, the current context of the repo and project is assembled. You can change these and refresh any time with the same command. You then add your overall intention for this specific exchange with the avatar and LLM into the Developer Instructions as above, and then work together to deliver code.
+When you launch `avatar up`, the current context of the repo and project is assembled. You can change these and refresh any time with the same command. You then add your intention for this specific conversation with the avatar and LLM into the Developer Instructions as above, and then work with the tool to deliver code.
 
-The LLM will get confused if the conversation_thread gets too long, if there are repetitive tweaks on the same bug going back and forth, or if multiple topics or priorities enter the thread.
+The LLM can get confused if the conversation thread gets too long, if there are repetitive tweaks on the same bug going back and forth, or if multiple topics or priorities enter the thread.
 
-Steps towards your goal are measured by the cadence of this one-mission-at-a-time model, linked to and driving progress at a strategic level through the intentions and directions set in [Current Project](avatar/context/current_project.md). To succeed:
+Steps towards your goal are measured by the cadence of this one-conversation-at-a-time model. It's the developer's job to ensure that these iterations driving progress at a strategic level. Your tools for this task are the intentions and directions set in [Current Project](avatar/context/current_project.md). To succeed:
 1. Drive towards a single and mostly known end state.
 2. Achieve that end state and update the Current Project state accordingly.
 3. Let the avatar help you create, update, and enhance the Current Project, but the intention expressed there has to be yours. Your intention has to be linked to a larger purpose or campaign, or you will iterate rapidly but not get far.
 
-The difference between the [Current Project](avatar/context/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar up`, and the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with your next commit but preserved in the repository history of greatsun-dev.
+The difference between the [Current Project](avatar/context/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar up`, and the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with the next commit but preserved in the repository history of greatsun-dev.
 
 To get started, use a Developer Instruction like:
 ```
-review avatar/context/current_project.md and append a full workplan
+review the final item in avatar/context/current_project.md and recommend a plan to complete it in 30 minutes
 ```
-Review the results, stage, commit, and `avatar up` to reload the context including the updated Current Project file.
+Review the results, make any edits you see fit, or clarify you instructions and try again. Or stage your current state and ask for an update that you can track against it in Source Control. When you have the changes stages for the next step forward, `avatar commit` and enter a commit message to lock it in and build on it in your next step.
 
-Now use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
+You've now got a workplan for the next 30 minutes stored in Current Project, so `avatar up` both to clear the conversation and refresh the project. With a fresh and up-to-date context, you can use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
 ```
-execute step 2 in the current project and mark it complete
+execute step 2a in the current project
 ```
 
-When the avatar pauses to await your response or next instructions, you can continue the conversation with another Developer Instruction in the terminal and/or at the bottom of the [conversation_thread](/workspaces/greatsun-dev/avatar/conversation_thread.txt).
+When the avatar pauses to await your response or next instructions, you can continue the conversation with another Developer Instruction in the terminal and/or at the bottom of the [conversation_thread](/workspaces/greatsun-dev/avatar/conversation_thread.txt), or you can use any of the 'avatar' commands.
 
 ## Branches and Commits
-The avatar unifies and links your commits across all repositories, including this one. If you launch the avatar from the dev branch, a new branch will be created for you. If you launch from another branch, that branch will be maintained into the avatar. On launch, branches of the same name as your branch in greatsun-dev will be created (if necessary) and checked out in all the submodule repos.
+The avatar unifies and links your commits across all repositories, including this one. Get started on a new project by pulling the latest from 'dev' to your local or launching a codespace off 'dev' from GitHub. Once it's ready, `avatar up` for a new branch to be created for you. If you launch from a branch other than 'dev' or a branch ending in '-project', your launch branch will be maintained into the avatar.
 
   - `avatar commit`: Commits and pushes current code to all affected repos with a unified branch name and commit message.
 
-Don't hesitate to commit regularly. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one. Staging changes can also be very helpful. You want to be able to lock in every step, and if too many changes build up you can lose it all when a wobble develops in the LLM's capacity. Don't save your progress in the short term memory of the avatar, save it in a trail of granular commits. You want to be able to refresh the context any time without significant loss of progress.
+Don't hesitate to commit regularly. Multiple untested commits that move you towards your objective are expected, with testing more likely to be done on a series of commits than on each one. Staging changes can also be very helpful. You want to be able to lock in every step, and if too many changes build up you can lose it all if a wobble develops in the LLM's capacity and it makes a crazy write. Don't save your progress where it is subject to the whims of the avatar, save it in a trail of granular commits. You want to be able to refresh the context any time without significant loss of progress.
 
+### Submit conversation_thread.txt with every commit
+In order to track progress and performance of AI models, and provide insight into effective and productive query patterns, please commit your automatically updated conversation_thread.txt file with every commit.
 
-git reset --soft HEAD~1
-
-
+### Two Tricks
+1. If you are in the middle of a productive thread and something goes wrong, you can delete content out of the conversation_thread and restart from whatever point you want.
+2. The handy undo:
+ - `avatar stepback` undoes your last commit, bringing it back into staged changes whenever you need a do-over. Can be done repetitively to step way back if necessary. *(to be built)*
 
 ## Running services
-Greatsun-dev, credex-core, and all imported clients are brought online in dev mode with:
-  - `avatar engage`: fires up the servers across the container and submodules.
+All imported modules are brought online in dev mode with:
+  - `avatar engage`: fires up the submodule servers. *(to be built)*
 
 ## Intent Achieved
-Once you have acheived your intent and tested your code to satsifaction for a feature or a fix:
-  - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
+Once you have acheived your intent and tested your code for a feature, fix, or task:
 
-Merges into dev will be tested in greatsun-dev for quality assurance, but the merges themselves will be approved in each individual repository. The branches and any codespaces still on it will be deleted after the merge is approved, so do not continue to work on a branch after the merge has been submitted
+  - `avatar submit`: Option `<project>` pushes your branches to remote, and requests a merge into a -project branch, creating it if it doesn't exist.
 
-Continue your work with a new branch off dev.
+Projects will consist of one or more merges from a team member's branches, with each commit possibly linked to other commits across greatsun-dev and/or the submodules. When the project (feature, fix, or refactor) is ready, it will be merged to dev, one repository at a time using GitHub web.
+
+Once you've submitted your branch, take a new branch of the project or off dev if your project is finished, and continue your work towards the next goal.
+
+  - **On codespaces:** close the window and create a new codespace on greatsun-dev, dev branch or your project branch.
+  - **On local:** switch branches on greatsun-dev with `git checkout <dev or project-branch>`.
+
+Run `avatar up` then `avatar load` for dev or your project branch.
+
   - `avatar down` exits back to the terminal.
 
-**On codespaces:** close the window and create a new codespace on dev.
-**On local:** switch branches on greatsun-dev with `git checkout dev` and pull the latest with `git pull origin dev` then relaunch with `avatar up`.
+### Additional commands for an authorized team lead:
+  - `avatar deploy` -> `stage` deploys the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
+  - `avatar deploy` -> `prod` deploys the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
 
-## All Commands
+## List of Commands
 Everything listed above in one place for reference:
   - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
   - `avatar load`: pulls from remote dev to an existing or new branch in all the repos in the container, and installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem.
-  - `avatar engage`: fires up the servers across the container and submodules.
+  - `avatar engage`: fires up the submodule servers. *(to be built)*
   - `avatar commit`: Commits and pushes current code to all affected repos with a unified commit message.
-  - `avatar submit`: Creates a pull request for the current branch into the dev branch across all repositories.
-  - `avatar down` exits back to the terminal.
+ - `avatar stepback` undoes your last commit, bringing it back into staged changes whenever you need a do-over. Can be done repetitively to step way back if necessary. *(to be built)*
+  - `avatar submit`: Option `<project>` pushes your branches to remote, and requests a merge into a -project branch, creating it if it doesn't exist.
+  - `avatar deploy`: Option `stage` deploys the 'dev' branches of the submodules to their respective 'stage' branches and staging servers. Option `prod` does the same for stage to prod. *(to be built)*
+  - `avatar down` exits the shell.
 
 ## Project Structure
-Our project consists of the following top level directories:
+The greatsun-dev repository consists of the following top level directories:
 
 ### /avatar
-Processing queries to LLMs and their results for developer approval and implementation. LLM instructions and context, management files, and conversation logs.
+Processing iterative call/response queries to LLMs and implementing the LLM's instructions for developer approval.
 
 ### /central-logs
 Folder to be created for compiling and monitoring logs from the projects in credex-ecosystem and from greatsun-dev.
@@ -168,530 +193,8 @@ Documentation for the greatsun-dev environment.
 Folder to be created for deploying simulations consisting of patterns of transactions over time for development and research purposes.
 
 ### /tests
-Folder to be created for unit tests, performance tests, etc.*** credex-core/README.md ***# Credex Ecosystem Core API
-
-The credex ecosystem is a shared ledger that enables the efficient circulation of value, accumulation of capital, investment of profits, and giving of gifts. It is a tool for financial inclusion, financial empowerment, and financial sovereignty.
-
-## Credex Principle
-
-**If I owe you,**\
-**and you owe them,**\
-**and they owe me,**\
-**we're square.**
-
-The credex ecosystem actualizes the Credex Principle in the Minute Transaction Queue (MTQ), which tracks payable and receivable invoices for members' accounts, finds loops of value creation, and cancels payable and receivable invoices against each other in "credloops" in which every debt is reduced by an equal value. This is a GAAP-compliant accounting process that any person or business can benefit from.
-
-In accounting terms, a credex is a contingent asset for one party and a contingent liability for the other. These asset/liability pairs are automatically strung together into credloops wherever possible across the credex ecosystem. When a credloop is created and cleared, every account in the loop will have an accounts payable invoice cancelled against an equivalent accounts receivable invoice.
-
-## Credcoin Principle
-
-**Every human is entitled to one equal share of the value of the natural wealth entering the organic economy.**\
-**Every human is responsible to provide value equal to the amount of natural wealth that they consume.**
-
-The ecosystem actualizes the Credcoin Principle in the Daily Credcoin Offering (DCO), which updates exchange rates across the ecosystem daily. Every 24h, the DCO makes this equation true: one credcoin today equals the number of members participating in the DCO today divided by the value of natural wealth entering the organic economy through the DCO today.
-
-The organic economy is a subset of the credex ecosystem, which is a subset of the global economy, which is the human-enhanced subset of the world that is given to us by nature. The organic economy is an economy in which wealth circulates, profit accumulates, investment is made, and gifts are given in alignment and long-term harmony with the biological environment of our habitat and the physical laws that bind us.
-
-The value of the natural wealth processed by the DCO is split into two portions: gift portion and market portion. Currently, in the MVP version we've developed in this repository, only the gift portion of the DCO is implemented. The market portion will be added later.
-
-The credex ecosystem stores values in credcoin (CXX). In order to natively enable multi-denominational accounting, a CXXmultiplier value is stored alongside every CXX value. Both of these values are updated in every DCO so that the credex remains true to the face value in the denomination specified, and to other values stored in the ecosystem. A value expressed in CXX represents that value in relationship to every other value stored in the ecosystem. A value in CXX divided by its CXX multiplier expresses the value in the chosen denomination (face value).
-
-The system manages the balance between local truth (preserving the face value of contracts in their specified denomination) and global truth (adjusting all values relative to credcoin) through the daily rate and value adjustments in the DCO.
-
-## Neo4j databases
-
-Credex-core runs on two neo4j databases. LedgerSpace is the shared ledger containing the full state of the credex ecosystem. SearchSpace contains only unredeemed credexes, and is optimized to find credloops. On every credloop found and cleared, ledgerSpace is updated accordingly.
-
-## Express.js server
-
-The express.js server is initialized in `src/index.ts`, which provides the cronjobs and endpoints that power the ecosystem and enable members and client apps to interact with its ledger.
-
-## Cronjobs
-
-The Core module hosts the cronjobs:
-
-- DailyCredcoinOffering() runs every day at midnight UTC.
-- MinuteTransactionQueue() runs every minute, clearing credloops of value creation across the ecosystem.
-
-## Endpoints
-
-Controllers for the endpoints are imported, and endpoints created for the various modules: Member, Account, Avatar, Credex, and AdminDashboard.
-
-## Development Setup
-
-### Local Development with devcontainer
-
-#### Prerequisites
-
-- Docker and Docker Compose
-- Visual Studio Code with Remote - Containers extension
-
-#### Steps
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/Credex/credex-core.git
-   ```
-
-2. Open the project in Visual Studio Code.
-
-3. When prompted, click "Reopen in Container" to start the dev container. This will set up a consistent development environment with all necessary dependencies.
-
-4. Once the container is ready, copy the `.env.example` file to `.env` and fill in the necessary environment variables.
-
-5. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-### Codespaces Development
-
-1. Add the secrets to your personal github Settings->Codespaces and assign them to the credex-core repo.
-
-2. Open the project in GitHub Codespaces.
-
-3. The devcontainer will automatically set up a consistent development environment with all necessary dependencies and environment variables.
-
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-## Environment variables configuration
-
-To set up your development environment, you'll need to configure the following environment variables:
-
-### These have defaults and do not need to be configured in your environment
-
-1. PORT: Set this to 5000 for local development.
-2. NODE_ENV: Set this to 'development' for local development.
-3. DEPLOYMENT: Set this to 'dev' for development deployment.
-
-### These secrets must be added to your environment
-
-4. NEO4J_LEDGER_SPACE_BOLT_URL, NEO4J_LEDGER_SPACE_USER, NEO4J_LEDGER_SPACE_PASS:
-
-   - Sign up for a free Neo4j Aura account at https://neo4j.com/cloud/aura/
-   - Create a new database instance for ledgerSpace
-   - Use the provided connection details to fill in these variables
-
-5. NEO4J_SEARCH_SPACE_BOLT_URL, NEO4J_SEARCH_SPACE_USER, NEO4J_SEARCH_SPACE_PASS:
-
-   - Create a second Neo4j Aura account using a different email address and create a new database instance for searchSpace
-
-6. OPEN_EXCHANGE_RATES_API:
-
-   - Sign up for a free account at https://openexchangerates.org/
-   - Go to your account dashboard and create and copy your API key
-
-7. JWT_SECRET: Create a strong, unique string to use as your secret
-
-8. WHATSAPP_BOT_API_KEY: Create a strong, unique string to use as your secret
-
-## Available Scripts
-
-- `npm run dev`: Start the development server with nodemon
-- `npm run build`: Build the TypeScript project
-- `npm run start`: Start the production server
-- `npm run test`: Run the test suite
-- `npm run lint`: Run ESLint to check for code quality issues
-- `npm run format`: Run Prettier to format the code
-
-## Module Documentation
-
-- [Daily Credcoin Offering (DCO)](<docs/Daily_Credcoin_Offering_(DCO).md>)
-- [Minute Transaction Queue (MTQ)](<docs/MinuteTransactionQueue_(MTQ).md>)
-- [Member](docs/Member.md)
-- [Account](docs/Account.md)
-- [Credex](docs/Credex.md)
-- [Avatar](docs/Avatar.md)
-- [AdminDashboard](docs/AdminDashboard.md)
-
-## Schemas
-
-- [ledgerSpace Schema](docs/ledgerSpace_schema.md)
-- [searchSpace Schema](docs/searchSpace_schema.md)
-
-## Developer Guides
-
-- [Logging Best Practices](docs/logging_best_practices.md)
-- [Security and Authentication](docs/Security_and_Authentication.md)
-- [Security Overview](docs/security.md)
-- [Swagger API Documentation](docs/swagger.md)
-
-## Project structure and code summary
-
-For a detailed overview of the codebase, including function and class definitions, please refer to the [Code Summary](docs/code_summary.md). This summary is particularly useful for AI context and assists in understanding the overall structure and key components of the project.
-
-```
-credex-core/
-├── .githooks/             # Git hooks scripts
-├── .vscode/               # VS Code configuration files
-├── build/                 # Compiled output
-├── config/                # Configuration files
-├── docs/                  # Documentation files
-├── src/                   # Source code
-│   ├── api/               # API-related code
-│   │   ├── Account/       # Account-related endpoints and services
-│   │   ├── AdminDashboard/# Admin dashboard endpoints and services
-│   │   ├── Avatar/        # Avatar-related endpoints and services
-│   │   ├── Credex/        # Credex-related endpoints and services
-│   │   └── Member/        # Member-related endpoints and services
-│   ├── constants/         # Constant values used across the application
-│   ├── core-cron/         # Core cron jobs (DCO and MTQ)
-│   │   ├── DCO/           # Daily Credcoin Offering related code
-│   │   └── MTQ/           # Minute Transaction Queue related code
-│   ├── middleware/        # Express middleware
-│   ├── tests/             # Test files
-│   └── utils/             # Utility functions and helpers
-```
-
-## Contributing
-
-1. Create a branch from the 'dev' branch.
-2. Make your changes and commit them with clear, concise commit messages.
-3. Push your changes and create a pull request against the 'dev' branch.
-4. Follow the [Logging Best Practices](docs/logging_best_practices.md) when adding or modifying code.
-
-## Deployment
-
-1. Contributors branch from `dev` and complete work and testing on an issue, fix, or feature.
-2. Contributor requests review from reviewer on merge to `dev` .
-3. Reviewer tests and merges.
-4. Dev is regularly merged with all recent commits to `stage`, which is auto-deployed to demo deployment.
-5. Demo deployment is tested thoroughly in CI/CD pipeline.
-6. When tests are passed, stage is merged to `prod`, which is auto-deployed to our production branch.
-
-## License
-
-You are welcome to explore, experiment with, and build upon this work for research, development, modelling, testing, demonstrations, and other non-commercial purposes. Please contribute!
-
-The use of this software in any production environment is strictly prohibited. You do not have permission to use this software to track real debts. Real data of past transactions may be used, but only as data input. If you want to transact real value with credex, you are invited to become a member of the credex ecosystem.
-
-If you create something new based on this project, you must use the same license terms and give appropriate credit to the original work. You may not sell the software or any product or service that substantially relies on its functionality.
-
-This approach allows for community engagement and experimentation while ensuring the integrity and unity of the system as a single shared economic network that all can access and benefit from.
-*** credex-ecosystem/vimbiso-pay/README.md ***File not found: credex-ecosystem/vimbiso-pay/README.md*** FULL DIRECTORY TREE ***{
+Folder to be created for unit tests, performance tests, etc.*** credex-core/README.md ***File not found: credex-ecosystem/credex-core/README.md*** credex-ecosystem/vimbiso-pay/README.md ***File not found: credex-ecosystem/vimbiso-pay/README.md*** FULL DIRECTORY TREE ***{
   ".gitmodules": null,
-  "credex-ecosystem": {
-    "vimbiso-pay": {
-      "tasks.md": null,
-      "vimbisopay_terminal_issues.md": null,
-      "nginx.conf": null,
-      "LICENSE": null,
-      ".env.example": null,
-      "app": {
-        "Dockerfile": null,
-        "manage.py": null,
-        "core": {
-          "utils": {
-            "credex_bot_utils.py": null,
-            "exceptions.py": null,
-            "utils.py": null,
-            "audit_logging.py": null,
-            "error_handler.py": null
-          },
-          "message_handling": {
-            "screens.py": null,
-            "router.py": null,
-            "message_handling.py": null,
-            "offer_credex_handler.py": null,
-            "credex_bot_service.py": null,
-            "action_handlers.py": null
-          },
-          "config": {
-            "constants.py": null,
-            "apps.py": null
-          },
-          "__init__.py": null,
-          "migrations": {
-            "0002_message_last_updated.py": null,
-            "__init__.py": null,
-            "0001_initial.py": null
-          },
-          "api": {
-            "views.py": null,
-            "tests": {
-              "VimbisoPay_Terminal.py": null
-            },
-            "models.py": null,
-            "services.py": null,
-            "api_interactions.py": null
-          },
-          "state": {
-            "state_management.py": null
-          }
-        },
-        "serializers": {
-          "offers.py": null,
-          "members.py": null,
-          "company.py": null
-        },
-        "config": {
-          "asgi.py": null,
-          "__init__.py": null,
-          "development.py": null,
-          "settings.py": null,
-          "base.py": null,
-          "production.py": null,
-          "urls.py": null,
-          "wsgi.py": null
-        },
-        "start_app.sh": null,
-        "requirements.txt": null,
-        "compose.yaml": null,
-        "db.sqlite3": null,
-        ".dockerignore": null
-      },
-      "requirements.txt": null,
-      "README.Docker.md": null,
-      ".dockerignore": null,
-      ".github": {
-        "workflows": {
-          "prod.yml": null,
-          "stage.yml": null,
-          "test_secrets.yml": null
-        }
-      }
-    },
-    "credex-core": {
-      "tsconfig.json": null,
-      "Dockerfile": null,
-      "package-lock.json": null,
-      "jest.config.js": null,
-      "tasks.md": null,
-      "config": {
-        "neo4j.ts": null,
-        "authenticate.ts": null,
-        "config.ts": null,
-        "swagger.ts": null
-      },
-      ".env.example": null,
-      "compose.yaml": null,
-      "src": {
-        "utils": {
-          "digitalSignature.ts": null,
-          "validators.ts": null,
-          "serverSetup.ts": null,
-          "errorUtils.ts": null,
-          "updateImports.ts": null,
-          "configUtils.ts": null,
-          "logger.ts": null,
-          "denomUtils.ts": null,
-          "update_code_summary.sh": null,
-          "inputSanitizer.ts": null
-        },
-        "constants": {
-          "credspan.ts": null,
-          "denominations.ts": null,
-          "accountTypes.ts": null,
-          "credexTypes.ts": null
-        },
-        "tests": {
-          "services": {
-            "CreateRandomFloatingCredexes.ts": null,
-            "SellSecuredCredexes.ts": null,
-            "InEcosystemSecuredCredexes.ts": null,
-            "ClearDevDb.ts": null,
-            "GrowthTest.ts": null,
-            "CreateTestLoop.ts": null,
-            "CheckLedgerVsSearchBalances.ts": null,
-            "CreateTestMembersAndAccounts.ts": null,
-            "PurchaseSecuredCredexes.ts": null
-          },
-          "utils": {
-            "denomUtils.test.ts": null,
-            "validators.test.ts": null
-          },
-          "triggerDCO.ts": null,
-          "integration": {
-            "account.test.ts": null
-          },
-          "controllers": {
-            "growthTest.ts": null,
-            "clearDevDb.ts": null,
-            "createTestMembersAndAccounts.ts": null,
-            "offerAndAcceptCredex.ts": null,
-            "forceDCO.ts": null,
-            "createRandomFloatingCredexes.ts": null,
-            "forceMTQ.ts": null,
-            "checkLedgerVsSearchBalances.ts": null,
-            "createTestLoop.ts": null
-          }
-        },
-        "core-cron": {
-          "DCO": {
-            "DCOsnapshots": {
-              "2021-01-02_ledgerSpace_dev_end.json": null,
-              "placeholder.ts": null
-            },
-            "DCOexecute.ts": null,
-            "DBbackup.ts": null,
-            "DCOavatars.ts": null,
-            "fetchZwgRate.ts": null,
-            "DBinitialization.ts": null,
-            "DailyCredcoinOffering.ts": null
-          },
-          "cronJobs.ts": null,
-          "MTQ": {
-            "MinuteTransactionQueue.ts": null,
-            "LoopFinder.ts": null
-          }
-        },
-        "middleware": {
-          "validateRequest.ts": null,
-          "rateLimiter.ts": null,
-          "authMiddleware.ts": null,
-          "errorHandler.ts": null,
-          "securityConfig.ts": null
-        },
-        "index.ts": null,
-        "api": {
-          "Avatar": {
-            "services": {
-              "CancelRecurring.ts": null,
-              "AcceptRecurring.ts": null,
-              "RequestRecurring.ts": null
-            },
-            "avatarValidationSchemas.ts": null,
-            "recurringRoutes.ts": null,
-            "controllers": {
-              "acceptRecurring.ts": null,
-              "cancelRecurring.ts": null,
-              "requestRecurring.ts": null
-            }
-          },
-          "AdminDashboard": {
-            "services": {
-              "UpdateMemberTierService.ts": null,
-              "GetMemberService.ts": null,
-              "GetMemberAccountsOwnerByMemberSevice.ts": null,
-              "GetAccountService.ts": null,
-              "GetAccountReceivedCredexOffers.ts": null,
-              "GetCredexService.ts": null,
-              "ServicesList.md": null,
-              "GetAccountSentCredexOffers.ts": null
-            },
-            "adminDashboardValidationSchemas.ts": null,
-            "controllers": {
-              "MemberController.ts": null,
-              "CredexController.ts": null,
-              "ControllerList.md": null,
-              "AccountController.ts": null
-            },
-            "adminDashboardRoutes.ts": null
-          },
-          "Account": {
-            "services": {
-              "UpdateSendOffersTo.ts": null,
-              "UnauthorizeForAccount.ts": null,
-              "UpdateAccount.ts": null,
-              "GetBalances.ts": null,
-              "CreateAccount.ts": null,
-              "GetAccountByHandle.ts": null,
-              "GetAccountDashboard.ts": null,
-              "AuthorizeForAccount.ts": null
-            },
-            "accountValidationSchemas.ts": null,
-            "controllers": {
-              "unauthorizeForAccount.ts": null,
-              "createAccount.ts": null,
-              "updateAccount.ts": null,
-              "updateSendOffersTo.ts": null,
-              "getAccountDashboard.ts": null,
-              "authorizeForAccount.ts": null,
-              "getAccountByHandle.ts": null
-            },
-            "accountRoutes.ts": null
-          },
-          "Credex": {
-            "services": {
-              "CreateCredex.ts": null,
-              "GetLedger.ts": null,
-              "CancelCredex.ts": null,
-              "GetSecuredAuthorization.ts": null,
-              "GetPendingOffersIn.ts": null,
-              "GetCredex.ts": null,
-              "AcceptCredex.ts": null,
-              "DeclineCredex.ts": null,
-              "GetPendingOffersOut.ts": null,
-              "OfferCredex.ts": null
-            },
-            "credexRoutes.ts": null,
-            "credexValidationSchemas.ts": null,
-            "controllers": {
-              "offerCredex.ts": null,
-              "declineCredex.ts": null,
-              "cancelCredex.ts": null,
-              "acceptCredex.ts": null,
-              "acceptCredexBulk.ts": null,
-              "getCredex.ts": null,
-              "getLedger.ts": null
-            }
-          },
-          "Member": {
-            "services": {
-              "UpdateMemberTier.ts": null,
-              "AuthForTierSpendLimit.ts": null,
-              "GetMemberByHandle.ts": null,
-              "OnboardMember.ts": null,
-              "GetMemberDashboardByPhone.ts": null,
-              "LoginMember.ts": null
-            },
-            "memberValidationSchemas.ts": null,
-            "memberRoutes.ts": null,
-            "controllers": {
-              "onboardMember.ts": null,
-              "getMemberByHandle.ts": null,
-              "getMemberDashboardByPhone.ts": null,
-              "authForTierSpendLimit.ts": null,
-              "updateMemberTier.ts": null,
-              "loginMember.ts": null
-            }
-          }
-        }
-      },
-      "docs": {
-        "code_summary.md": null,
-        "DevAdmin.md": null,
-        "AdminDashboard.md": null,
-        "Security_and_Authentication.md": null,
-        "searchSpace_schema.md": null,
-        "logging_best_practices.md": null,
-        "Credex.md": null,
-        "MinuteTransactionQueue_(MTQ).md": null,
-        "swagger.md": null,
-        "Daily_Credcoin_Offering_(DCO).md": null,
-        "Account.md": null,
-        "Avatar.md": null,
-        "LoginEndpoint.md": null,
-        "api_validation.md": null,
-        "Member.md": null,
-        "ledgerSpace_schema.md": null
-      },
-      "package.json": null,
-      ".devcontainer": {
-        "devcontainer.json": null
-      },
-      "nodemon.json": null,
-      "README.Docker.md": null,
-      "README.md": null,
-      ".dockerignore": null,
-      ".github": {
-        "dependabot.yml": null,
-        "workflows": {
-          "prod.yml": null,
-          "stage.yml": null
-        }
-      },
-      ".githooks": {
-        "pre-commit": null,
-        "post-commit": null,
-        "post-checkout": null
-      }
-    }
-  },
   ".env.example": null,
   "main.py": null,
   "docs": {
@@ -724,113 +227,40 @@ This approach allows for community engagement and experimentation while ensuring
   }
 }*** avatar/context/current_project.md ***# Current Project
 
-Set up the greatsun-dev environment for testing and deploying credex-core and credex-bot
+Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 25 hours.
 
 ## Overview
-The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development process and ensure efficient integration of these key components.
+The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development and deployment of these services.
 
-## Components
+## Current State
+Greatsun-dev is running but not fully complete, and the clients are well built and tested, but have not yet connected together over the api since significant security upgrades.
 
-### 1. credex-core
-- Description: The core API for the credex ecosystem.
-- Technology: Express.js server
-- Key Features:
-  - RESTful API endpoints
-  - Database integration
-  - Authentication and authorization
-  - Transaction processing
+## Operational Pipeline
 
-### 2. vimbiso-pay
-- Description: A WhatsApp chatbot for user interactions
-- Technology: Python
+- Finish the core functionality of the greatsun-dev avatar by fixing the terminal bug and implementing: `engage`, `deploy stage`, `deploy prod`.
+- Hands-on confirmation that credex-core api is secure and responding to authorized calls.
+- Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
+#### up to here required by 4am Atlantic
 
-## Development Goals
-1. Set up a unified development environment that supports both JavaScript (Node.js) and Python.
-2. Implement a streamlined testing process for both components.
-3. Develop a deployment pipeline that ensures smooth updates to both credex-core and credex-bot.
-4. Create comprehensive documentation for the setup and maintenance of the greatsun-dev environment.
-
+- Finish the core functionality of the greatsun-dev avatar with: `stepback`
+- Auto-deploy for prod in the DCO.
+- Unit tests, integration tests, security tests
+- Extended transaction modeling and performance tests.
+- Web portal for customer service agents.
+- System dashboard to monitor activity and process alerts.
+- Initial data visualization and analytics.
+- Build out CI/CD pipeline
+- Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
 
 
+# Current Task
 
-7. Undo Operation: Consider adding an "undo" feature for the merge operation, in case the developer wants to revert the merge.
+Fix the terminal bug: LLM's responses are getting registered by the script as something it should send back to the LLM, creating an endless loop.
 
-8. Status Command: It might be helpful to have a command that shows the current status of all repositories (current branch, any uncommitted changes, etc.).
+## Coming Next
+- Deploy to stage
+- Deploy to prod (manual, not cron)
+- Test in dev and deploy updates
 
-
-
-
-# Credex-Dev Next Steps Workplan
-
-## 1. Review and Test Changes
-- [x] Update Dockerfile to fix user creation issue
-- [x] Update init-environment.sh script
-- [ ] Create a new Codespace or set up local environment with updated files
-- [ ] Verify all services (credex-core, vimbiso-pay, greatsun-dev) start correctly
-- [ ] Test the integration of all components
-
-## 2. Implement Core Functionality in main.py
-- [ ] Develop run_automated_tests() function
-  - [ ] Create tests for credex-core
-  - [ ] Create tests for vimbiso-pay
-  - [ ] Implement test runner
-- [ ] Implement analyze_data() function
-  - [ ] Define key metrics and data points
-  - [ ] Implement data collection methods
-  - [ ] Create basic analysis algorithms
-- [ ] Create simulate_transactions() function
-  - [ ] Define transaction models
-  - [ ] Implement transaction generation logic
-  - [ ] Create API call simulation
-
-## 3. Integrate with credex-core and vimbiso-pay
-- [ ] Update import statements in main.py
-- [ ] Implement secure communication between services
-- [ ] Create interfaces for interacting with credex-core and vimbiso-pay
-
-## 4. Enhance Security
-- [ ] Implement authentication mechanisms
-- [ ] Set up authorization for inter-service communication
-- [ ] Review and secure handling of sensitive information
-
-## 5. Expand Testing Capabilities
-- [ ] Add comprehensive test cases
-- [ ] Implement integration tests
-- [ ] Create performance tests
-
-## 6. Improve Data Analysis Features
-- [ ] Integrate data visualization libraries
-- [ ] Implement advanced analysis techniques
-- [ ] Create reporting functionality
-
-## 7. Refine Transaction Simulation
-- [ ] Develop realistic transaction scenarios
-- [ ] Implement error handling in simulations
-- [ ] Create logging and analysis for simulation results
-
-## 8. Documentation
-- [ ] Update README.md with detailed usage instructions
-- [ ] Add inline comments and function docstrings
-- [ ] Create API documentation if necessary
-
-## 9. Set up Continuous Integration
-- [ ] Configure CI/CD pipeline
-- [ ] Set up automated testing in CI
-- [ ] Implement automated deployment
-
-## 10. Review and Iterate
-- [ ] Conduct team review of greatsun-dev implementation
-- [ ] Gather feedback from users
-- [ ] Plan next iteration of improvements
-
-## 11. Additional Tasks
-- [ ] Update Node.js version in Dockerfile (current version 14.x is deprecated)
-- [ ] Review and update Python package versions in requirements.txt
-- [ ] Implement error handling and logging in init-environment.sh and start-services.sh
-- [ ] Create a troubleshooting guide for common setup issues
-
-## Notes
-- Prioritize tasks based on immediate project needs
-- Regularly commit changes and push to the repository
-- Keep all team members updated on progress and any roadblocks
-- Schedule regular check-ins to ensure the project is on track*** MESSAGE FROM DEVELOPER @ryanlukewatson ***
+# But First Must Do
+Get a 30 minute guided tour of greatsun-dev and the credex-ecosystem software.*** MESSAGE FROM DEVELOPER @ryanlukewatson ***
