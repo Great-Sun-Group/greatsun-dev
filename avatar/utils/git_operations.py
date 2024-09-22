@@ -5,7 +5,7 @@ import subprocess
 import time
 from github import Github, InputGitTreeElement, GithubException
 from coolname import generate_slug
-from file_operations import load_initial_context, write_file
+from responseParser import load_initial_context, write_file
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')

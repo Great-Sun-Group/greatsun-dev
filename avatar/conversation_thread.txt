@@ -293,8 +293,7 @@ File not found: /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay/README.md*
       "responseParser.py": null,
       "avatarUp.py": null,
       "response_instructions.txt": null,
-      "avatar_command.sh": null,
-      "file_operations.py": null
+      "avatar_command.sh": null
     },
     "conversation_thread.txt": null,
     "context": {
