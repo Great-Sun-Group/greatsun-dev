@@ -189,7 +189,8 @@ def avatar_submit_git(project_branch):
     if (project_branch == "dev"):
         print("`dev` is not a project")
         return
-    project_branch = f"{project_branch}-project"
+    if not current_branch.endswith('-project'):
+        project_branch = f"{project_branch}-project"
 
     repos = [ROOT_REPO] + SUBMODULES
     current_branch = get_current_branch()
