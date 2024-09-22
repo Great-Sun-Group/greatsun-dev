@@ -107,7 +107,7 @@ In order to track progress and performance of AI models, and provide insight int
 
 ## Running services
 All imported modules are brought online in dev mode with:
-  - `avatar engage`: fires up the submodule servers. *(to be built)*
+  - `avatar engage`: fires up the submodule servers.
 
 ## Intent Achieved
 Once you have acheived your intent and tested your code for a feature, fix, or task:
@@ -125,10 +125,6 @@ Run `avatar up` then `avatar load` for dev or your project branch.
 
   - `avatar down` exits back to the terminal.
 
-### Additional commands for an authorized team lead:
-  - `avatar deploy` -> `stage` deploys the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
-  - `avatar deploy` -> `prod` deploys the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
-
 ## List of Commands
 Everything listed above in one place for reference:
   - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
@@ -136,8 +132,6 @@ Everything listed above in one place for reference:
   - `avatar engage`: fires up the submodule servers. *(to be built)*
   - `avatar commit`: Commits and pushes current code to all affected repos with a unified commit message.
  - `avatar stepback` undoes your last commit, bringing it back into staged changes whenever you need a do-over. Can be done repetitively to step way back if necessary. *(to be built)*
-  - `avatar submit`: Option `<project>` pushes your branches to remote, and requests a merge into a -project branch, creating it if it doesn't exist.
-  - `avatar deploy`: Option `stage` deploys the 'dev' branches of the submodules to their respective 'stage' branches and staging servers. Option `prod` does the same for stage to prod. *(to be built)*
   - `avatar down` exits the shell.
 
 ## Project Structure

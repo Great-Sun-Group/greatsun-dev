@@ -32,8 +32,6 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 1. **Finish the core functionality of the greatsun-dev avatar**
    - Implement the `avatar engage` command to start the submodule servers in development mode.
-   - Implement the `avatar deploy stage` command to deploy the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
-   - Implement the `avatar deploy prod` command to deploy the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
 
 2. **Secure and test credex-core API**
    - Review and implement any necessary security upgrades to the credex-core API.
