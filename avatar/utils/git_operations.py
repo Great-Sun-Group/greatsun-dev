@@ -186,6 +186,11 @@ def avatar_commit_git():
 
 
 def avatar_submit_git(project_branch):
+    if (project_branch == "dev"):
+        print("`dev` is not a project")
+        return
+    project_branch = f"{project_branch}-project"
+
     repos = [ROOT_REPO] + SUBMODULES
     current_branch = get_current_branch()
 
@@ -225,7 +230,7 @@ def avatar_submit_git(project_branch):
                 gh_repo.merge(project_branch, current_branch, f"Merging {
                               current_branch} into {project_branch}")
                 print(f"{current_branch} opens {
-                      project_branch} project in {repo_name}")
+                      project_branch} in {repo_name}")
             except GithubException as e:
                 print(f"Error creating/merging branch in {repo_name}: {e}")
         else:
@@ -237,7 +242,7 @@ def avatar_submit_git(project_branch):
                 gh_repo.create_pull(
                     title=pr_title, body=pr_body, head=current_branch, base=project_branch)
                 print(f"{current_branch} submitted to {
-                      project_branch} project in {repo_name}")
+                      project_branch} in {repo_name}")
             except GithubException as e:
                 print(f"Error creating pull request in {repo_name}: {e}")
 
