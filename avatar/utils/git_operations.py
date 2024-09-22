@@ -42,7 +42,7 @@ def get_current_branch(repo_path=None):
 def get_off_dev_and_project_branch():
     current_branch = get_current_branch()
     if current_branch == 'dev' or current_branch.endswith('-project'):
-        new_slug = generate_slug(3)
+        new_slug = generate_slug(2)
         new_branch = f"avatar-of-{new_slug}"
 
         try:
