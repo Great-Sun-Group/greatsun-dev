@@ -128,4 +128,7 @@ if __name__ == "__main__":
         print(f"Critical error in main execution: {str(e)}")
         print("A critical error occurred in the main execution:")
         print(str(e))
-        print("Please check the logs for more details.")
+        print("Error type:", type(e).__name__)
+        import traceback
+        print("Traceback:")
+        traceback.print_exc()

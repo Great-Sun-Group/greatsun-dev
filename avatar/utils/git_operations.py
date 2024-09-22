@@ -42,7 +42,7 @@ def get_current_branch(repo_path=None):
 def get_off_dev_and_project_branch():
     current_branch = get_current_branch()
     if current_branch == 'dev' or current_branch.endswith('-project'):
-        new_branch = f"{generate_slug(1)}-avatar-of-{generate_slug(2)}"
+        new_branch = f"avatar-{generate_slug(2)}"
 
         try:
             subprocess.run(['git', 'checkout', '-b', new_branch],
