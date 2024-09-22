@@ -42,7 +42,7 @@ def get_current_branch(repo_path=None):
 def get_off_dev_branch():
     current_branch = get_current_branch()
     if current_branch == 'dev':
-        new_slug = generate_slug(2)
+        new_slug = generate_slug(3)
         new_branch = f"avatar-of-{new_slug}"
 
         try:
@@ -73,16 +73,17 @@ def load_project_git(load_branch):
 
     for submodule in SUBMODULES:
         submodule_dir = os.path.join(MODULE_PATH, submodule)
+        print(submodule_dir)
         submodule_repo = get_repo(submodule)
         clone_url = submodule_repo.clone_url.replace(
             'https://', f'https://{GH_USERNAME}:{GH_PAT}@')
+        os.chdir(MODULE_PATH)
 
         if os.path.exists(submodule_dir):
             os.chdir(submodule_dir)
             subprocess.run(['git', 'fetch', 'origin'], check=True)
             subprocess.run(['git', 'checkout', load_branch], check=True)
             subprocess.run(['git', 'pull', 'origin', load_branch], check=True)
-            os.chdir(MODULE_PATH)
         else:
             subprocess.run(['git', 'clone', '-b', load_branch,
                            clone_url, submodule], check=True)
