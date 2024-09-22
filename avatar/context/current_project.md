@@ -28,6 +28,27 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 - Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
 
 
-# Current Task
+# Recommended Plan
 
-run a few tests on avatar behaviours and capacities
+1. **Finish the core functionality of the greatsun-dev avatar (4 hours)**
+   - Implement the `avatar engage` command to start the submodule servers in development mode.
+   - Implement the `avatar deploy stage` command to deploy the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
+   - Implement the `avatar deploy prod` command to deploy the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
+
+2. **Secure and test credex-core API (8 hours)**
+   - Review and implement any necessary security upgrades to the credex-core API.
+   - Ensure that the API is responding to authorized calls from vimbiso-pay and other clients.
+   - Write and run comprehensive unit tests and integration tests for the API.
+   - Perform security testing (e.g., penetration testing, vulnerability scanning) on the API.
+
+3. **Test and integrate vimbiso-pay with credex-core API (8 hours)**
+   - Update vimbiso-pay to integrate with the latest version of the credex-core API.
+   - Test the end-to-end flow of vimbiso-pay interacting with the API (e.g., sending requests, receiving responses, processing transactions).
+   - Perform load testing and stress testing on vimbiso-pay to ensure it can handle expected traffic and usage patterns.
+   - Conduct user acceptance testing (UAT) with a small group of users to identify and resolve any issues.
+
+4. **Final testing and deployment (5 hours)**
+   - Perform final integration testing between credex-core and vimbiso-pay in a staging environment.
+   - Address any remaining issues or bugs identified during testing.
+   - Deploy the production-ready MVPs of credex-core and vimbiso-pay to the production environment.
+   - Monitor the production environment for any issues or errors after deployment.
