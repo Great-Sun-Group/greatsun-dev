@@ -21,15 +21,13 @@ sys.path.append(user_site_packages)
 def main():
     print(f"\n@greatsun-dev reading you loud and clear")
     get_off_dev_and_project_branch()
-    conversation_thread = load_initial_context()
-    write_file(BASE_DIR / "avatar/conversation_thread.txt",
-               conversation_thread)
+    conversation_thread = read_file(BASE_DIR / "avatar/conversation_thread.txt")
     print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
 
     while True:
         terminal_input = input().strip()
 
-        if terminal_input.lower() == "avatar up":
+        if terminal_input.lower() == "avatar refresh":
             conversation_thread = load_initial_context()
             write_file(BASE_DIR / "avatar/conversation_thread.txt",
                        conversation_thread)

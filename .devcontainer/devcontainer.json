@@ -13,5 +13,8 @@
         }
     },
     "postCreateCommand": "pip install -r .devcontainer/requirements.txt",
-    "remoteUser": "vscode"
+    "remoteUser": "vscode",
+     "features": {
+         "docker-in-docker": "latest"
+     }
 }

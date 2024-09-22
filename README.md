@@ -37,11 +37,11 @@ To configure your environment, see [Configuration](docs/greatsun-dev_configurati
   2. clone the repository cloned locally, then
   3. launch the avatar.
 
-  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch in greatsun-dev if you are on dev or a project branch.
+  - `avatar up`: activates the script and creates and checks out a new branch if you are on dev.
 
   The avatar treats branches named 'dev' or ending in '-project' as primary branches. If you are on a primary branch when you call `avatar up`, the branch for your work will be forked from that primary and off you go.
 
-  - `avatar load`: pulls from a primary branch to your local (or codespace) in greatsun-dev and all submodules set in [Configuration](docs/greatsun-dev_configuration.md).
+  - `avatar load`: pulls all submodules from a remote branch to your local/codespace.
 
 ### Developer Intent #2: Message From Developer
 The second place to express your intent is in the Message From Developer. You will initiate teh conversation with the first instruction you give, and you can continue a back and forth with the LLM through the avatar. There are two ways you can communicate through the avatar. After `avatar up`, then:
@@ -53,7 +53,7 @@ Press enter in the terminal.
 Whatever is in the terminal will be appended to whatever is in the conversation thread and sent to the LLM. Take a look through [conversation_thread](avatar/conversation_thread.txt) to see the full conversation that you are in with the avatar, including file contents sent back and forth. A sanitized version is printed to the terminal with the file contents removed for better human readibility.
 
 ### Stepping Towards Your Goal
-When you launch `avatar up`, the current context of the repo and project is assembled. You can change these and refresh any time with the same command. You then add your intention for this specific conversation with the avatar and LLM into the Developer Instructions as above, and then work with the tool to deliver code.
+You can use `avatar refresh` any time to restart the conversation with the current context of the repo and project reassembled. You then add your intention for this specific conversation with the avatar and LLM into the Developer Instructions as above, and then work with the tool to deliver code.
 
 The LLM can get confused if the conversation thread gets too long, if there are repetitive tweaks on the same bug going back and forth, or if multiple topics or priorities enter the thread.
 
@@ -62,7 +62,7 @@ Steps towards your goal are measured by the cadence of this one-conversation-at-
 2. Achieve that end state and update the Current Project state accordingly.
 3. Let the avatar help you create, update, and enhance the Current Project, but the intention expressed there has to be yours. Your intention has to be linked to a larger purpose or campaign, or you will iterate rapidly but not get far.
 
-The difference between the [Current Project](avatar/context/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar up`, and the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with the next commit but preserved in the repository history of greatsun-dev.
+The difference between the [Current Project](avatar/context/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar refresh`, and the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with the next commit but preserved in the repository history of greatsun-dev.
 
 #### Independent Mini Steps
 An unexpected but clearly established behaviour of the avatar is that when it has simple questions or wants a simple confirmation from you, it will respond to itself on your behalf. Within its response it will literally print the heading indicating your response, put words in your mouth confirming approving some minor decision it was asking about, and then proceeding with the recommendd action as if you had actually approved it.
@@ -83,7 +83,7 @@ Chances are that's already done on the avatar's initiative. But if not, you can 
 ## Source Control Panel
 You can always stage your current state before you ask for an update, so that you can track against the changes in source control. Then when you have the changes staged for your next step forward, `avatar commit` and enter a commit message to lock it.
 
-You've now got a workplan for the next 30 minutes stored in Current Project, so `avatar up` both to clear the conversation and to refresh the project description being sent. With a fresh and up-to-date context, you can use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
+You've now got a workplan for the next 30 minutes stored in Current Project, so `avatar refresh` both to clear the conversation and to refresh the project description being sent. With a fresh and up-to-date context, you can use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
 ```
 execute step 2a in the current project
 ```
@@ -121,14 +121,15 @@ Once you've submitted your branch, take a new branch of the project or off dev i
   - **On codespaces:** close the window and create a new codespace on greatsun-dev, dev branch or your project branch.
   - **On local:** switch branches on greatsun-dev with `git checkout <dev or project-branch>`.
 
-Run `avatar up` then `avatar load` for dev or your project branch.
+Run `avatar up` then `avatar load` for dev or your project branch, then `avatar refresh` and you are ready to go.
 
   - `avatar down` exits back to the terminal.
 
 ## List of Commands
 Everything listed above in one place for reference:
-  - `avatar up`: generates new context for the avatar, and creates and checks out a new branch if you are on dev.
-  - `avatar load`: pulls from remote dev to an existing or new branch in all the repos in the container, and installs the submodules set in [Configuration](docs/greatsun-dev_configuration.md) into the credex-ecosystem.
+  - `avatar up`: activates the script and creates and checks out a new branch if you are on dev.
+  - `avatar refresh`: reloads the conversation from current files.
+  - `avatar load`: pulls all submodules from a remote branch to your local/codespace.
   - `avatar engage`: fires up the submodule servers. *(to be built)*
   - `avatar commit`: Commits and pushes current code to all affected repos with a unified commit message.
  - `avatar stepback` undoes your last commit, bringing it back into staged changes whenever you need a do-over. Can be done repetitively to step way back if necessary. *(to be built)*
