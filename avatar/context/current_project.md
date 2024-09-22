@@ -28,7 +28,9 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 # Current Task
 
-Fix the terminal bug: LLM's responses are getting registered by the script as something it should send back to the LLM, creating an endless loop.
+Fix the terminal bugs. Observed behaviours:
+- LLM's responses are getting registered by the script as something it should send back to the LLM, creating an endless loop.
+- LLM's responses are not getting entered into conversation_thread.
 
 ## Coming Next
 - Deploy to stage
@@ -37,3 +39,10 @@ Fix the terminal bug: LLM's responses are getting registered by the script as so
 
 # But First Must Do
 Get a 30 minute guided tour of greatsun-dev and the credex-ecosystem software.
+
+# Guided Tour Plan
+1. Introduction to greatsun-dev (5 minutes)
+2. Overview of credex-ecosystem (10 minutes)  
+3. Walkthrough of the avatar (10 minutes)
+4. Hands-on coding exercise (5 minutes)
+5. Next steps and Q&A (5 minutes)

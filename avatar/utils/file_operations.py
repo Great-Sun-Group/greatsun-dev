@@ -26,17 +26,21 @@ class FileOperationQueue:
     def add_dependency(self, operation, dependency):
         operation.dependencies.add(dependency)
 
-    def process_queue(self):
+    def process_queue(self, conversation_thread):
+        conversation_thread += f"\n\n*** AUTOMATED RESPONSE TO FILE OPERATIONS REQUESTED ***\n\n"
         while self.queue:
             op = self.queue.popleft()
             if all(dep in self.results for dep in op.dependencies):
                 result = perform_file_operation(op.operation, *op.args)
                 self.results[op] = result
+                conversation_thread += f"Operation: {op.operation}\n"
+                conversation_thread += f"Arguments: {op.args}\n"
+                conversation_thread += f"Result: {result}\n\n"
                 time.sleep(0.1)  # Small delay to allow file system to update
             else:
                 self.queue.append(op)
-        return self.results
-
+        return self.results, conversation_thread
+    
 
 def load_initial_context():
     initial_context = [
@@ -52,7 +56,7 @@ def load_initial_context():
         json.dumps(get_directory_tree('/workspaces/greatsun-dev'), indent=2),
         "*** avatar/context/current_project.md ***",
         read_file("avatar/context/current_project.md"),
-        f"*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
+        f"\n\n*** MESSAGE FROM DEVELOPER @{os.environ.get('GH_USERNAME')} ***",
     ]
     return ''.join(initial_context)
 
@@ -137,40 +141,56 @@ def perform_file_operation(operation, *args):
     *args: Arguments specific to each operation
 
     Returns:
-    Various: Depends on the operation performed
+    list: conversation_thread containing the results of the operation
     """
     max_attempts = 3
     delay = 0.1
+    conversation_thread = []
 
     for attempt in range(max_attempts):
         try:
             if operation == 'read':
-                return read_file(args[0])
+                read_file_contents = read_file(args[0])
+                conversation_thread.append(
+                    f"Read file: {args[0]}\nContents: {read_file_contents}")
             elif operation == 'write':
-                return write_file(args[0], args[1])
+                write_response = write_file(args[0], args[1])
+                conversation_thread.append(
+                    f"Write to file: {args[0]}\nSuccess: {write_response}")
             elif operation == 'append':
                 with open(args[0], 'a') as f:
                     f.write(args[1])
-                return True
+                conversation_thread.append(
+                    f"Append to file: {args[0]}\nAppended content: {args[1]}")
             elif operation == 'delete':
                 os.remove(args[0])
-                return True
+                conversation_thread.append(
+                    f"Delete file: {args[0]}\nSuccess: True")
             elif operation in ['rename', 'move']:
                 os.rename(args[0], args[1])
-                return True
+                conversation_thread.append(f"{operation.capitalize()} file from {
+                                           args[0]} to {args[1]}\nSuccess: True")
             elif operation == 'list_directory':
-                return os.listdir(args[0])
+                directory_contents = os.listdir(args[0])
+                conversation_thread.append(
+                    f"List directory: {args[0]}\nContents: {directory_contents}")
             elif operation == 'create_directory':
                 os.makedirs(args[0], exist_ok=True)
-                return True
+                conversation_thread.append(
+                    f"Create directory: {args[0]}\nSuccess: True")
             else:
                 raise ValueError(f"Unknown operation: {operation}")
+
+            return conversation_thread  # Return after successful operation
         except Exception as e:
             if attempt < max_attempts - 1:
                 time.sleep(delay)
                 delay *= 2  # Exponential backoff
             else:
-                print(f"Error performing {operation}: {str(e)}")
-                return False
+                error_message = f"Error performing {operation}: {str(e)}"
+                print(error_message)
+                conversation_thread.append(error_message)
+                return conversation_thread  # Return after all attempts failed
 
-    return False  # This line should never be reached, but it's here for completeness
+    # This line should never be reached, but it's here for completeness
+    return conversation_thread
