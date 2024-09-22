@@ -39,10 +39,10 @@ def get_current_branch(repo_path=None):
         os.chdir(original_dir)
 
 
-def get_off_dev_branch():
+def get_off_dev_and_project_branch():
     current_branch = get_current_branch()
-    if current_branch == 'dev':
-        new_slug = generate_slug(2)
+    if current_branch == 'dev' or current_branch.endswith('-project'):
+        new_slug = generate_slug(3)
         new_branch = f"avatar-of-{new_slug}"
 
         try:
@@ -73,16 +73,17 @@ def load_project_git(load_branch):
 
     for submodule in SUBMODULES:
         submodule_dir = os.path.join(MODULE_PATH, submodule)
+        print(submodule_dir)
         submodule_repo = get_repo(submodule)
         clone_url = submodule_repo.clone_url.replace(
             'https://', f'https://{GH_USERNAME}:{GH_PAT}@')
+        os.chdir(MODULE_PATH)
 
         if os.path.exists(submodule_dir):
             os.chdir(submodule_dir)
             subprocess.run(['git', 'fetch', 'origin'], check=True)
             subprocess.run(['git', 'checkout', load_branch], check=True)
             subprocess.run(['git', 'pull', 'origin', load_branch], check=True)
-            os.chdir(MODULE_PATH)
         else:
             subprocess.run(['git', 'clone', '-b', load_branch,
                            clone_url, submodule], check=True)
@@ -185,6 +186,12 @@ def avatar_commit_git():
 
 
 def avatar_submit_git(project_branch):
+    if (project_branch == "dev"):
+        print("`dev` is not a project")
+        return
+    if not project_branch.endswith('-project'):
+        project_branch = f"{project_branch}-project"
+
     repos = [ROOT_REPO] + SUBMODULES
     current_branch = get_current_branch()
 
@@ -224,7 +231,7 @@ def avatar_submit_git(project_branch):
                 gh_repo.merge(project_branch, current_branch, f"Merging {
                               current_branch} into {project_branch}")
                 print(f"{current_branch} opens {
-                      project_branch} project in {repo_name}")
+                      project_branch} in {repo_name}")
             except GithubException as e:
                 print(f"Error creating/merging branch in {repo_name}: {e}")
         else:
@@ -236,7 +243,7 @@ def avatar_submit_git(project_branch):
                 gh_repo.create_pull(
                     title=pr_title, body=pr_body, head=current_branch, base=project_branch)
                 print(f"{current_branch} submitted to {
-                      project_branch} project in {repo_name}")
+                      project_branch} in {repo_name}")
             except GithubException as e:
                 print(f"Error creating pull request in {repo_name}: {e}")
 

@@ -1,5 +1,5 @@
 from file_operations import load_initial_context, read_file, write_file
-from git_operations import get_off_dev_branch, load_project_git, avatar_commit_git, avatar_submit_git, get_current_branch
+from git_operations import get_off_dev_and_project_branch, load_project_git, avatar_commit_git, avatar_submit_git, get_current_branch
 from responseParser import parse_llm_response
 import sys
 import os
@@ -20,7 +20,7 @@ sys.path.append(user_site_packages)
 def main():
 
     print(f"\n@greatsun-dev reading you loud and clear")
-    get_off_dev_branch()
+    get_off_dev_and_project_branch()
     conversation_thread = load_initial_context()
     write_file("avatar/conversation_thread.txt", conversation_thread)
     print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
@@ -87,7 +87,8 @@ def main():
                     llm_response}"
 
                 # Process the LLM response
-                conversation_thread, developer_input_required, terminal_output = parse_llm_response(conversation_thread, llm_response)
+                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
+                    conversation_thread, llm_response)
 
                 print(terminal_output)
 
