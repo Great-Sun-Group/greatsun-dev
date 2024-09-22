@@ -5,9 +5,9 @@ __pycache__/
 # Exclude environment files
 .env
 .venv
+.gitmodules
 env/
 venv/
-.gitmodules
 
 # Exclude editor files
 .vscode/
