@@ -1,119 +1,54 @@
 # Current Project
 
-Set up the greatsun-dev environment for testing and deploying credex-core and credex-bot
+Finish setting up the greatsun-dev environment while releasing production ready mvps of credex-core and vimbiso-pay by 4am Atlantic time on Monday, in 25 hours.
 
 ## Overview
-The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development process and ensure efficient integration of these key components.
+The greatsun-dev environment is designed to facilitate rapid testing and deployment of credex-core and credex-bot. This setup aims to streamline the development and deployment of these services.
 
-## Components
+## Current State
+Greatsun-dev is running but not fully complete, and the clients are well built and tested, but have not yet connected together over the api since significant security upgrades.
 
-### 1. credex-core
-- Description: The core API for the credex ecosystem.
-- Technology: Express.js server
-- Key Features:
-  - RESTful API endpoints
-  - Database integration
-  - Authentication and authorization
-  - Transaction processing
+## Operational Pipeline
 
-### 2. vimbiso-pay
-- Description: A WhatsApp chatbot for user interactions
-- Technology: Python
+- Finish the core functionality of the greatsun-dev avatar: `engage`, `deploy stage`, `deploy prod`.
+- Hands-on confirmation that credex-core api is secure and responding to authorized calls.
+- Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
+#### up to here required by 4am Atlantic
 
-## Development Goals
-1. Set up a unified development environment that supports both JavaScript (Node.js) and Python.
-2. Implement a streamlined testing process for both components.
-3. Develop a deployment pipeline that ensures smooth updates to both credex-core and credex-bot.
-4. Create comprehensive documentation for the setup and maintenance of the greatsun-dev environment.
-
-
-
-
-7. Undo Operation: Consider adding an "undo" feature for the merge operation, in case the developer wants to revert the merge.
-
-8. Status Command: It might be helpful to have a command that shows the current status of all repositories (current branch, any uncommitted changes, etc.).
+- Finish the core functionality of the greatsun-dev avatar with: `stepback`
+- fix commit errors when branch doesn't exist in some repos.
+- add avatar clear and make avatar up more forgiving.
+- Auto-deploy for prod in the DCO.
+- Unit tests, integration tests, security tests
+- Extended transaction modeling and performance tests.
+- Web portal for customer service agents.
+- System dashboard to monitor activity and process alerts.
+- Initial data visualization and analytics.
+- Build out CI/CD pipeline
+- Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
 
 
+# Recommended Plan
 
+1. **Finish the core functionality of the greatsun-dev avatar (4 hours)**
+   - Implement the `avatar engage` command to start the submodule servers in development mode.
+   - Implement the `avatar deploy stage` command to deploy the 'dev' branches of the submodules to their respective 'stage' branches and staging servers.
+   - Implement the `avatar deploy prod` command to deploy the 'stage' branches of the submodules to their respective 'prod' branches, which are set to auto-deploy at midnight UTC daily.
 
-# Credex-Dev Next Steps Workplan
+2. **Secure and test credex-core API (8 hours)**
+   - Review and implement any necessary security upgrades to the credex-core API.
+   - Ensure that the API is responding to authorized calls from vimbiso-pay and other clients.
+   - Write and run comprehensive unit tests and integration tests for the API.
+   - Perform security testing (e.g., penetration testing, vulnerability scanning) on the API.
 
-## 1. Review and Test Changes
-- [x] Update Dockerfile to fix user creation issue
-- [x] Update init-environment.sh script
-- [ ] Create a new Codespace or set up local environment with updated files
-- [ ] Verify all services (credex-core, vimbiso-pay, greatsun-dev) start correctly
-- [ ] Test the integration of all components
+3. **Test and integrate vimbiso-pay with credex-core API (8 hours)**
+   - Update vimbiso-pay to integrate with the latest version of the credex-core API.
+   - Test the end-to-end flow of vimbiso-pay interacting with the API (e.g., sending requests, receiving responses, processing transactions).
+   - Perform load testing and stress testing on vimbiso-pay to ensure it can handle expected traffic and usage patterns.
+   - Conduct user acceptance testing (UAT) with a small group of users to identify and resolve any issues.
 
-## 2. Implement Core Functionality in main.py
-- [ ] Develop run_automated_tests() function
-  - [ ] Create tests for credex-core
-  - [ ] Create tests for vimbiso-pay
-  - [ ] Implement test runner
-- [ ] Implement analyze_data() function
-  - [ ] Define key metrics and data points
-  - [ ] Implement data collection methods
-  - [ ] Create basic analysis algorithms
-- [ ] Create simulate_transactions() function
-  - [ ] Define transaction models
-  - [ ] Implement transaction generation logic
-  - [ ] Create API call simulation
-
-## 3. Integrate with credex-core and vimbiso-pay
-- [ ] Update import statements in main.py
-- [ ] Implement secure communication between services
-- [ ] Create interfaces for interacting with credex-core and vimbiso-pay
-
-## 4. Enhance Security
-- [ ] Implement authentication mechanisms
-- [ ] Set up authorization for inter-service communication
-- [ ] Review and secure handling of sensitive information
-
-## 5. Expand Testing Capabilities
-- [ ] Add comprehensive test cases
-- [ ] Implement integration tests
-- [ ] Create performance tests
-
-## 6. Improve Data Analysis Features
-- [ ] Integrate data visualization libraries
-- [ ] Implement advanced analysis techniques
-- [ ] Create reporting functionality
-
-## 7. Refine Transaction Simulation
-- [ ] Develop realistic transaction scenarios
-- [ ] Implement error handling in simulations
-- [ ] Create logging and analysis for simulation results
-
-## 8. Documentation
-- [ ] Update README.md with detailed usage instructions
-- [ ] Add inline comments and function docstrings
-- [ ] Create API documentation if necessary
-
-## 9. Set up Continuous Integration
-- [ ] Configure CI/CD pipeline
-- [ ] Set up automated testing in CI
-- [ ] Implement automated deployment
-
-## 10. Review and Iterate
-- [ ] Conduct team review of greatsun-dev implementation
-- [ ] Gather feedback from users
-- [ ] Plan next iteration of improvements
-
-## 11. Additional Tasks
-- [ ] Update Node.js version in Dockerfile (current version 14.x is deprecated)
-- [ ] Review and update Python package versions in requirements.txt
-- [ ] Implement error handling and logging in init-environment.sh and start-services.sh
-- [ ] Create a troubleshooting guide for common setup issues
-
-## Notes
-- Prioritize tasks based on immediate project needs
-- Regularly commit changes and push to the repository
-- Keep all team members updated on progress and any roadblocks
-- Schedule regular check-ins to ensure the project is on track
-
-
-
-
-
-
-Add avatar summary of commit based on diff
+4. **Final testing and deployment (5 hours)**
+   - Perform final integration testing between credex-core and vimbiso-pay in a staging environment.
+   - Address any remaining issues or bugs identified during testing.
+   - Deploy the production-ready MVPs of credex-core and vimbiso-pay to the production environment.
+   - Monitor the production environment for any issues or errors after deployment.

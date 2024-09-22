@@ -1,155 +1,160 @@
-import re
 import os
-import logging
-from typing import Tuple, List
-from file_operations import FileOperationQueue, FileOperation
+import re
+import json
+from pathlib import Path
+from typing import Tuple, Dict, Any
+import shutil
 
-logger = logging.getLogger(__name__)
+BASE_DIR = Path('/workspaces/greatsun-dev')
 
 
-def parse_llm_response(conversation_thread: str, llm_response: str) -> Tuple[str, bool, str]:
-    file_op_queue = FileOperationQueue()
-    file_operation_performed = False
-    processed_response = []
-    terminal_output = []
+def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[bool, str]:
     patterns = {
-        'read': r'<read path=(?:")?([^">]+)(?:")? />',
-        'write': r'<write path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</write>',
-        'append': r'<append path=(?:")?([^">]+)(?:")?>([\s\S]*?)</append>',
-        'delete': r'<delete path=(?:")?([^">]+)(?:")? />',
-        'rename': r'<rename current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
-        'move': r'<move current_path=(?:")?([^">]+)(?:")? new_path=(?:")?([^">]+)(?:")? />',
-        'list_directory': r'<list_directory path=(?:")?([^">]+)(?:")? />',
-        'create_directory': r'<create_directory path=(?:")?([^">]+)(?:")? />'
+        'read': r'<read\s+path=(?:")?([^">]+)(?:")?\s*/>',
+        'write': r'<write\s+path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</write>',
+        'append': r'<append\s+path=(?:")?([^">]+)(?:")?>\s*([\s\S]*?)\s*</append>',
+        'delete': r'<delete\s+path=(?:")?([^">]+)(?:")?\s*/>',
+        'rename': r'<rename\s+current_path=(?:")?([^">]+)(?:")?(?:\s+new_path=(?:")?([^">]+)(?:")?)?\s*/>',
+        'move': r'<move\s+current_path=(?:")?([^">]+)(?:")?(?:\s+new_path=(?:")?([^">]+)(?:")?)?\s*/>',
+        'list_directory': r'<list_directory\s+path=(?:")?([^">]+)(?:")?\s*/>',
+        'create_directory': r'<create_directory\s+path=(?:")?([^">]+)(?:")?\s*/>'
     }
 
-    # Process file operations
-    for operation, pattern in patterns.items():
-        llm_response = process_operation(
-            pattern, operation, file_op_queue, terminal_output, llm_response)
+    file_operation_performed = False
 
-    # Process all queued operations
-    results = file_op_queue.process_queue()
-
-    for op, result in results.items():
-        if result is not False:
+    for op, pattern in patterns.items():
+        matches = re.findall(pattern, llm_response)
+        for match in matches:
             file_operation_performed = True
-            if op.operation == 'read':
-                conversation_thread += f"\n\n*** CONTENT OF {op.args[0]}: ***\n{result}"
-            else:
-                processed_response.append(format_operation_result(op, result))
+            if op in ['read', 'delete', 'list_directory', 'create_directory']:
+                path = match if isinstance(match, str) else match[0]
+                result = perform_file_operation(op, path)
+            elif op in ['write', 'append']:
+                path, content = match
+                result = perform_file_operation(op, path, content)
+            elif op in ['rename', 'move']:
+                current_path, new_path = match
+                result = perform_file_operation(
+                    op, current_path, new_path=new_path)
+            conversation_thread += f"Operation: {
+                op}\nArguments: {match}\nResult: {result}\n\n"
 
-    # Save action results to conversation thread
-    processed_response = '\n'.join(processed_response)
-    conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{llm_response}\n\n*** PROCESSED RESPONSE ***\n\n{processed_response}"
+    return not file_operation_performed, conversation_thread
 
-    # Add the modified LLM response (with placeholders) to terminal output
-    terminal_output.append(llm_response)
 
-    # Prepare terminal output
-    terminal_output = '\n'.join(terminal_output)
+def perform_file_operation(operation: str, path: str, content: str = None, new_path: str = None) -> str:
+    # If the path is absolute, use it as is. Otherwise, make it relative to BASE_DIR
+    full_path = Path(path) if Path(path).is_absolute() else BASE_DIR / path
 
-    logger.info(f"File operation performed: {file_operation_performed}")
-    logger.debug(f"Processed response:\n{processed_response}")
-    logger.debug(f"Terminal output:\n{terminal_output}")
-
-    return conversation_thread, file_operation_performed, terminal_output
-
-def process_operation(pattern: str, operation: str, file_op_queue: FileOperationQueue,
-                      terminal_output: List[str], llm_response: str) -> str:
-    def replace_func(match):
+    try:
         if operation == 'read':
-            path = os.path.abspath(match.group(1))
-            read_op = file_op_queue.add_operation('read', path)
-            for op in file_op_queue.queue:
-                if op.operation in ['write', 'append'] and op.args[0] == path:
-                    file_op_queue.add_dependency(read_op, op)
-            terminal_output.append(f"Reading file: {path}")
-            return f"<read path=\"{path}\" />"
+            with open(full_path, 'r') as file:
+                return f"File contents:\n{file.read()}"
+
         elif operation == 'write':
-            path, content = match.groups()
-            path = os.path.abspath(path)
-            file_op_queue.add_operation('write', path, content)
-            terminal_output.append(f"File written: {path}")
-            return f"<write path=\"{path}\">{content}</write>"
+            full_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(full_path, 'w') as file:
+                file.write(content)
+            return f"File written successfully: {full_path}"
+
         elif operation == 'append':
-            path, content = match.groups()
-            path = os.path.abspath(path)
-            file_op_queue.add_operation('append', path, content)
-            terminal_output.append(f"Content appended to: {path}")
-            return f"<append path=\"{path}\">{content}</append>"
+            with open(full_path, 'a') as file:
+                file.write(content)
+            return f"Content appended successfully to: {full_path}"
+
+
         elif operation == 'delete':
-            path = os.path.abspath(match.group(1))
-            file_op_queue.add_operation('delete', path)
-            terminal_output.append(f"File deleted: {path}")
-            return f"<delete path=\"{path}\" />"
-        elif operation in ['rename', 'move']:
-            current_path, new_path = match.groups()
-            current_path = os.path.abspath(current_path)
-            new_path = os.path.abspath(new_path)
-            file_op_queue.add_operation(operation, current_path, new_path)
-            terminal_output.append(f"File {operation}d from {current_path} to {new_path}")
-            return f"<{operation} current_path=\"{current_path}\" new_path=\"{new_path}\" />"
+            if full_path.is_file():
+                os.remove(full_path)
+                return f"File deleted successfully: {full_path}"
+            elif full_path.is_dir():
+                shutil.rmtree(full_path)
+                return f"Directory deleted successfully: {full_path}"
+            else:
+                return f"Path not found: {full_path}"
+
+        elif operation == 'rename' or operation == 'move':
+            new_full_path = Path(new_path) if Path(new_path).is_absolute() else BASE_DIR / new_path
+            new_full_path.parent.mkdir(parents=True, exist_ok=True)
+            shutil.move(full_path, new_full_path)
+            return f"{'Renamed' if operation == 'rename' else 'Moved'} successfully: {full_path} -> {new_full_path}"
+        
         elif operation == 'list_directory':
-            path = os.path.abspath(match.group(1))
-            file_op_queue.add_operation('list_directory', path)
-            terminal_output.append(f"Listing directory: {path}")
-            return f"<list_directory path=\"{path}\" />"
+            if full_path.is_dir():
+                return f"Directory contents of {full_path}:\n" + "\n".join(str(item) for item in full_path.iterdir())
+            else:
+                return f"Not a directory: {full_path}"
+        
         elif operation == 'create_directory':
-            path = os.path.abspath(match.group(1))
-            file_op_queue.add_operation('create_directory', path)
-            terminal_output.append(f"Directory created: {path}")
-            return f"<create_directory path=\"{path}\" />"
+            full_path.mkdir(parents=True, exist_ok=True)
+            return f"Directory created successfully: {full_path}"
+        
         else:
-            return match.group(0)
+            return f"Unknown operation: {operation}"
 
-    new_response = re.sub(pattern, replace_func, llm_response)
-    return new_response
+    except Exception as e:
+        return f"Error performing {operation} on {path}: {str(e)}"
 
+def get_directory_tree(path: Path) -> Dict[str, Any]:
+    tree = {}
+    excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes', '.env', '.coverage',
+        '*.pyc', '*.pyo', '*.whl', '*.egg', '*.log', '*.zip', '*.tar.gz', '*.rar', '*.db', '*.sqlite'}
+    excluded_dirs = {'__pycache__', '.git', '.svn', '.hg', 'node_modules', 'venv',
+        'env', 'build', 'dist', '.vscode', '.idea', 'tmp', 'temp', 'htmlcov'}
 
-def format_operation_result(op: FileOperation, result: str) -> str:
-    if op.operation == 'read':
-        return f"Content of {op.args[0]}:\n{result}"
-    elif op.operation == 'write':
-        return f"File written: {op.args[0]}\nContent:\n{op.args[1]}"
-    elif op.operation == 'append':
-        return f"Content appended to: {op.args[0]}\nAppended content:\n{op.args[1]}"
-    elif op.operation == 'delete':
-        return f"File deleted: {op.args[0]}"
-    elif op.operation in ['rename', 'move']:
-        return f"File {op.operation}d from {op.args[0]} to {op.args[1]}"
-    elif op.operation == 'list_directory':
-        return f"Contents of {op.args[0]}:\n{', '.join(result) if isinstance(result, list) else str(result)}"
-    elif op.operation == 'create_directory':
-        return f"Directory created: {op.args[0]}"
-    else:
-        return f"Unknown operation: {op.operation}"
+    try:
+        for entry in path.iterdir():
+            if entry.is_dir():
+                if entry.name in excluded_dirs or entry.name.endswith('.egg-info'):
+                    continue
+                subtree = get_directory_tree(entry)
+                if subtree:  # Only add non-empty directories
+                    tree[entry.name] = subtree
+            elif entry.is_file():
+                if any(entry.name.endswith(ext) for ext in excluded_files):
+                    continue
+                tree[entry.name] = None
+    except Exception as e:
+        print(f"Error getting directory tree for {path}: {str(e)}")
 
-
-def sanitize_path(path: str) -> str:
-    """Sanitize and normalize the given file path."""
-    return os.path.normpath(os.path.abspath(path))
-
-
-def is_path_allowed(path: str) -> bool:
-    """Check if the given path is within the allowed directory."""
-    allowed_dir = '/workspaces/greatsun-dev'
-    return os.path.commonpath([path, allowed_dir]) == allowed_dir
+    return tree
 
 
-def validate_file_operation(operation: str, path: str, new_path: str = None) -> bool:
-    """Validate file operations to ensure they're within allowed directories."""
-    path = sanitize_path(path)
-    if not is_path_allowed(path):
-        logger.warning(
-            f"Attempted operation outside allowed directory: {path}")
+def load_initial_context() -> str:
+    initial_context = [
+        read_file(BASE_DIR / "avatar/context/avatar_orientation.md"),
+        read_file(BASE_DIR / "avatar/utils/response_instructions.txt"),
+        f"\n\n*** README.md ***\n\n",
+        read_file(BASE_DIR / "README.md"),
+        f"\n\n*** credex-core/README.md ***\n\n",
+        read_file(BASE_DIR / "credex-ecosystem/credex-core/README.md"),
+        f"\n\n*** credex-ecosystem/vimbiso-pay/README.md ***\n\n",
+        read_file(BASE_DIR / "credex-ecosystem/vimbiso-pay/README.md"),
+        f"*** FULL DIRECTORY TREE ***\n\n",
+        json.dumps(get_directory_tree(BASE_DIR), indent=2),
+        f"\n\n*** avatar/context/current_project.md ***\n\n",
+        read_file(BASE_DIR / "avatar/context/current_project.md"),
+        f"\n\n*** MESSAGE FROM DEVELOPER @{
+            os.environ.get('GH_USERNAME')} ***\n\n",
+    ]
+    return ''.join(initial_context)
+
+
+def read_file(file_path: Path) -> str:
+    try:
+        return file_path.read_text()
+    except FileNotFoundError:
+        return f"File not found: {file_path}"
+    except Exception as e:
+        return f"Error reading file: {str(e)}"
+
+
+def write_file(file_path: Path, file_content: str) -> bool:
+    try:
+        file_path.parent.mkdir(parents=True, exist_ok=True)
+        with file_path.open('w') as file:
+            file.write(file_content)
+        return True
+    except Exception as e:
+        print(f"Error writing to file {file_path}: {str(e)}")
         return False
-
-    if new_path:
-        new_path = sanitize_path(new_path)
-        if not is_path_allowed(new_path):
-            logger.warning(
-                f"Attempted operation outside allowed directory: {new_path}")
-            return False
-
-    return True

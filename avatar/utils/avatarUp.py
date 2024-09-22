@@ -1,12 +1,13 @@
-from file_operations import load_initial_context, read_file, write_file
+from responseParser import parse_llm_response, load_initial_context, read_file, write_file
 from git_operations import get_off_dev_and_project_branch, load_project_git, avatar_commit_git, avatar_submit_git, get_current_branch
-from responseParser import parse_llm_response
+from constants import BASE_DIR
 import sys
 import os
+from pathlib import Path
 from anthropic import Anthropic
 import site
 
-SYSTEM_PROMPT = read_file("avatar/utils/response_instructions.txt")
+SYSTEM_PROMPT = read_file(BASE_DIR / "avatar/utils/response_instructions.txt")
 MAX_LLM_ITERATIONS = 14
 LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
 MODEL_NAME = "claude-3-sonnet-20240229"
@@ -18,11 +19,11 @@ sys.path.append(user_site_packages)
 
 
 def main():
-
     print(f"\n@greatsun-dev reading you loud and clear")
     get_off_dev_and_project_branch()
     conversation_thread = load_initial_context()
-    write_file("avatar/conversation_thread.txt", conversation_thread)
+    write_file(BASE_DIR / "avatar/conversation_thread.txt",
+               conversation_thread)
     print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
 
     while True:
@@ -30,7 +31,7 @@ def main():
 
         if terminal_input.lower() == "avatar up":
             conversation_thread = load_initial_context()
-            write_file("avatar/conversation_thread.txt",
+            write_file(BASE_DIR / "avatar/conversation_thread.txt",
                        conversation_thread)
             print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
             continue
@@ -59,11 +60,9 @@ def main():
             break
 
         # Add new terminal message to conversation
-        conversation_thread = read_file(
-            "avatar/conversation_thread.txt")
-        conversation_thread += f"\n\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n\n{
-            terminal_input}"
-        write_file("avatar/conversation_thread.txt",
+        conversation_thread += f"\n\n*** MESSAGE FROM DEVELOPER @{
+            GH_USERNAME} ***\n\n{terminal_input}"
+        write_file(BASE_DIR / "avatar/conversation_thread.txt",
                    conversation_thread)
 
         # START LLM LOOP, allow to run up to MAX_LLM_ITERATIONS iterations
@@ -84,33 +83,30 @@ def main():
                 )
                 llm_response = llm_call.content[0].text
                 conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
-                    llm_response}"
+                    llm_response}\n\n*** AUTOMATED RESPONSE TO ANY FILE OPERATIONS REQUESTED ***\n\n"
 
                 # Process the LLM response
-                conversation_thread, developer_input_required, terminal_output = parse_llm_response(
-                    conversation_thread, llm_response)
+                developer_input_required, updated_conversation_thread = parse_llm_response(
+                    llm_response, conversation_thread)
 
-                print(terminal_output)
+                # Update conversation_thread with the result from parse_llm_response
+                conversation_thread = updated_conversation_thread
+
+                # Write the updated conversation thread to file
+                write_file(BASE_DIR / "avatar/conversation_thread.txt",
+                           conversation_thread)
 
                 if developer_input_required:
                     print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***")
                     break
 
-            except anthropic.APIError as e:
-                print(f"Anthropic API error in LLM iteration {
-                    iteration + 1}: {str(e)}")
-                print(f"An error occurred with the Anthropic API in LLM iteration {
-                      iteration + 1}:")
-                print(str(e))
-                print("Please check the logs for more details.")
-                break
             except Exception as e:
-                print(f"Error in LLM iteration {
-                    iteration + 1}: {str(e)}")
-                print(f"An unexpected error occurred in LLM iteration {
-                      iteration + 1}:")
-                print(str(e))
+                print(f"Error in LLM iteration {iteration + 1}: {str(e)}")
                 print("Please check the logs for more details.")
+                conversation_thread += f"\n\nError in LLM iteration {
+                    iteration + 1}: {str(e)}"
+                write_file(BASE_DIR / "avatar/conversation_thread.txt",
+                           conversation_thread)
                 break
 
         else:
@@ -118,7 +114,7 @@ def main():
             final_response = "The LLM reached the maximum number of iterations without completing the task. Let's try again or consider rephrasing the request."
             print("LLM reached maximum iterations without completion")
             conversation_thread += f"\n\n{final_response}"
-            write_file("avatar/conversation_thread.txt",
+            write_file(BASE_DIR / "avatar/conversation_thread.txt",
                        conversation_thread)
             print(final_response)
 

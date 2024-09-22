@@ -5,7 +5,7 @@ import subprocess
 import time
 from github import Github, InputGitTreeElement, GithubException
 from coolname import generate_slug
-from file_operations import load_initial_context, write_file
+from responseParser import load_initial_context, write_file
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
@@ -42,8 +42,7 @@ def get_current_branch(repo_path=None):
 def get_off_dev_and_project_branch():
     current_branch = get_current_branch()
     if current_branch == 'dev' or current_branch.endswith('-project'):
-        new_slug = generate_slug(3)
-        new_branch = f"avatar-of-{new_slug}"
+        new_branch = f"{generate_slug(1)}-avatar-of-{generate_slug(2)}"
 
         try:
             subprocess.run(['git', 'checkout', '-b', new_branch],
@@ -68,6 +67,7 @@ def get_off_dev_and_project_branch():
 
 def load_project_git(load_branch):
     current_branch = get_current_branch()
+    print(current_branch)
     os.makedirs(MODULE_PATH, exist_ok=True)
     os.chdir(MODULE_PATH)
 
