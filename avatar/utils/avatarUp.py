@@ -14,6 +14,11 @@ from github import Github, GithubException
 from coolname import generate_slug
 from anthropic import Anthropic
 
+# For API communications between dev instances
+# Replace https://localhost:port with respective codespaces url for codespaces
+os.environ['CREDEX_CORE_API_URL'] = 'https://localhost:5000/api/v1 '
+os.environ['VIMBISO_PAY_API_URL'] = 'https://localhost:8000/??? '
+
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
