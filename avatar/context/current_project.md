@@ -11,6 +11,8 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 ## Operational Pipeline
 
 1. Finish the `avatar engage` functionality that fires up the submodules together.
+    - credex-core done
+    - next is vimbido-pay
 2. Hands-on confirmation that credex-core api is secure and responding to authorized calls.
 3. Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
 #### up to here required by 4am Atlantic
