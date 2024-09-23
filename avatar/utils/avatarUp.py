@@ -468,8 +468,29 @@ def main():
                 traceback.print_exc()
             continue
 
+
         if terminal_input.lower() == "avatar engage":
-            print("engaged placeholder")
+            # Change directory
+            os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
+
+            # Build Docker image
+            subprocess.run(['docker', 'build', '-t', 'credex-core', '.'], check=True)
+
+            # Run Docker container
+            env_vars = subprocess.check_output(
+                "env | grep -v ' '", shell=True).decode('utf-8')
+            docker_run_cmd = [
+                'docker', 'run',
+                '-p', '5000:5000',
+                '--env', f'NODE_ENV=development',
+                '--env-file', '/dev/stdin',
+                '--name', 'credex-core',
+                'credex-core'
+            ]
+
+            subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+            # Come back home
+            os.chdir('/workspaces/greatsun-dev/')
             continue
 
         if terminal_input.lower() == "avatar commit":
