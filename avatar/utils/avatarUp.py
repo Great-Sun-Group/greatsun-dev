@@ -470,13 +470,11 @@ def main():
 
 
         if terminal_input.lower() == "avatar engage":
-            # Change directory
+
+            # Fire up credex-core
+            '''
             os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
-
-            # Build Docker image
             subprocess.run(['docker', 'build', '-t', 'credex-core', '.'], check=True)
-
-            # Run Docker container
             env_vars = subprocess.check_output(
                 "env | grep -v ' '", shell=True).decode('utf-8')
             docker_run_cmd = [
@@ -487,10 +485,39 @@ def main():
                 '--name', 'credex-core',
                 'credex-core'
             ]
+            subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+            '''
+
+
+            # Change directory to vimbiso-pay/app
+            os.chdir('/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay/app')
+
+            # Remove any existing containers with the name "vimbiso-pay"
+            containers = subprocess.check_output(
+                ['docker', 'ps', '-q', '-a']).decode().strip().split('\n')
+            vimbiso_pay_container = [c for c in containers if 'vimbiso-pay' in subprocess.check_output(
+                ['docker', 'inspect', '--format', '{{.Name}}', c]).decode().strip()]
+            if vimbiso_pay_container:
+                subprocess.run(
+                    ['docker', 'rm', '-f', vimbiso_pay_container[0]], check=True)
+
+            # Build the Docker image
+            subprocess.run(['docker', 'build', '-t', 'vimbiso-pay', '.'], check=True)
+
+            # Run the Docker container
+            env_vars = subprocess.check_output(
+                "env | grep -v ' '", shell=True).decode('utf-8')
+            docker_run_cmd = [
+                'docker', 'run',
+                '-p', '8000:8000',
+                '--env-file', '/dev/stdin',
+                '--name', 'vimbiso-pay',
+                'vimbiso-pay',
+                'python', 'manage.py', 'runserver', '0.0.0.0:8000'
+            ]
 
             subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
-            # Come back home
-            os.chdir('/workspaces/greatsun-dev/')
+
             continue
 
         if terminal_input.lower() == "avatar commit":
