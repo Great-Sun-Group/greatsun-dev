@@ -13,9 +13,9 @@ docker build -t credex-core .
 docker run -p 5000:5000 --env NODE_ENV=development --env-file <(env | grep -v ' ') --name credex-core credex-core
 
 # Start vimbiso-pay
-echo "Starting vimbiso-pay..."
-cd /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay
-python manage.py runserver &chmod +x start_submodules.sh
+#echo "Starting vimbiso-pay..."
+#cd /workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay
+#python manage.py runserver &chmod +x start_submodules.sh
 
 # Go back home
 cd /workspaces/greatsun-dev
