@@ -328,6 +328,15 @@ def avatar_commit_git():
 
     # First, check for changes and store them
     for repo_name in repos:
+
+
+        # save a file in each repo so that the commit is tracked locally across all submodules
+        greatsun_devtracker = f"{current_branch}\n\n{full_commit_message}"
+        file_path = Path("greatsun-dev_tracker.txt")
+        write_file(file_path, greatsun_devtracker)
+        # Pause for a second to make sure the change registers for the commit
+        time.sleep(1)
+
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
             MODULE_PATH, repo_name)
         os.chdir(repo_path)
@@ -381,8 +390,8 @@ def avatar_commit_git():
 
 
 def avatar_submit_git(project_branch):
-    if (project_branch == "dev"):
-        print("`dev` is not a project")
+    if (project_branch == "dev" or project_branch == "stage" or project_branch == "prod"):
+        print("not authorized")
         return
     if not project_branch.endswith('-project'):
         project_branch = f"{project_branch}-project"
@@ -432,9 +441,8 @@ def avatar_submit_git(project_branch):
         else:
             # 2b. If yes, create a pull request to merge local_branch to project branch
             try:
-                pr_title = f"Merge {current_branch} into {project_branch}"
-                pr_body = f"Automated pull request to merge changes from {
-                    current_branch} into {project_branch}"
+                pr_title = f"{current_branch} by @{GH_USERNAME}"
+                pr_body = f"Add auto-summary here based on diff for {current_branch} --> {project_branch}"
                 gh_repo.create_pull(
                     title=pr_title, body=pr_body, head=current_branch, base=project_branch)
                 print(f"{current_branch} submitted to {
