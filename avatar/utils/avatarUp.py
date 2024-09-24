@@ -445,6 +445,53 @@ def avatar_submit_git(project_branch):
     os.chdir(ROOT_PATH)
 
 
+def start_servers():
+    # Remove any existing containers with the names "credex-core" or "vimbiso-pay"
+    containers = subprocess.check_output(
+        ['docker', 'ps', '-q', '-a']).decode().strip().split('\n')
+    for container in containers:
+        container_name = subprocess.check_output(
+            ['docker', 'inspect', '--format', '{{.Name}}', container]).decode().strip()
+        if 'credex-core' in container_name or 'vimbiso-pay' in container_name:
+            subprocess.run(['docker', 'rm', '-f', container], check=True)
+
+    # Fire up credex-core
+    os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
+    subprocess.run(['docker', 'build', '-t', 'credex-core', '.'], check=True)
+    env_vars = subprocess.check_output(
+        "env | grep -v ' '", shell=True).decode('utf-8')
+    docker_run_cmd = [
+        'docker', 'run',
+        '-d',  # Run in detached mode
+        '-p', '5000:5000',
+        '--env', f'NODE_ENV=development',
+        '--env-file', '/dev/stdin',
+        '--name', 'credex-core',
+        'credex-core'
+    ]
+    subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+
+    # Fire up vimbiso-pay
+    os.chdir('/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay')
+    subprocess.run(['docker', 'build', '-t', 'vimbiso-pay', '.'], check=True)
+    env_vars = "DJANGO_SETTINGS_MODULE=config.development\n"
+    env_vars += subprocess.check_output("env | grep -v ' '",
+                                        shell=True).decode('utf-8')
+    docker_run_cmd = [
+        'docker', 'run',
+        '-d',  # Run in detached mode
+        '-p', '8000:8000',
+        '--env-file', '/dev/stdin',
+        '--name', 'vimbiso-pay',
+        'vimbiso-pay',
+        'sh', '-c',
+        "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ]
+    subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+
+    print("credex ecosystem online in greatsun-dev")
+
+
 def main():
     print(f"\n@greatsun-dev reading you loud and clear")
     get_off_dev_and_project_branch()
@@ -475,54 +522,7 @@ def main():
 
 
         if terminal_input.lower() == "avatar engage":
-
-            # Fire up credex-core
-            '''
-            os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
-            subprocess.run(['docker', 'build', '-t', 'credex-core', '.'], check=True)
-            env_vars = subprocess.check_output(
-                "env | grep -v ' '", shell=True).decode('utf-8')
-            docker_run_cmd = [
-                'docker', 'run',
-                '-p', '5000:5000',
-                '--env', f'NODE_ENV=development',
-                '--env-file', '/dev/stdin',
-                '--name', 'credex-core',
-                'credex-core'
-            ]
-            subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
-            '''
-
-
-            # Change directory to vimbiso-pay/app
-            os.chdir('/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay/app')
-
-            # Remove any existing containers with the name "vimbiso-pay"
-            containers = subprocess.check_output(
-                ['docker', 'ps', '-q', '-a']).decode().strip().split('\n')
-            vimbiso_pay_container = [c for c in containers if 'vimbiso-pay' in subprocess.check_output(
-                ['docker', 'inspect', '--format', '{{.Name}}', c]).decode().strip()]
-            if vimbiso_pay_container:
-                subprocess.run(
-                    ['docker', 'rm', '-f', vimbiso_pay_container[0]], check=True)
-
-            # Build the Docker image
-            subprocess.run(['docker', 'build', '-t', 'vimbiso-pay', '.'], check=True)
-
-            # Run the Docker container
-            env_vars = subprocess.check_output(
-                "env | grep -v ' '", shell=True).decode('utf-8')
-            docker_run_cmd = [
-                'docker', 'run',
-                '-p', '8000:8000',
-                '--env-file', '/dev/stdin',
-                '--name', 'vimbiso-pay',
-                'vimbiso-pay',
-                'python', 'manage.py', 'runserver', '0.0.0.0:8000'
-            ]
-
-            subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
-
+            start_servers()
             continue
 
         if terminal_input.lower() == "avatar commit":
