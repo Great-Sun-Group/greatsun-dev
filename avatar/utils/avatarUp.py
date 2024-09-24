@@ -334,6 +334,8 @@ def avatar_commit_git():
         greatsun_devtracker = f"{current_branch}\n\n{full_commit_message}"
         file_path = Path("greatsun-dev_tracker.txt")
         write_file(file_path, greatsun_devtracker)
+        # Pause for a second to make sure the change registers for the commit
+        time.sleep(1)
 
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
             MODULE_PATH, repo_name)
