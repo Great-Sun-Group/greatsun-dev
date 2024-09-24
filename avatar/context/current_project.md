@@ -21,14 +21,16 @@ Test all main member action flows with simulation scripts.
    - Implement proper display and handling of interactive messages (e.g., buttons, list options).
    - Ensure that user responses to interactive messages are correctly processed.
 
-- Currently experiencing issues in the VimbisoPay Terminal simulator, specifically in the files:
-   - `/workspaces/vimbiso-pay/app/core/api/tests/VimbisoPay_Terminal.py`
-   - `/workspaces/vimbiso-pay/app/core/api/api_interactions.py`
-   - Error Handling:
-      - The script is not gracefully handling API errors, leading to unhandled exceptions.
-   - Missing Attribute:
-      - AttributeError: 'CredexBotService' object has no attribute 'utils'.
-   - To focus on:
-      - Improving error handling in the `refresh_member_info` and `_process_api_response` methods in `api_interactions.py`.
-      - Adding the missing 'utils' attribute to the CredexBotService class or removing references to it.
-      - Implementing proper message routing and handling for specific user inputs in `VimbisoPay_Terminal.py`.
+- Fix issues in the VimbisoPay Terminal simulator:
+   - Improve error handling in the `refresh_member_info` and `_process_api_response` methods in `api_interactions.py`.
+   - Add the missing 'utils' attribute to the CredexBotService class or remove references to it.
+   - Implement proper message routing and handling for specific user inputs in `VimbisoPay_Terminal.py`.
+
+- Set up Development Environment:
+   - Ensure that the `vimbiso-pay` and `credex-core` submodules are properly set up and running in dev mode.
+   - Configure the `VIMBISO_PAY_API_URL` constant in `api_interactions.py` to point to the correct local development server URL.
+
+- Testing:
+   - Write unit tests for the `APIInteractions` class to ensure that the API interactions are working correctly.
+   - Test the `vimbisopay_terminal.py` script by running it and simulating different user inputs and actions.
+   - Verify that the script is able to communicate with the `vimbiso-pay` submodule and retrieve the expected data from the `credex-core` submodule.
