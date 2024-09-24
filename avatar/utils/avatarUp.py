@@ -329,9 +329,11 @@ def avatar_commit_git():
     # First, check for changes and store them
     for repo_name in repos:
 
+
         # save a file in each repo so that the commit is tracked locally across all submodules
         greatsun_devtracker = f"{current_branch}\n\n{full_commit_message}"
-        write_file("greatsun-dev_tracker.txt", greatsun_devtracker)
+        file_path = Path("greatsun-dev_tracker.txt")
+        write_file(file_path, greatsun_devtracker)
 
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
             MODULE_PATH, repo_name)
