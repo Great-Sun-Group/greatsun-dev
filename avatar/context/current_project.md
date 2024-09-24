@@ -10,13 +10,6 @@ Greatsun-dev container mostly operational, avatar script still buggy. Submodule 
 
 Test all main member action flows with simulation scripts.
 
-- First finish core avatar functions and suppress and conversationalize terminal messages except errors on:
-    - `avatar engage`
-    - `avatar load`
-    - `avatar commit`
-    - `avatar submit`
-
-
 - Move simulation scripts from vimbiso-pay to greatsun-dev
 
 - Test WhatsApp Simulation Interface

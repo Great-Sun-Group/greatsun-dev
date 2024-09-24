@@ -68,7 +68,19 @@ def write_file(file_path: Path, file_content: str) -> bool:
         print(f"Error writing to file {file_path}: {str(e)}")
         return False
 
+
 # LLM response parsing and file operations
+def llm_response_for_developer(llm_response: str) -> str:
+    patterns = {
+        'write': r'(<write\s+path=(?:")?[^">]+(?:")?>\s*)([\s\S]*?)(\s*</write>)',
+        'append': r'(<append\s+path=(?:")?[^">]+(?:")?>\s*)([\s\S]*?)(\s*</append>)'
+    }
+
+    for op, pattern in patterns.items():
+        llm_response = re.sub(
+            pattern, r'\1[file contents here]\3', llm_response)
+
+    return llm_response
 
 
 def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[bool, str]:
@@ -85,7 +97,6 @@ def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[boo
 
     file_operation_performed = False
 
-
     for op, pattern in patterns.items():
         matches = re.findall(pattern, llm_response)
         for match in matches:
@@ -100,8 +111,8 @@ def parse_llm_response(llm_response: str, conversation_thread: str) -> Tuple[boo
                 current_path, new_path = match
                 result = perform_file_operation(
                     op, current_path, new_path=new_path)
-            conversation_thread += f"Operation: {
-                op}\nArguments: {match}\nResult: {result}\n\n"
+            conversation_thread += f"Operation: {op}\nArguments: {match}\nResult: {result}\n\n"
+            print(f"Operation: {op}\nResult: {result}\n\n")
 
     return not file_operation_performed, conversation_thread
 
@@ -148,9 +159,6 @@ def perform_file_operation(operation: str, path: str, content: str = None, new_p
     except Exception as e:
         return f"Error performing {operation} on {path}: {str(e)}"
 
-# Directory tree generation
-
-
 def get_directory_tree(path: Path) -> Dict[str, Any]:
     tree = {}
     excluded_files = {'.DS_Store', 'Thumbs.db', '.gitignore', '.gitattributes', '.env', '.coverage',
@@ -176,8 +184,6 @@ def get_directory_tree(path: Path) -> Dict[str, Any]:
     return tree
 
 # Context loading
-
-
 def load_initial_context() -> str:
     initial_context = [
         read_file(BASE_DIR / "avatar/context/avatar_orientation.md"),
@@ -481,7 +487,7 @@ def main():
     get_off_dev_and_project_branch()
     conversation_thread = read_file(
         BASE_DIR / "avatar/conversation_thread.txt")
-    print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
+    print(f"\n\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
 
     while True:
         terminal_input = input().strip()
@@ -490,7 +496,7 @@ def main():
             conversation_thread = load_initial_context()
             write_file(BASE_DIR / "avatar/conversation_thread.txt",
                        conversation_thread)
-            print(f"*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
+            print(f"\n\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
             continue
 
         if terminal_input.lower() == "avatar load":
@@ -524,8 +530,7 @@ def main():
             break
 
         # Add new terminal message to conversation
-        conversation_thread += f"\n\n*** MESSAGE FROM DEVELOPER @{
-            GH_USERNAME} ***\n\n{terminal_input}"
+        conversation_thread += f"{terminal_input}"
         write_file(BASE_DIR / "avatar/conversation_thread.txt",
                    conversation_thread)
 
@@ -533,8 +538,7 @@ def main():
         for iteration in range(MAX_LLM_ITERATIONS):
             try:
                 llm_message = conversation_thread
-                print(f"avatar iteration {
-                      iteration + 1} of up to {MAX_LLM_ITERATIONS}")
+                print(f"\n\n*** AVATAR RESPONSE {iteration + 1} OF UP TO {MAX_LLM_ITERATIONS} ***\n")
 
 
                 llm_call = LARGE_LANGUAGE_MODEL.messages.create(
@@ -551,6 +555,10 @@ def main():
                 conversation_thread += f"\n\n*** LLM RESPONSE ***\n\n{
                     llm_response}\n\n*** AUTOMATED RESPONSE TO ANY FILE OPERATIONS REQUESTED ***\n\n"
 
+                # Trim the file contents out of the response and print the rest for the developer
+                llm_for_developer = llm_response_for_developer(llm_response)
+                print(llm_for_developer)
+
                 # Process the LLM response
                 developer_input_required, updated_conversation_thread = parse_llm_response(
                     llm_response, conversation_thread)
@@ -563,7 +571,9 @@ def main():
                            conversation_thread)
 
                 if developer_input_required:
-                    print(f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***")
+                    conversation_thread += f"\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n"
+                    write_file(BASE_DIR / "avatar/conversation_thread.txt", conversation_thread)
+                    print(f"\n\n*** MESSAGE FROM DEVELOPER @{GH_USERNAME} ***\n")
                     break
 
             except Exception as e:

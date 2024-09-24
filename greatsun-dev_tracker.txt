@@ -1,5 +1,5 @@
-avatar-pink-elephant
+avatar-splendid-skua
 
-trying that again
+terminal output functioning
 
-Commit-ID: 2d0cc16c-413b-49de-bfb1-803f4503093b
+Commit-ID: 2336ea10-29ba-466c-8efa-1de6057a570b
