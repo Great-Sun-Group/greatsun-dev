@@ -2750,4 +2750,4 @@ Please let me know if the issue is resolved or if you encounter any further prob
 
 docker ps -q -a | xargs -I {} docker inspect --format '{{.Name}}' {} | grep vimbiso-pay | xargs -I {} docker rm -f {}
 docker build -t vimbiso-pay .
-env | grep -v ' ' | docker run -i -p 8000:8000 --env-file /dev/stdin --name vimbiso-pay vimbiso-pay python manage.py runserver 0.0.0.0:8000
+echo "DJANGO_SETTINGS_MODULE=config.development" | cat - <(env | grep -v ' ') | docker run -i -p 8000:8000 --env-file /dev/stdin --name vimbiso-pay vimbiso-pay sh -c "ls -la /app && whoami && python manage.py migrate && python manage.py runserver 0.0.0.0:8000"

@@ -65,6 +65,9 @@ This will technically give the avatar that you connect with access to all your g
 
 Refer to the `.env.example` file in the root directory for a template of these environment variables. Remember to never commit your actual `.env` file with real values to version control.
 
+## Config in Avatar Files
+add info
+
 ## Environment setup
 
 ### For Codespaces
