@@ -317,70 +317,46 @@ def has_staged_changes(repo_path):
 
 def avatar_commit_git():
     commit_message = input("Enter commit message: ")
-    changes_found = False
     commit_id = str(uuid.uuid4())
     full_commit_message = f"{commit_message}\n\nCommit-ID: {commit_id}"
 
     repos = [ROOT_REPO] + SUBMODULES
-    repo_changes = {}
-
     current_branch = get_current_branch()
 
-    # First, check for changes and store them
     for repo_name in repos:
-
-
-        # save a file in each repo so that the commit is tracked locally across all submodules
-        greatsun_devtracker = f"{current_branch}\n\n{full_commit_message}"
-        file_path = Path("greatsun-dev_tracker.txt")
-        write_file(file_path, greatsun_devtracker)
-        # Pause for a second to make sure the change registers for the commit
-        time.sleep(1)
-
         repo_path = ROOT_PATH if repo_name == ROOT_REPO else os.path.join(
             MODULE_PATH, repo_name)
         os.chdir(repo_path)
 
-        if has_staged_changes(repo_path):
-            changes_found = True
-            repo_changes[repo_name] = repo_path
+        # Save a simple file in each repo
+        greatsun_devtracker = f"{current_branch}\n\n{full_commit_message}"
+        file_path = Path("greatsun-dev_tracker.txt")
+        with open(file_path, 'w') as f:
+            f.write(greatsun_devtracker)
 
-            # If it's a submodule, check if the branch exists and create it if it doesn't
-            if repo_name != ROOT_REPO:
-                try:
-                    subprocess.run(['git', 'rev-parse', '--verify', current_branch],
-                                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-                except subprocess.CalledProcessError:
-                    # Branch doesn't exist, so create it
-                    subprocess.run(
-                        ['git', 'checkout', '-b', current_branch], check=True)
-                    print(f"Created and switched to branch {
-                          current_branch} in {repo_name}")
-                else:
-                    # Branch exists, so just switch to it
-                    subprocess.run(
-                        ['git', 'checkout', current_branch], check=True)
-                    print(f"Switched to existing branch {
-                          current_branch} in {repo_name}")
+        # Stage the file
+        subprocess.run(['git', 'add', str(file_path)], check=True)
 
-    if not changes_found:
-        print("No changes to commit in any repository.")
-        return
-
-    # If changes are found, commit them with the same message and timestamp
-    commit_timestamp = int(time.time())
-    for repo_name, repo_path in repo_changes.items():
-        os.chdir(repo_path)
-
-        # Set the commit timestamp
-        os.environ['GIT_AUTHOR_DATE'] = str(commit_timestamp)
-        os.environ['GIT_COMMITTER_DATE'] = str(commit_timestamp)
-
+        # Check if the branch exists, create it if it doesn't
         try:
-            # Commit the changes
+            subprocess.run(['git', 'rev-parse', '--verify', current_branch],
+                           check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except subprocess.CalledProcessError:
+            # Branch doesn't exist, so create it
             subprocess.run(
-                ['git', 'commit', '-m', full_commit_message], check=True, env=os.environ)
+                ['git', 'checkout', '-b', current_branch], check=True)
+            print(f"Created and switched to branch {
+                  current_branch} in {repo_name}")
+        else:
+            # Branch exists, so just switch to it
+            subprocess.run(['git', 'checkout', current_branch], check=True)
+            print(f"Switched to existing branch {
+                  current_branch} in {repo_name}")
 
+        # Commit the changes
+        try:
+            subprocess.run(
+                ['git', 'commit', '-m', full_commit_message], check=True)
             print(f"Changes committed locally in {
                   repo_name} on {current_branch}")
         except subprocess.CalledProcessError as e:
