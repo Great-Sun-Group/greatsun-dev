@@ -271,7 +271,7 @@ Controllers for the endpoints are imported, and endpoints created for the variou
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/Credex/credex-core.git
+   git clone https://github.com/Great-Sun-Group/credex-core.git
    ```
 
 2. Open the project in Visual Studio Code.
@@ -310,13 +310,17 @@ To set up your development environment, you'll need to configure the following e
 
 ### These secrets must be added to your environment
 
-4. NEO4J_LEDGER_SPACE_BOLT_URL, NEO4J_LEDGER_SPACE_USER, NEO4J_LEDGER_SPACE_PASS:
+4. NEO4J_LEDGER_SPACE_BOLT_URL,
+   NEO4J_LEDGER_SPACE_USER,
+   NEO4J_LEDGER_SPACE_PASS
 
    - Sign up for a free Neo4j Aura account at https://neo4j.com/cloud/aura/
    - Create a new database instance for ledgerSpace
    - Use the provided connection details to fill in these variables
 
-5. NEO4J_SEARCH_SPACE_BOLT_URL, NEO4J_SEARCH_SPACE_USER, NEO4J_SEARCH_SPACE_PASS:
+5. NEO4J_SEARCH_SPACE_BOLT_URL,
+   NEO4J_SEARCH_SPACE_USER,
+   NEO4J_SEARCH_SPACE_PASS
 
    - Create a second Neo4j Aura account using a different email address and create a new database instance for searchSpace
 
@@ -363,29 +367,6 @@ To set up your development environment, you'll need to configure the following e
 ## Project structure and code summary
 
 For a detailed overview of the codebase, including function and class definitions, please refer to the [Code Summary](docs/code_summary.md). This summary is particularly useful for AI context and assists in understanding the overall structure and key components of the project.
-
-```
-credex-core/
-├── .githooks/             # Git hooks scripts
-├── .vscode/               # VS Code configuration files
-├── build/                 # Compiled output
-├── config/                # Configuration files
-├── docs/                  # Documentation files
-├── src/                   # Source code
-│   ├── api/               # API-related code
-│   │   ├── Account/       # Account-related endpoints and services
-│   │   ├── AdminDashboard/# Admin dashboard endpoints and services
-│   │   ├── Avatar/        # Avatar-related endpoints and services
-│   │   ├── Credex/        # Credex-related endpoints and services
-│   │   └── Member/        # Member-related endpoints and services
-│   ├── constants/         # Constant values used across the application
-│   ├── core-cron/         # Core cron jobs (DCO and MTQ)
-│   │   ├── DCO/           # Daily Credcoin Offering related code
-│   │   └── MTQ/           # Minute Transaction Queue related code
-│   ├── middleware/        # Express middleware
-│   ├── tests/             # Test files
-│   └── utils/             # Utility functions and helpers
-```
 
 ## Contributing
 
@@ -777,16 +758,14 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 ## Operational Pipeline
 
-1. Finish the `avatar engage` functionality that fires up the submodules together.
-    - credex-core done
-    - next is vimbido-pay
-2. Hands-on confirmation that credex-core api is secure and responding to authorized calls.
-3. Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
-#### up to here required by 4am Atlantic
+1. Hands-on confirmation that credex-core api is secure and responding to authorized calls.
+2. Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
+3. Automated extended patterns of call to the whatsapp bot to test functionality across the system.
 
-- Finish the core functionality of the greatsun-dev avatar with: `stepback`
+
+- Finish the core functionality of the greatsun-dev avatar
 - fix commit errors when branch doesn't exist in some repos.
-- Auto-deploy for prod in the DCO.
+- Auto-deploy happens in prod in the DCO.
 - Unit tests, integration tests, security tests
 - Extended transaction modeling and performance tests.
 - Web portal for customer service agents.
@@ -794,9 +773,6 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 - Initial data visualization and analytics.
 - Build out CI/CD pipeline
 - Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
-
-
-
 
 
 2. Test WhatsApp Simulation Interface
@@ -808,29 +784,19 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
    - Implement proper display and handling of interactive messages (e.g., buttons, list options).
    - Ensure that user responses to interactive messages are correctly processed.
 
-
-
-
-   # VimbisoPay Terminal Simulator Issues and Next Steps
+# VimbisoPay Terminal Simulator Issues and Next Steps
 
 ## Current State
 We are working on fixing issues in the VimbisoPay Terminal simulator, specifically in the files:
-- `/workspaces/credex-bot/app/core/api/tests/VimbisoPay_Terminal.py`
-- `/workspaces/credex-bot/app/core/api/api_interactions.py`
+- `/workspaces/vimbiso-pay/app/core/api/tests/VimbisoPay_Terminal.py`
+- `/workspaces/vimbiso-pay/app/core/api/api_interactions.py`
 
-## Identified Issues
-1. API Connection Problems:
-   - Receiving 400 and 502 status codes when trying to connect to the API.
-   - The API endpoint might be incorrect or not responding.
 
 2. Error Handling:
    - The script is not gracefully handling API errors, leading to unhandled exceptions.
 
 3. Missing Attribute:
    - AttributeError: 'CredexBotService' object has no attribute 'utils'.
-
-4. Message Handling:
-   - The bot is not recognizing user inputs like "I want to use Credex" and "Yes I agree to the terms and conditions".
 
 5. Authentication:
    - There are authentication issues that require updating the environment variables.
@@ -845,14 +811,6 @@ We are working on fixing issues in the VimbisoPay Terminal simulator, specifical
    - Adding the missing 'utils' attribute to the CredexBotService class or removing references to it.
    - Implementing proper message routing and handling for specific user inputs in `VimbisoPay_Terminal.py`.
 
-3. Test the simulator with various inputs to ensure all issues are resolved.
-
-4. If problems persist, we may need to:
-   - Debug the API connection issues further.
-   - Review and possibly update the CredexBotService implementation.
-   - Ensure all necessary dependencies and imports are correctly set up.
-
-Remember to test thoroughly after each change to ensure no new issues are introduced while fixing the existing ones.
 
 *** MESSAGE FROM DEVELOPER @ryanlukewatson ***
 
