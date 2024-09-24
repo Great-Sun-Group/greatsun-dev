@@ -8,4 +8,5 @@
 
 
 - Have `avatar submit` exclude submodules where the only changes are in the greatsun-dev_tracker.txt, and delete or mark those branches as orphaned.
+- get the cross-repo commit tracker file stored in greatsun-dev to be commited with the commit rather than updated after
 - Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
