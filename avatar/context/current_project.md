@@ -10,16 +10,14 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 
 ## Operational Pipeline
 
-1. Finish the `avatar engage` functionality that fires up the submodules together.
-    - credex-core done
-    - next is vimbido-pay
-2. Hands-on confirmation that credex-core api is secure and responding to authorized calls.
-3. Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
-#### up to here required by 4am Atlantic
+1. Hands-on confirmation that credex-core api is secure and responding to authorized calls.
+2. Hands-on confirmation that vimbiso-pay is working as expected and processing reponses from the API appropriately.
+3. Automated extended patterns of call to the whatsapp bot to test functionality across the system.
 
-- Finish the core functionality of the greatsun-dev avatar with: `stepback`
+
+- Finish the core functionality of the greatsun-dev avatar
 - fix commit errors when branch doesn't exist in some repos.
-- Auto-deploy for prod in the DCO.
+- Auto-deploy happens in prod in the DCO.
 - Unit tests, integration tests, security tests
 - Extended transaction modeling and performance tests.
 - Web portal for customer service agents.
@@ -27,9 +25,6 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
 - Initial data visualization and analytics.
 - Build out CI/CD pipeline
 - Add an avatar-generated summary of every merge to project and merge to dev based on the diff.
-
-
-
 
 
 2. Test WhatsApp Simulation Interface
@@ -41,29 +36,19 @@ Greatsun-dev is running but not fully complete, and the clients are well built a
    - Implement proper display and handling of interactive messages (e.g., buttons, list options).
    - Ensure that user responses to interactive messages are correctly processed.
 
-
-
-
-   # VimbisoPay Terminal Simulator Issues and Next Steps
+# VimbisoPay Terminal Simulator Issues and Next Steps
 
 ## Current State
 We are working on fixing issues in the VimbisoPay Terminal simulator, specifically in the files:
-- `/workspaces/credex-bot/app/core/api/tests/VimbisoPay_Terminal.py`
-- `/workspaces/credex-bot/app/core/api/api_interactions.py`
+- `/workspaces/vimbiso-pay/app/core/api/tests/VimbisoPay_Terminal.py`
+- `/workspaces/vimbiso-pay/app/core/api/api_interactions.py`
 
-## Identified Issues
-1. API Connection Problems:
-   - Receiving 400 and 502 status codes when trying to connect to the API.
-   - The API endpoint might be incorrect or not responding.
 
 2. Error Handling:
    - The script is not gracefully handling API errors, leading to unhandled exceptions.
 
 3. Missing Attribute:
    - AttributeError: 'CredexBotService' object has no attribute 'utils'.
-
-4. Message Handling:
-   - The bot is not recognizing user inputs like "I want to use Credex" and "Yes I agree to the terms and conditions".
 
 5. Authentication:
    - There are authentication issues that require updating the environment variables.
@@ -77,12 +62,3 @@ We are working on fixing issues in the VimbisoPay Terminal simulator, specifical
    - Improving error handling in the `refresh_member_info` and `_process_api_response` methods in `api_interactions.py`.
    - Adding the missing 'utils' attribute to the CredexBotService class or removing references to it.
    - Implementing proper message routing and handling for specific user inputs in `VimbisoPay_Terminal.py`.
-
-3. Test the simulator with various inputs to ensure all issues are resolved.
-
-4. If problems persist, we may need to:
-   - Debug the API connection issues further.
-   - Review and possibly update the CredexBotService implementation.
-   - Ensure all necessary dependencies and imports are correctly set up.
-
-Remember to test thoroughly after each change to ensure no new issues are introduced while fixing the existing ones.
