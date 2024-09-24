@@ -14,6 +14,11 @@ from github import Github, GithubException
 from coolname import generate_slug
 from anthropic import Anthropic
 
+# For API communications between dev instances
+# Replace https://localhost:port with respective codespaces url for codespaces
+os.environ['CREDEX_CORE_API_URL'] = 'https://localhost:5000/api/v1 '
+os.environ['VIMBISO_PAY_API_URL'] = 'https://localhost:8000/??? '
+
 # Add user site-packages to Python path
 user_site_packages = site.getusersitepackages()
 sys.path.append(user_site_packages)
@@ -243,42 +248,54 @@ def get_off_dev_and_project_branch():
 
 def load_project_git(load_branch):
     current_branch = get_current_branch()
-    print(current_branch)
+    print(f"Current branch: {current_branch}")
     os.makedirs(MODULE_PATH, exist_ok=True)
-    os.chdir(MODULE_PATH)
+    os.chdir(ROOT_PATH)
+
+    # Recreate .gitmodules file
+    gitmodules_path = os.path.join(ROOT_PATH, '.gitmodules')
+    print("Recreating .gitmodules file")
+    with open(gitmodules_path, 'w') as f:
+        for submodule in SUBMODULES:
+            f.write(f"[submodule \"credex-ecosystem/{submodule}\"]\n")
+            f.write(f"\tpath = credex-ecosystem/{submodule}\n")
+            f.write(
+                f"\turl = https://github.com/Great-Sun-Group/{submodule}.git\n\n")
+
+    # Remove existing submodules
+    subprocess.run(['git', 'submodule', 'deinit', '-f', '--all'], check=True)
+
+    # Initialize submodules
+    subprocess.run(['git', 'submodule', 'init'], check=True)
 
     for submodule in SUBMODULES:
         submodule_dir = os.path.join(MODULE_PATH, submodule)
-        print(submodule_dir)
+        print(f"Processing submodule: {submodule}")
         submodule_repo = get_repo(submodule)
         clone_url = submodule_repo.clone_url.replace(
             'https://', f'https://{GH_USERNAME}:{GH_PAT}@')
-        os.chdir(MODULE_PATH)
 
         if os.path.exists(submodule_dir):
-            os.chdir(submodule_dir)
-            subprocess.run(['git', 'fetch', 'origin'], check=True)
-            subprocess.run(['git', 'checkout', load_branch], check=True)
-            subprocess.run(['git', 'pull', 'origin', load_branch], check=True)
-        else:
-            subprocess.run(['git', 'clone', '-b', load_branch,
-                           clone_url, submodule], check=True)
+            shutil.rmtree(submodule_dir)
+
+        print(f"Cloning {submodule}...")
+        os.chdir(MODULE_PATH)
+        subprocess.run(['git', 'clone', '-b', load_branch,
+                       clone_url, submodule], check=True)
+
+        os.chdir(submodule_dir)
+        subprocess.run(['git', 'checkout', load_branch], check=True)
+        subprocess.run(['git', 'pull', 'origin', load_branch], check=True)
 
         print(f"Updated {submodule}")
         os.chdir(ROOT_PATH)
 
-    for submodule in SUBMODULES:
-        submodule_dir = os.path.join(MODULE_FOLDER, submodule)
-        subprocess.run(['git', 'add', submodule_dir], check=True)
-
-    subprocess.run(
-        ['git', 'commit', '-m', f"Update submodules to latest dev"], check=True)
-    subprocess.run(['git', 'push', 'origin', current_branch], check=True)
+    print(f"Submodules synced to {load_branch}")
 
     conversation_thread = load_initial_context()
     write_file(BASE_DIR / "avatar/conversation_thread.txt",
                conversation_thread)
-    print(f"{current_branch} synced to {load_branch} across repos")
+    print(f"Submodules in {current_branch} synced to {load_branch}")
 
 
 def has_staged_changes(repo_path):
@@ -428,6 +445,53 @@ def avatar_submit_git(project_branch):
     os.chdir(ROOT_PATH)
 
 
+def start_servers():
+    # Remove any existing containers with the names "credex-core" or "vimbiso-pay"
+    containers = subprocess.check_output(
+        ['docker', 'ps', '-q', '-a']).decode().strip().split('\n')
+    for container in containers:
+        container_name = subprocess.check_output(
+            ['docker', 'inspect', '--format', '{{.Name}}', container]).decode().strip()
+        if 'credex-core' in container_name or 'vimbiso-pay' in container_name:
+            subprocess.run(['docker', 'rm', '-f', container], check=True)
+
+    # Fire up credex-core
+    os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
+    subprocess.run(['docker', 'build', '-t', 'credex-core', '.'], check=True)
+    env_vars = subprocess.check_output(
+        "env | grep -v ' '", shell=True).decode('utf-8')
+    docker_run_cmd = [
+        'docker', 'run',
+        '-d',  # Run in detached mode
+        '-p', '5000:5000',
+        '--env', f'NODE_ENV=development',
+        '--env-file', '/dev/stdin',
+        '--name', 'credex-core',
+        'credex-core'
+    ]
+    subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+
+    # Fire up vimbiso-pay
+    os.chdir('/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay')
+    subprocess.run(['docker', 'build', '-t', 'vimbiso-pay', '.'], check=True)
+    env_vars = "DJANGO_SETTINGS_MODULE=config.development\n"
+    env_vars += subprocess.check_output("env | grep -v ' '",
+                                        shell=True).decode('utf-8')
+    docker_run_cmd = [
+        'docker', 'run',
+        '-d',  # Run in detached mode
+        '-p', '8000:8000',
+        '--env-file', '/dev/stdin',
+        '--name', 'vimbiso-pay',
+        'vimbiso-pay',
+        'sh', '-c',
+        "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+    ]
+    subprocess.run(docker_run_cmd, input=env_vars.encode(), check=True)
+
+    print("credex ecosystem online in greatsun-dev")
+
+
 def main():
     print(f"\n@greatsun-dev reading you loud and clear")
     get_off_dev_and_project_branch()
@@ -447,11 +511,18 @@ def main():
 
         if terminal_input.lower() == "avatar load":
             load_branch = input("Project branch or `dev`: ")
-            load_project_git(load_branch)
+            try:
+                load_project_git(load_branch)
+            except Exception as e:
+                print(f"Error loading project: {str(e)}")
+                print("Traceback:")
+                import traceback
+                traceback.print_exc()
             continue
 
+
         if terminal_input.lower() == "avatar engage":
-            print("engaged placeholder")
+            start_servers()
             continue
 
         if terminal_input.lower() == "avatar commit":

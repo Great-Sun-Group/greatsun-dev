@@ -1,0 +1,8 @@
+[submodule "credex-ecosystem/credex-core"]
+	path = credex-ecosystem/credex-core
+	url = https://github.com/Great-Sun-Group/credex-core.git
+
+[submodule "credex-ecosystem/vimbiso-pay"]
+	path = credex-ecosystem/vimbiso-pay
+	url = https://github.com/Great-Sun-Group/vimbiso-pay.git
+
