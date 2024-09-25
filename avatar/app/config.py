@@ -4,8 +4,8 @@ from pathlib import Path
 
 # For API communications between dev instances
 # Replace https://localhost:port with respective codespaces url for codespaces
-os.environ['CREDEX_CORE_API_URL'] = 'https://localhost:5000/api/v1 '
-os.environ['VIMBISO_PAY_API_URL'] = 'https://localhost:8000/??? '
+os.environ['CREDEX_CORE_API_URL'] = 'https://stunning-garbanzo-v766w6pwjw53p6q4-8080.app.github.dev/api/v1/ '
+os.environ['VIMBISO_PAY_API_URL'] = 'https://stunning-garbanzo-v766w6pwjw53p6q4-8080.app.github.dev/ '
 
 # GitHub configuration
 GH_USERNAME = os.environ.get('GH_USERNAME')
