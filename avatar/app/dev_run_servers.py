@@ -1,11 +1,9 @@
 import os
 import subprocess
 
-# needs to use config variables for paths, modules, etc
+# needs to use config variables for paths, modules, etc instead of hard coded as below
 
-
-def dev_run_servers():
-
+def dev_cleardocks():
     # Remove any existing containers with the names "credex-core" or "vimbiso-pay"
 
     try:
@@ -28,17 +26,19 @@ def dev_run_servers():
                         try:
                             subprocess.run(
                                 ['docker', 'rm', '-f', container], check=True, stderr=subprocess.DEVNULL)
-                            print(f"Successfully removed container: {
-                                container_name}")
+                            print(f"Successfully removed container: {container_name}")
                         except subprocess.CalledProcessError:
-                            print(f"Failed to remove container: {
-                                container_name}")
+                            print(f"Failed to remove container: {container_name}")
                 except subprocess.CalledProcessError:
-                    print(
-                        f"Failed to inspect container with ID: {container}")
+                    print(f"Failed to inspect container with ID: {container}")
     except subprocess.CalledProcessError:
-        print(
-            "Failed to list Docker containers. Proceeding with the rest of the script.")
+        print("Failed to list Docker containers. Proceeding with the rest of the script.")
+
+
+def dev_run_servers():
+    
+    # clear any existing docker instances with the names we need.
+    dev_cleardocks()
 
     # Fire up credex-core
     os.chdir('/workspaces/greatsun-dev/credex-ecosystem/credex-core')
@@ -59,7 +59,7 @@ def dev_run_servers():
     # Fire up vimbiso-pay
     os.chdir('/workspaces/greatsun-dev/credex-ecosystem/vimbiso-pay')
     subprocess.run(['docker', 'build', '-t', 'vimbiso-pay', '.'], check=True)
-    env_vars = "DJANGO_SETTINGS_MODULE=config.development\n"
+    env_vars = "DJANGO_SETTINGS_MODULE=config.settings\n"  # Updated this line
     env_vars += subprocess.check_output("env | grep -v ' '",
                                         shell=True).decode('utf-8')
     docker_run_cmd = [
