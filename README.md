@@ -25,7 +25,7 @@ To excel as a member of the greatsun-dev team:
 Every dev in this space is a project manager.
 
 ### Developer Intent #1: Current Project
-The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/context/current_project.md) file. When you first enter the greatsun-dev environment, instead of grabbing a task off the current project, create your own at the bottom:
+The avatar automatically prepares context for the LLM. As a developer, you have two places to express your intent into this context. The first place is in the [Current Project](avatar/project/current_project.md) file. When you first enter the greatsun-dev environment, instead of grabbing a task off the current project, create your own at the bottom:
 ```
 # But First Must Do
 Get a 30 minute guided tour of greatsun-dev and the credex-ecosystem software.
@@ -57,7 +57,7 @@ You can use `avatar refresh` any time to restart the conversation with the conte
 
 The LLM can get confused if the conversation thread gets too long, if there are repetitive tweaks on the same bug going back and forth, or if multiple topics or priorities enter the thread.
 
-Steps towards your goal are measured by the cadence of this one-conversation-at-a-time model. It's the developer's job to ensure that these iterations drive progress at a strategic level. The difference between the [Current Project](avatar/context/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar refresh`, whereas the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with the next commit but preserved in the repository history of greatsun-dev.
+Steps towards your goal are measured by the cadence of this one-conversation-at-a-time model. It's the developer's job to ensure that these iterations drive progress at a strategic level. The difference between the [Current Project](avatar/project/current_project.md) and Message From Developer is that the project will remain largly the same with small changes every time you `avatar refresh`, whereas the content of the messages back and for will leave the active memory of the avatar. Those messages are saved in conversation_thread in your commit, to be overwritten with the next commit but preserved in the repository history of greatsun-dev.
 
 #### Independent Mini Steps
 An unexpected but repeatedly established behaviour of the avatar is that when it has simple questions or wants a simple confirmation from you, it will respond to itself on your behalf. Within its response it will literally print the heading indicating your response, put words in your mouth confirming approving some minor decision it was asking about, and then proceeding with the recommendd action as if you had actually approved it.
@@ -80,7 +80,7 @@ You can always stage your current state before you query the avatar, so that you
 
   - `avatar commit`: Commits and pushes current code to all affected repos with a unified branch name and commit message.
 
-You've now got a workplan for the next 30 minutes stored in Current Project, so `avatar refresh` both to clear the conversation and to refresh the project description being sent. With a fresh and up-to-date context, you can use the workplan in [Current Project](avatar/context/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
+You've now got a workplan for the next 30 minutes stored in Current Project, so `avatar refresh` both to clear the conversation and to refresh the project description being sent. With a fresh and up-to-date context, you can use the workplan in [Current Project](avatar/project/current_project.md) to move forward towards your intent. The avatar can easily reference it and step through it with commands like:
 ```
 execute the next step in the current project
 ```
