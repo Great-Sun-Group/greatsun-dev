@@ -10,13 +10,12 @@ Greatsun-dev container operational, avatar script online. Submodule servers conf
 
 Test all main member action flows with simulation scripts.
 
-- Test WhatsApp Simulation Interface
+- WhatsApp Simulation Interface
    - Verify that all types of messages (text, interactive, etc.) are handled correctly.
-   - Test error handling and edge cases in the simulation.
-
-- Enhance Interactive Message Handling
    - Implement proper display and handling of interactive messages (e.g., buttons, list options).
    - Ensure that user responses to interactive messages are correctly processed.
+   - Test the `vimbisopay_terminal.py` script by running it and simulating different user inputs and actions.
+   - Verify that the script is able to communicate with the `vimbiso-pay` submodule and retrieve the expected data from the `credex-core` submodule.
 
 - Fix issues in the VimbisoPay Terminal simulator:
    - Improve error handling in the `refresh_member_info` and `_process_api_response` methods in `api_interactions.py`.
@@ -25,5 +24,3 @@ Test all main member action flows with simulation scripts.
 
 - Testing:
    - Write unit tests for the `APIInteractions` class to ensure that the API interactions are working correctly.
-   - Test the `vimbisopay_terminal.py` script by running it and simulating different user inputs and actions.
-   - Verify that the script is able to communicate with the `vimbiso-pay` submodule and retrieve the expected data from the `credex-core` submodule.
