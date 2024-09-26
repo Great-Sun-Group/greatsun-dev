@@ -3,43 +3,89 @@ import logging
 import requests
 import os
 from pathlib import Path
+import time
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # Import configuration
 try:
-    from avatar.app.config import VIMBISO_PAY_API_URL
-    logging.info("Successfully imported VIMBISO_PAY_API_URL from config")
+    from avatar.app.config import VIMBISO_PAY_API_URL, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN
+    logging.info("Successfully imported configuration from avatar.app.config")
 except ImportError as e:
     logging.error(f"Failed to import config: {e}")
-    VIMBISO_PAY_API_URL = os.environ.get('VIMBISO_PAY_API_URL', 'https://stunning-garbanzo-v766w6pwjw53p6q4-8080.app.github.dev/')
-    logging.info(f"Using VIMBISO_PAY_API_URL from environment: {VIMBISO_PAY_API_URL}")
+    VIMBISO_PAY_API_URL = os.environ.get('VIMBISO_PAY_API_URL')
+    WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID')
+    WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN')
+    logging.info(f"Using environment variables for configuration")
+
+# Get GitHub token from environment
+GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
+if not GITHUB_TOKEN:
+    logging.warning("GITHUB_TOKEN not found in environment variables")
 
 class WhatsAppSimulator:
     def __init__(self, phone_number):
         self.phone_number = phone_number
         self.base_url = VIMBISO_PAY_API_URL.strip()
         self.endpoint = f"{self.base_url}whatsapp/webhook"
-        
-        # Add authentication token (you may need to adjust this based on your actual authentication method)
-        self.auth_token = os.environ.get('VIMBISO_PAY_AUTH_TOKEN', 'default_token')
+        self.auth_token = WHATSAPP_ACCESS_TOKEN
 
     def send_message(self, message):
         """Send a WhatsApp message to the Vimbiso-Pay endpoint"""
+        timestamp = int(time.time())
         payload = {
-            "message": {"text": message},
-            "from": self.phone_number,
-            "type": "text"
+            "object": "whatsapp_business_account",
+            "entry": [{
+                "id": "WHATSAPP_BUSINESS_ACCOUNT_ID",
+                "changes": [{
+                    "value": {
+                        "messaging_product": "whatsapp",
+                        "metadata": {
+                            "display_phone_number": self.phone_number,
+                            "phone_number_id": WHATSAPP_PHONE_NUMBER_ID
+                        },
+                        "contacts": [{
+                            "profile": {
+                                "name": "Test User"
+                            },
+                            "wa_id": self.phone_number
+                        }],
+                        "messages": [{
+                            "from": self.phone_number,
+                            "id": f"wamid.test{timestamp}",
+                            "timestamp": str(timestamp),
+                            "text": {
+                                "body": message
+                            },
+                            "type": "text"
+                        }]
+                    },
+                    "field": "messages"
+                }]
+            }]
         }
         headers = {
             'Authorization': f'Bearer {self.auth_token}',
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Github-Token': GITHUB_TOKEN
         }
+        logging.debug(f"Sending request to {self.endpoint}")
+        logging.debug(f"Headers: {json.dumps(headers, indent=2)}")
+        logging.debug(f"Payload: {json.dumps(payload, indent=2)}")
         try:
-            response = requests.post(self.endpoint, json=payload, headers=headers)
+            response = requests.post(self.endpoint, json=payload, headers=headers, timeout=10)
+            logging.debug(f"Response status code: {response.status_code}")
+            logging.debug(f"Response content: {response.text}")
             response.raise_for_status()  # Raise an exception for bad status codes
-            return response.json()
+            return response.json() if response.text else {"message": "Empty response"}
+        except requests.Timeout:
+            logging.error("Request timed out")
+            return {"error": "Request timed out"}
+        except requests.ConnectionError:
+            logging.error("Connection error occurred")
+            return {"error": "Connection error"}
         except requests.RequestException as e:
             logging.error(f"Error sending message: {e}")
             return {"error": str(e)}
