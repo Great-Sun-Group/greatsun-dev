@@ -5,19 +5,23 @@ import os
 from pathlib import Path
 import time
 
+VIMBISO_PAY_API_URL = 'https://legendary-zebra-rv44w47wjj4fxjgr-8000.app.github.dev/'
+VIMBISO_PAY_GITHUB_TOKEN = 'token_here'
+WHATSAPP_PHONE_NUMBER_ID = 'WHATSAPP_PHONE_NUMBER_ID'
+WHATSAPP_ACCESS_TOKEN = 'WHATSAPP_ACCESS_TOKEN'
+
+'''
+are any of these needed?
+
+WHATSAPP_BUSINESS_ID = 344632735405603
+WHATSAPP_REGISTRATION_FLOW_ID = 1153987899171090
+WHATSAPP_COMPANY_REGISTRATION_FLOW_ID = 1442899179536364
+
+'''
+
 # Set up logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# Import configuration
-try:
-    from avatar.app.config import VIMBISO_PAY_API_URL, WHATSAPP_PHONE_NUMBER_ID, WHATSAPP_ACCESS_TOKEN
-    logging.info("Successfully imported configuration from avatar.app.config")
-except ImportError as e:
-    logging.error(f"Failed to import config: {e}")
-    VIMBISO_PAY_API_URL = os.environ.get('VIMBISO_PAY_API_URL')
-    WHATSAPP_PHONE_NUMBER_ID = os.environ.get('WHATSAPP_PHONE_NUMBER_ID')
-    WHATSAPP_ACCESS_TOKEN = os.environ.get('WHATSAPP_ACCESS_TOKEN')
-    logging.info(f"Using environment variables for configuration")
 
 # Get GitHub token from environment
 GITHUB_TOKEN = os.environ.get('GITHUB_TOKEN')
