@@ -2,3 +2,7 @@ anthropic
 requests
 PyGithub
 coolname
+django
+environ
+python-dotenv
+urllib3

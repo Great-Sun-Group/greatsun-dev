@@ -1,7 +1,7 @@
 # Current Project
 
 ## End State
-Production-ready mvps of credex-core and vimbiso-pay are realeased.
+Production-ready mvps of credex-core and vimbiso-pay are released.
 
 ## Current State
 Greatsun-dev container operational, avatar script online. Submodule servers confirmed running on local ports, testing in progress.

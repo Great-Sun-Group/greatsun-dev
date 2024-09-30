@@ -8,7 +8,7 @@ from load_project_git import load_project_git
 from avatar_commit_git import avatar_commit_git
 from avatar_submit_git import avatar_submit_git
 from response_parser import llm_response_for_developer, parse_llm_response
-from dev_run_servers import dev_run_servers
+from dev_run_servers import dev_run_servers, dev_cleardocks
 
 LARGE_LANGUAGE_MODEL = Anthropic(api_key=os.environ.get('CLAUDE'))
 MAX_LLM_ITERATIONS = 14
@@ -49,6 +49,10 @@ def main():
 
         if terminal_input.lower() == "avatar engage":
             dev_run_servers()
+            continue
+
+        if terminal_input.lower() == "avatar disengage":
+            dev_cleardocks()
             continue
 
         if terminal_input.lower() == "avatar commit":
